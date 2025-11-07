@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tailwindcss init:*)",
+      "Bash(npm exec tailwindcss:*)",
+      "Bash(npm install vue-router@4 axios:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev)",
+      "Bash(npm uninstall tailwindcss:*)",
+      "Bash(find:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,181 @@
+/* Design Tokens for AstraFlow - Stellar Theme */
+:root {
+  /* Dark Theme Colors (Default) */
+  --color-deep-space: #000000;
+  --color-midnight: #0a0a0f;
+  --color-cosmic-blue: #0f172a;
+  --color-stellar-blue: #3b82f6;
+  --color-nebula-purple: #8b5cf6;
+  --color-aurora-pink: #ec4899;
+  --color-cosmic-cyan: #06b6d4;
+  --color-starlight: #f1f5f9;
+  --color-nebula-glow: rgba(59, 130, 246, 0.5);
+  --color-aurora-glow: rgba(236, 72, 153, 0.5);
+
+  /* Glassmorphism Colors - Dark Theme */
+  --glass-bg: rgba(15, 23, 42, 0.4);
+  --glass-border: rgba(59, 130, 246, 0.2);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+
+  /* Typography */
+  --font-primary: 'Inter', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+
+  /* Spacing Scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  /* Animation Durations */
+  --duration-fast: 200ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-slower: 1000ms;
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  /* Animation Intensity */
+  --glow-intensity: 1;
+  --particle-opacity: 1;
+  --nebula-opacity: 1;
+}
+
+/* Light Theme Colors */
+[data-theme="light"] {
+  /* Light Theme Color Palette */
+  --color-deep-space: #ffffff;
+  --color-midnight: #f8fafc;
+  --color-cosmic-blue: #e0f2fe;
+  --color-stellar-blue: #3b82f6;
+  --color-nebula-purple: #8b5cf6;
+  --color-aurora-pink: #ec4899;
+  --color-cosmic-cyan: #06b6d4;
+  --color-starlight: #1e293b;
+  --color-nebula-glow: rgba(59, 130, 246, 0.35);
+  --color-aurora-glow: rgba(236, 72, 153, 0.35);
+
+  /* Glassmorphism Colors - Light Theme */
+  --glass-bg: rgba(224, 242, 254, 0.3);
+  --glass-border: rgba(59, 130, 246, 0.15);
+  --glass-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+
+  /* Light Theme Animation Intensity */
+  --glow-intensity: 0.7;
+  --particle-opacity: 0.7;
+  --nebula-opacity: 0.6;
+}
+
+/* Stellar Gradient Definitions */
+.gradient-stellar {
+  background: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple));
+}
+
+.gradient-aurora {
+  background: linear-gradient(135deg, var(--color-aurora-pink), var(--color-nebula-purple));
+}
+
+.gradient-cosmic {
+  background: linear-gradient(135deg, var(--color-cosmic-blue), var(--color-stellar-blue), var(--color-nebula-purple));
+}
+
+.gradient-nebula {
+  background: linear-gradient(135deg, var(--color-nebula-purple), var(--color-aurora-pink));
+}
+
+/* Glassmorphism Classes */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-dark {
+  background: rgba(10, 10, 15, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Glow Effects */
+.glow-blue {
+  box-shadow: 0 0 20px var(--color-nebula-glow);
+  opacity: var(--glow-intensity);
+}
+
+.glow-purple {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  opacity: var(--glow-intensity);
+}
+
+.glow-pink {
+  box-shadow: 0 0 20px var(--color-aurora-glow);
+  opacity: var(--glow-intensity);
+}
+
+/* Light Theme Specific Glow Effects */
+[data-theme="light"] .glow-blue {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}
+
+[data-theme="light"] .glow-purple {
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+}
+
+[data-theme="light"] .glow-pink {
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
+}
+
+/* Text Effects */
+.text-stellar {
+  background: var(--gradient-cosmic);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-aurora {
+  background: var(--gradient-aurora);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Cosmic Border */
+.border-cosmic {
+  border: 1px solid transparent;
+  background: linear-gradient(var(--color-deep-space), var(--color-deep-space)) padding-box,
+              var(--gradient-cosmic) border-box;
+}
+
+/* Animation Classes */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Drop Shadow Glow */
+.drop-shadow-glow {
+  filter: drop-shadow(0 0 10px var(--color-nebula-glow));
+}
+
+[data-theme="light"] .drop-shadow-glow {
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.3));
+}

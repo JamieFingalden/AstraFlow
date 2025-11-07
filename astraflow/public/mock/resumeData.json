@@ -1,0 +1,10 @@
+{
+  "name": "李星河",
+  "position": "Java后端开发工程师",
+  "skills": ["Spring Boot", "MySQL", "Redis", "Docker"],
+  "experience": [
+    "负责公司账单系统后端架构设计与接口实现",
+    "使用Spring Security与JWT实现统一认证机制",
+    "独立开发财务模块与多维度报表功能"
+  ]
+}
