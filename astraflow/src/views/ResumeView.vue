@@ -346,6 +346,27 @@ const getConnectionStyle = (index) => {
   color: var(--color-starlight);
 }
 
+/* Container Styles */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+  width: 100%;
+}
+
+/* Responsive Design for Container */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 var(--space-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 var(--space-sm);
+  }
+}
+
 /* Page Header */
 .page-header {
   padding: var(--space-2xl) 0;
@@ -357,6 +378,9 @@ const getConnectionStyle = (index) => {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-lg);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
 }
 
 .header-left {
@@ -426,6 +450,13 @@ const getConnectionStyle = (index) => {
 /* Main Content */
 .main-content {
   padding-bottom: var(--space-3xl);
+}
+
+.main-content .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+  width: 100%;
 }
 
 .resume-layout {
@@ -789,97 +820,134 @@ const getConnectionStyle = (index) => {
   opacity: 0.8;
 }
 
-/* Light Theme Styles */
+/* Light Theme Styles - 使用新的设计令牌 */
 [data-theme="light"] .section-title {
-  color: var(--color-starlight);
+  color: var(--color-text-primary) !important;
+  font-weight: 700;
 }
 
 [data-theme="light"] .form-label {
-  color: var(--color-stellar-blue);
-  opacity: 0.8;
+  color: var(--color-stellar-blue) !important;
+  font-weight: 600;
+  opacity: 0.9;
 }
 
 [data-theme="light"] .form-input,
 [data-theme="light"] .form-textarea {
-  background: rgba(255, 255, 255, 0.7);
-  border-color: rgba(59, 130, 246, 0.2);
-  color: var(--color-starlight);
+  background: var(--color-bg-card) !important;
+  border: 1px solid var(--color-border-light) !important;
+  color: var(--color-text-primary) !important;
+  font-weight: 500;
 }
 
 [data-theme="light"] .form-input:focus,
 [data-theme="light"] .form-textarea:focus {
-  border-color: var(--color-stellar-blue);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+  border-color: var(--color-stellar-blue) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.2) !important;
 }
 
 [data-theme="light"] .form-input::placeholder,
 [data-theme="light"] .form-textarea::placeholder {
-  color: var(--color-starlight);
-  opacity: 0.4;
+  color: var(--color-text-muted) !important;
+  opacity: 0.7;
 }
 
 [data-theme="light"] .upload-button {
-  border-color: rgba(59, 130, 246, 0.3);
-  background: rgba(255, 255, 255, 0.5);
+  border-color: var(--color-border-light) !important;
+  background: var(--color-bg-card) !important;
+  color: var(--color-text-secondary);
 }
 
 [data-theme="light"] .upload-button:hover {
-  border-color: var(--color-stellar-blue);
-  background: rgba(59, 130, 246, 0.08);
+  border-color: var(--color-stellar-blue) !important;
+  background: var(--color-bg-hover) !important;
+  color: var(--color-stellar-blue);
 }
 
 [data-theme="light"] .generate-button {
-  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3) !important;
+  background: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple)) !important;
 }
 
 [data-theme="light"] .generate-button:hover:not(:disabled) {
-  box-shadow: 0 15px 40px rgba(59, 130, 246, 0.35);
+  box-shadow: 0 15px 40px rgba(37, 99, 235, 0.4) !important;
+  transform: translateY(-2px);
 }
 
 [data-theme="light"] .waiting-text {
-  opacity: 0.4;
-  color: var(--color-starlight);
+  color: var(--color-text-secondary) !important;
+  opacity: 0.8;
 }
 
 [data-theme="light"] .generating-text {
-  color: var(--color-nebula-purple);
-  opacity: 0.8;
+  color: var(--color-nebula-purple) !important;
+  opacity: 0.9;
+  font-weight: 600;
 }
 
 [data-theme="light"] .resume-card {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(59, 130, 246, 0.15);
+  background: var(--color-bg-card) !important;
+  border: 1px solid var(--color-border-light) !important;
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.12) !important;
 }
 
 [data-theme="light"] .resume-name {
-  color: var(--color-starlight);
+  color: var(--color-text-primary) !important;
+  font-weight: 800;
 }
 
 [data-theme="light"] .resume-position {
-  color: var(--color-nebula-purple);
-  opacity: 0.7;
+  color: var(--color-nebula-purple) !important;
+  opacity: 0.85;
+  font-weight: 600;
 }
 
 [data-theme="light"] .section-label {
-  color: var(--color-stellar-blue);
-  opacity: 0.8;
+  color: var(--color-stellar-blue) !important;
+  opacity: 0.9;
+  font-weight: 600;
 }
 
 [data-theme="light"] .skill-tag {
-  background: rgba(59, 130, 246, 0.08);
-  border-color: rgba(59, 130, 246, 0.2);
-  color: var(--color-stellar-blue);
+  background: rgba(37, 99, 235, 0.1) !important;
+  border: 1px solid var(--color-stellar-blue) !important;
+  color: var(--color-stellar-blue) !important;
+  font-weight: 600;
 }
 
 [data-theme="light"] .exp-bullet {
-  background: var(--color-nebula-purple);
-  opacity: 0.7;
+  background: var(--color-nebula-purple) !important;
+  opacity: 0.9;
 }
 
 [data-theme="light"] .exp-text {
-  color: var(--color-starlight);
-  opacity: 0.7;
+  color: var(--color-text-secondary) !important;
+  opacity: 0.85;
+  line-height: 1.7;
+}
+
+/* 返回按钮亮色主题 */
+[data-theme="light"] .back-button {
+  background: var(--color-bg-card) !important;
+  border: 1px solid var(--color-border-light) !important;
+  color: var(--color-stellar-blue) !important;
+  font-weight: 600;
+}
+
+[data-theme="light"] .back-button:hover {
+  background: var(--color-bg-hover) !important;
+  border-color: var(--color-stellar-blue) !important;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15) !important;
+}
+
+[data-theme="light"] .page-title {
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="light"] .page-subtitle {
+  color: var(--color-text-secondary) !important;
+  opacity: 0.8;
 }
 
 /* Responsive Design */

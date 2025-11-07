@@ -49,10 +49,10 @@
 
       <!-- CTA按钮 -->
       <div class="flex flex-col sm:flex-row gap-4">
-        <router-link to="/resume" class="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full font-bold text-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/50">
+        <router-link to="/resume" class="cta-primary px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full font-bold text-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/50">
           开启星流之旅
         </router-link>
-        <router-link to="/job-analysis" class="px-8 py-4 border-2 border-purple-500/50 rounded-full font-bold text-lg hover:bg-purple-500/10 transition-all duration-300">
+        <router-link to="/job-analysis" class="cta-secondary px-8 py-4 border-2 border-purple-500/50 rounded-full font-bold text-lg hover:bg-purple-500/10 transition-all duration-300">
           探索更多
         </router-link>
       </div>
@@ -96,45 +96,210 @@ import MainLayout from '../layouts/MainLayout.vue'
   background: linear-gradient(135deg, #1e293b, #0f172a);
 }
 
-/* 亮色主题 */
+/* 亮色主题 - 全面优化 */
 [data-theme="light"] .hero-gradient {
-  background: linear-gradient(135deg, #e0f2fe, #f0f9ff);
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
 }
 
+/* 主要文字 - 强制覆盖 */
 [data-theme="light"] .text-gray-300 {
-  color: #64748b;
+  color: var(--color-text-primary) !important;
+  font-weight: 500;
 }
 
 [data-theme="light"] .text-gray-400 {
-  color: #475569;
+  color: var(--color-text-secondary) !important;
 }
 
-/* 功能卡片主题适配 */
-[data-theme="light"] .glass {
-  background: rgba(255, 255, 255, 0.7);
-  border-color: rgba(59, 130, 246, 0.2);
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+/* 主标题渐变文字 - 亮色主题专用 */
+[data-theme="light"] .bg-gradient-to-r {
+  background: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple), var(--color-aurora-pink)) !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  color: transparent !important;
 }
 
-/* 按钮主题适配 */
-[data-theme="light"] .hover\:from-blue-600:hover {
-  background: linear-gradient(to bottom right, #2563eb, #7c3aed);
+/* 功能卡片 - 完全重新设计 */
+[data-theme="light"] .group {
+  /* 覆盖Tailwind的背景渐变 */
+  background: var(--color-bg-card) !important;
+  border: 1px solid var(--color-border-light) !important;
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.08) !important;
 }
 
-[data-theme="light"] .hover\:bg-purple-500\/10:hover {
-  background-color: rgba(168, 85, 247, 0.1);
+[data-theme="light"] .group:hover {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-color: var(--color-stellar-blue) !important;
+  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.15) !important;
+  transform: scale(1.02) !important;
 }
 
-/* 标题颜色适配 */
-[data-theme="light"] .text-blue-400 {
-  color: #3b82f6;
+/* 覆盖功能卡片的悬停光晕效果 */
+[data-theme="light"] .group .absolute {
+  background: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple)) !important;
+  opacity: 0.1 !important;
+}
+
+[data-theme="light"] .group:hover .absolute {
+  opacity: 0.2 !important;
+}
+
+/* 功能卡片标题 - 更高对比度 */
+[data-theme="light"] .text-blue-300 {
+  color: var(--color-stellar-blue) !important;
+  font-weight: 700 !important;
 }
 
 [data-theme="light"] .text-purple-300 {
-  color: #a855f7;
+  color: var(--color-nebula-purple) !important;
+  font-weight: 700 !important;
 }
 
 [data-theme="light"] .text-pink-300 {
-  color: #ec4899;
+  color: var(--color-aurora-pink) !important;
+  font-weight: 700 !important;
+}
+
+/* 功能卡片描述文字 */
+[data-theme="light"] .group .text-gray-400 {
+  color: var(--color-text-secondary) !important;
+  line-height: 1.6 !important;
+}
+
+/* CTA按钮区域优化 - 统一白色文字 */
+
+/* "开始星流之旅" 主按钮 - 亮色主题 */
+[data-theme="light"] .cta-primary {
+  background: linear-gradient(135deg, #1e40af, #7c3aed) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  box-shadow: 0 8px 25px rgba(30, 64, 175, 0.3) !important;
+  border: none !important;
+  position: relative;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .cta-primary:hover {
+  background: linear-gradient(135deg, #1e3a8a, #6d28d9) !important;
+  box-shadow: 0 12px 35px rgba(30, 64, 175, 0.4) !important;
+  transform: translateY(-3px) scale(1.02) !important;
+  color: white !important;
+}
+
+[data-theme="light"] .cta-primary:active {
+  transform: translateY(-1px) scale(1.01) !important;
+  color: white !important;
+}
+
+/* "开始星流之旅" 按钮内部光晕效果 */
+[data-theme="light"] .cta-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.8s;
+}
+
+[data-theme="light"] .cta-primary:hover::before {
+  left: 100%;
+}
+
+/* "探索更多" 次按钮 - 亮色主题 */
+[data-theme="light"] .cta-secondary {
+  background: rgba(124, 58, 237, 0.9) !important;
+  border: 2px solid #7c3aed !important;
+  color: white !important;
+  font-weight: 600 !important;
+  backdrop-filter: blur(10px);
+  position: relative;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-theme="light"] .cta-secondary:hover {
+  background: rgba(37, 99, 235, 0.9) !important;
+  border-color: #2563eb !important;
+  color: white !important;
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* 确保常态下就是白色文字 - 超强优先级 */
+.cta-primary:not(:hover):not(:active):not(:focus),
+.cta-secondary:not(:hover):not(:active):not(:focus),
+a.cta-primary:not(:hover):not(:active):not(:focus),
+a.cta-secondary:not(:hover):not(:active):not(:focus) {
+  color: white !important;
+}
+
+/* 确保所有状态下都是白色文字 */
+.cta-primary,
+.cta-secondary,
+a.cta-primary,
+a.cta-secondary,
+.cta-primary *,
+.cta-secondary * {
+  color: white !important;
+}
+
+.cta-primary:hover,
+.cta-secondary:hover,
+a.cta-primary:hover,
+a.cta-secondary:hover,
+.cta-primary:hover *,
+.cta-secondary:hover * {
+  color: white !important;
+}
+
+/* 针对所有可能的状态 */
+.cta-primary:active,
+.cta-secondary:active,
+.cta-primary:focus,
+.cta-secondary:focus {
+  color: white !important;
+}
+
+/* 特别针对router-link的内部文字 */
+.cta-primary span,
+.cta-secondary span,
+.cta-primary .text-lg,
+.cta-secondary .text-lg {
+  color: white !important;
+}
+
+/* 按钮通用优化 */
+[data-theme="light"] .cta-primary,
+[data-theme="light"] .cta-secondary {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border-radius: 9999px !important;
+}
+
+/* 确保按钮容器在亮色主题下的间距 */
+[data-theme="light"] .flex-col.sm\:flex-row {
+  gap: 1.25rem !important;
+}
+
+/* 整体背景和布局优化 */
+[data-theme="light"] .min-h-screen {
+  background: linear-gradient(135deg, #ffffff, #f8fafc, #ffffff);
+}
+
+/* 确保所有文字在亮色主题下都有足够对比度 */
+[data-theme="light"] .text-center {
+  color: var(--color-text-primary);
+}
+
+[data-theme="light"] .text-2xl,
+[data-theme="light"] .text-4xl,
+[data-theme="light"] .text-5xl {
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="light"] .text-lg,
+[data-theme="light"] .text-xl {
+  color: var(--color-text-secondary) !important;
 }
 </style>
