@@ -10,10 +10,10 @@
           </span>
         </h1>
         <div class="text-2xl md:text-4xl lg:text-5xl font-bold mb-4 text-gray-300">
-          AI智能求职平台
+          AI智能报销管理平台
         </div>
         <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-          让AI为你点亮职业星空，智能匹配理想职位，定制专属职业发展路径
+          AI自动识别发票账单，一键完成智能报销
         </p>
       </div>
 
@@ -22,9 +22,9 @@
         <div class="group relative p-8 rounded-2xl bg-gradient-to-br from-blue-900/30 to-purple-900/30 backdrop-blur-md border border-blue-500/20 hover:border-blue-400/50 transition-all duration-500 hover:scale-105">
           <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl opacity-0 group-hover:opacity-30 blur transition-opacity duration-500"></div>
           <div class="relative">
-            <div class="text-4xl mb-4">✨</div>
-            <h3 class="text-xl font-bold mb-2 text-blue-300">智能简历</h3>
-            <p class="text-gray-400">AI驱动的简历优化，突出你的核心竞争力</p>
+            <div class="text-4xl mb-4">📄</div>
+            <h3 class="text-xl font-bold mb-2 text-blue-300">智能识别</h3>
+            <p class="text-gray-400">AI自动识别发票、收据和账单信息</p>
           </div>
         </div>
 
@@ -32,8 +32,8 @@
           <div class="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl opacity-0 group-hover:opacity-30 blur transition-opacity duration-500"></div>
           <div class="relative">
             <div class="text-4xl mb-4">🎯</div>
-            <h3 class="text-xl font-bold mb-2 text-purple-300">精准匹配</h3>
-            <p class="text-gray-400">深度分析岗位需求，智能推荐最适合机会</p>
+            <h3 class="text-xl font-bold mb-2 text-purple-300">自动分类</h3>
+            <p class="text-gray-400">智能分类管理，账单结构化一目了然</p>
           </div>
         </div>
 
@@ -41,19 +41,19 @@
           <div class="absolute -inset-1 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl opacity-0 group-hover:opacity-30 blur transition-opacity duration-500"></div>
           <div class="relative">
             <div class="text-4xl mb-4">🚀</div>
-            <h3 class="text-xl font-bold mb-2 text-pink-300">职业规划</h3>
-            <p class="text-gray-400">可视化职业路径，助力长远发展</p>
+            <h3 class="text-xl font-bold mb-2 text-pink-300">一键报销</h3>
+            <p class="text-gray-400">快速生成报销单，告别繁琐流程</p>
           </div>
         </div>
       </div>
 
       <!-- CTA按钮 -->
       <div class="flex flex-col sm:flex-row gap-4">
-        <router-link to="/resume" class="cta-primary px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full font-bold text-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/50">
-          开启星流之旅
+        <router-link to="/expense" class="cta-primary px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full font-bold text-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/50">
+          开启智能报销
         </router-link>
-        <router-link to="/job-analysis" class="cta-secondary px-8 py-4 border-2 border-purple-500/50 rounded-full font-bold text-lg hover:bg-purple-500/10 transition-all duration-300">
-          探索更多
+        <router-link to="/analytics" class="cta-secondary px-8 py-4 border-2 border-purple-500/50 rounded-full font-bold text-lg hover:bg-purple-500/10 transition-all duration-300">
+          数据分析
         </router-link>
       </div>
     </div>

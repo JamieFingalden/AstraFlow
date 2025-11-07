@@ -18,13 +18,22 @@
       </div>
       <div class="hidden md:flex items-center space-x-8">
         <router-link to="/" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">首页</router-link>
-        <router-link to="/resume" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">简历生成</router-link>
-        <router-link to="/job-analysis" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">岗位分析</router-link>
-        <router-link to="/profile" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">职业画像</router-link>
+        <router-link to="/expense" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">费用管理</router-link>
+        <router-link to="/analytics" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">数据分析</router-link>
+        <router-link to="/profile" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">个人中心</router-link>
       </div>
 
-      <!-- 主题切换按钮 -->
-      <ThemeToggle />
+      <!-- 右侧操作区 -->
+      <div class="flex items-center space-x-4">
+        <button class="hidden md:inline-flex px-4 py-2 text-gray-300 hover:text-white font-medium transition-colors duration-300">
+          登录
+        </button>
+        <button class="inline-flex px-5 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/25">
+          注册
+        </button>
+        <!-- 主题切换按钮 -->
+        <ThemeToggle />
+      </div>
     </nav>
 
     <!-- 主容器 -->
@@ -40,15 +49,15 @@
             <div class="text-center">
               <div class="flex items-center justify-center space-x-2 mb-4">
                 <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-lg font-bold">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400 text-lg font-bold">
                   ASTRAFLOW
                 </span>
               </div>
               <p class="text-gray-400 text-sm">
-                让求职更智能，让未来更清晰 ✨
+                Smart Expense Made Simple ✨
               </p>
               <p class="text-gray-500 text-xs mt-2">
-                © 2024 AstraFlow. All rights reserved.
+                © 2025 AstraFlow. All rights reserved.
               </p>
             </div>
           </div>
@@ -108,17 +117,6 @@ import ThemeToggle from '../components/ui/ThemeToggle.vue'
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--color-border-light);
   backdrop-filter: blur(20px);
-  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.08);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease-in-out;
-}
-
-/* 炫光效果已移除，无需显示/隐藏控制 */
-
-/* 确保暗色模式边框样式正确 */
-[data-theme="dark"] nav {
-  border: none;
 }
 
 [data-theme="light"] .hover\:border-blue-400\/40:hover {
@@ -141,7 +139,6 @@ import ThemeToggle from '../components/ui/ThemeToggle.vue'
   font-weight: 600;
 }
 
-
 /* 亮色主题下的页脚调整 - 更好的对比度 */
 [data-theme="light"] footer > div {
   background: rgba(255, 255, 255, 0.95);
@@ -156,15 +153,6 @@ import ThemeToggle from '../components/ui/ThemeToggle.vue'
   color: var(--color-text-muted);
   opacity: 0.7;
 }
-
-/* 暗色模式导航栏 - 简洁无炫光 */
-[data-theme="dark"] nav {
-  box-shadow: none;
-  position: relative;
-  transition: all 0.3s ease-in-out;
-}
-
-/* 移除所有炫光效果 */
 
 /* 品牌文字亮色主题适配 */
 [data-theme="light"] .bg-clip-text {
