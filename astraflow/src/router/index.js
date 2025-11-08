@@ -6,6 +6,7 @@ import CareerProfileView from '../views/CareerProfileView.vue'
 import Dashboard from '../views/dashboard/Dashboard.vue'
 import InvoiceUpload from '../views/InvoiceUpload.vue'
 import AnalysisPage from '../views/AnalysisPage.vue'
+import BillManagement from '../views/BillManagement.vue'
 
 const routes = [
   {
@@ -27,6 +28,11 @@ const routes = [
     path: '/analysis',
     name: 'AnalysisPage',
     component: AnalysisPage
+  },
+  {
+    path: '/bills',
+    name: 'BillManagement',
+    component: BillManagement
   },
   {
     path: '/resume',
