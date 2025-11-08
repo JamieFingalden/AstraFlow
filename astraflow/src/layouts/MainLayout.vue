@@ -18,6 +18,9 @@
       </div>
       <div class="hidden md:flex items-center space-x-8">
         <router-link to="/" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">首页</router-link>
+        <router-link to="/upload" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">发票上传</router-link>
+        <router-link to="/analysis" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">AI识别结果</router-link>
+        <router-link to="/dashboard" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">账单可视化</router-link>
         <router-link to="/expense" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">费用管理</router-link>
         <router-link to="/analytics" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">数据分析</router-link>
         <router-link to="/profile" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">个人中心</router-link>

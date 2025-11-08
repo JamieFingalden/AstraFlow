@@ -49,11 +49,11 @@
 
       <!-- CTA按钮 -->
       <div class="flex flex-col sm:flex-row gap-4">
-        <router-link to="/expense" class="cta-primary px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full font-bold text-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/50">
-          开启智能报销
+        <router-link to="/upload" class="cta-primary px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full font-bold text-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/50">
+          上传发票账单
         </router-link>
-        <router-link to="/analytics" class="cta-secondary px-8 py-4 border-2 border-purple-500/50 rounded-full font-bold text-lg hover:bg-purple-500/10 transition-all duration-300">
-          数据分析
+        <router-link to="/dashboard" class="cta-secondary px-8 py-4 border-2 border-purple-500/50 rounded-full font-bold text-lg hover:bg-purple-500/10 transition-all duration-300">
+          账单可视化
         </router-link>
       </div>
     </div>

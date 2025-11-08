@@ -3,12 +3,30 @@ import HomeView from '../views/HomeView.vue'
 import ResumeView from '../views/ResumeView.vue'
 import JobAnalysisView from '../views/JobAnalysisView.vue'
 import CareerProfileView from '../views/CareerProfileView.vue'
+import Dashboard from '../views/dashboard/Dashboard.vue'
+import InvoiceUpload from '../views/InvoiceUpload.vue'
+import AnalysisPage from '../views/AnalysisPage.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: HomeView
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: Dashboard
+  },
+  {
+    path: '/upload',
+    name: 'InvoiceUpload',
+    component: InvoiceUpload
+  },
+  {
+    path: '/analysis',
+    name: 'AnalysisPage',
+    component: AnalysisPage
   },
   {
     path: '/resume',
