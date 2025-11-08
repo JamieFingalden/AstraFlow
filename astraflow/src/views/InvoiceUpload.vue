@@ -397,12 +397,11 @@ import {
   SunIcon,
   MoonIcon
 } from 'lucide-vue-next'
+import { useTheme } from '../composables/useTheme'
 
 const router = useRouter()
+const { theme, toggleTheme, isDark } = useTheme()
 
-// Theme state
-const isDark = ref(false)
-const isMounted = ref(false)
 
 // Upload state
 const isUploading = ref(false)
@@ -478,30 +477,6 @@ const uploadHistory = ref([
   }
 ])
 
-// Theme functions
-const toggleTheme = () => {
-  isDark.value = !isDark.value
-}
-
-onMounted(() => {
-  isMounted.value = true
-  // Check system preference for theme
-  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  isDark.value = localStorage.getItem('theme') === 'dark' || (systemPrefersDark && !localStorage.getItem('theme'))
-
-  // Apply theme class to document
-  document.documentElement.classList.toggle('dark', isDark.value)
-})
-
-// Watch for theme changes
-import { watch } from 'vue'
-
-watch(isDark, (newVal) => {
-  if (isMounted.value) {
-    document.documentElement.classList.toggle('dark', newVal)
-    localStorage.setItem('theme', newVal ? 'dark' : 'light')
-  }
-}, { immediate: true })
 
 // File upload functions
 const triggerFileUpload = () => {

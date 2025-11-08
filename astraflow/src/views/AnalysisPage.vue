@@ -189,7 +189,7 @@
             <div class="h-64">
               <v-chart
                 :option="categoryChartOption"
-                :theme="isDark ? 'dark' : 'light'"
+                :theme="isDark() ? 'dark' : 'light'"
                 style="height: 100%; width: 100%;"
               />
             </div>
@@ -211,7 +211,7 @@
             <div class="h-64">
               <v-chart
                 :option="trendChartOption"
-                :theme="isDark ? 'dark' : 'light'"
+                :theme="isDark() ? 'dark' : 'light'"
                 style="height: 100%; width: 100%;"
               />
             </div>
@@ -233,7 +233,7 @@
             <div class="h-64">
               <v-chart
                 :option="sourceChartOption"
-                :theme="isDark ? 'dark' : 'light'"
+                :theme="isDark() ? 'dark' : 'light'"
                 style="height: 100%; width: 100%;"
               />
             </div>
@@ -308,8 +308,10 @@ import {
   DownloadIcon,
   UploadIcon
 } from 'lucide-vue-next'
+import { useTheme } from '../composables/useTheme'
 
 const router = useRouter()
+const { theme, toggleTheme, isDark } = useTheme()
 
 // Register ECharts components
 use([
@@ -322,10 +324,6 @@ use([
   LegendComponent,
   GridComponent
 ])
-
-// Theme state
-const isDark = ref(false)
-const isMounted = ref(false)
 
 // Loading state
 const isLoading = ref(true)
@@ -411,7 +409,7 @@ const categoryChartOption = computed(() => ({
     orient: 'vertical',
     left: 'left',
     textStyle: {
-      color: isDark.value ? '#9ca3af' : '#6b7280'
+      color: isDark() ? '#9ca3af' : '#6b7280'
     }
   },
   series: [
@@ -456,27 +454,27 @@ const trendChartOption = computed(() => ({
     data: ['11-02', '11-03', '11-04', '11-05', '11-06', '11-07', '11-08'],
     axisLine: {
       lineStyle: {
-        color: isDark.value ? '#374151' : '#e5e7eb'
+        color: isDark() ? '#374151' : '#e5e7eb'
       }
     },
     axisLabel: {
-      color: isDark.value ? '#9ca3af' : '#6b7280'
+      color: isDark() ? '#9ca3af' : '#6b7280'
     }
   },
   yAxis: {
     type: 'value',
     axisLine: {
       lineStyle: {
-        color: isDark.value ? '#374151' : '#e5e7eb'
+        color: isDark() ? '#374151' : '#e5e7eb'
       }
     },
     axisLabel: {
-      color: isDark.value ? '#9ca3af' : '#6b7280',
+      color: isDark() ? '#9ca3af' : '#6b7280',
       formatter: '¥{value}'
     },
     splitLine: {
       lineStyle: {
-        color: isDark.value ? '#374151' : '#e5e7eb'
+        color: isDark() ? '#374151' : '#e5e7eb'
       }
     }
   },
@@ -499,11 +497,11 @@ const trendChartOption = computed(() => ({
           colorStops: [
             {
               offset: 0,
-              color: isDark.value ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.2)'
+              color: isDark() ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.2)'
             },
             {
               offset: 1,
-              color: isDark.value ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)'
+              color: isDark() ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)'
             }
           ]
         }
@@ -530,27 +528,27 @@ const sourceChartOption = computed(() => ({
     data: ['微信支付', '支付宝', '银行卡', '现金'],
     axisLine: {
       lineStyle: {
-        color: isDark.value ? '#374151' : '#e5e7eb'
+        color: isDark() ? '#374151' : '#e5e7eb'
       }
     },
     axisLabel: {
-      color: isDark.value ? '#9ca3af' : '#6b7280'
+      color: isDark() ? '#9ca3af' : '#6b7280'
     }
   },
   yAxis: {
     type: 'value',
     axisLine: {
       lineStyle: {
-        color: isDark.value ? '#374151' : '#e5e7eb'
+        color: isDark() ? '#374151' : '#e5e7eb'
       }
     },
     axisLabel: {
-      color: isDark.value ? '#9ca3af' : '#6b7280',
+      color: isDark() ? '#9ca3af' : '#6b7280',
       formatter: '¥{value}'
     },
     splitLine: {
       lineStyle: {
-        color: isDark.value ? '#374151' : '#e5e7eb'
+        color: isDark() ? '#374151' : '#e5e7eb'
       }
     }
   },
@@ -589,10 +587,6 @@ const sourceChartOption = computed(() => ({
   ]
 }))
 
-// Theme functions
-const toggleTheme = () => {
-  isDark.value = !isDark.value
-}
 
 // Fetch analysis result from API (mock implementation)
 const fetchAnalysisResult = async () => {
@@ -633,28 +627,9 @@ const goToUpload = () => {
 
 // Lifecycle
 onMounted(async () => {
-  isMounted.value = true
-
-  // Check system preference for theme
-  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  isDark.value = localStorage.getItem('theme') === 'dark' || (systemPrefersDark && !localStorage.getItem('theme'))
-
-  // Apply theme class to document
-  document.documentElement.classList.toggle('dark', isDark.value)
-
   // Fetch analysis data
   await fetchAnalysisResult()
 })
-
-// Watch for theme changes
-import { watch } from 'vue'
-
-watch(isDark, (newVal) => {
-  if (isMounted.value) {
-    document.documentElement.classList.toggle('dark', newVal)
-    localStorage.setItem('theme', newVal ? 'dark' : 'light')
-  }
-}, { immediate: true })
 </script>
 
 <style scoped>

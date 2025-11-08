@@ -343,10 +343,9 @@ import {
   MoonIcon,
   UserCircle
 } from 'lucide-vue-next'
+import { useTheme } from '../../composables/useTheme'
 
-// Theme state
-const isDark = ref(false)
-const isMounted = ref(false)
+const { theme, toggleTheme, isDark } = useTheme()
 
 // Refs for animation elements
 const cardRefs = ref([])
@@ -427,33 +426,10 @@ const animateElements = () => {
   })
 }
 
-// Toggle theme function
-const toggleTheme = () => {
-  isDark.value = !isDark.value
-}
-
 onMounted(() => {
-  isMounted.value = true
-  // Check system preference for theme
-  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  isDark.value = localStorage.getItem('theme') === 'dark' || (systemPrefersDark && !localStorage.getItem('theme'))
-
-  // Apply theme class to document
-  document.documentElement.classList.toggle('dark', isDark.value)
-
   // Animate elements after a short delay
   setTimeout(animateElements, 100)
 })
-
-// Watch for theme changes and update class on document element
-import { watch } from 'vue'
-
-watch(isDark, (newVal) => {
-  if (isMounted.value) {
-    document.documentElement.classList.toggle('dark', newVal)
-    localStorage.setItem('theme', newVal ? 'dark' : 'light')
-  }
-}, { immediate: true })
 
 onUnmounted(() => {
   // Clean up any animation timeouts if needed

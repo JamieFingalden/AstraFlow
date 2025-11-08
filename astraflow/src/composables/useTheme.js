@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const THEME_KEY = 'astraflow-theme'
 const DEFAULT_THEME = 'dark'
@@ -41,8 +41,8 @@ export function useTheme() {
     }
   }
 
-  const isDark = () => theme.value === 'dark'
-  const isLight = () => theme.value === 'light'
+  const isDark = computed(() => theme.value === 'dark')
+  const isLight = computed(() => theme.value === 'light')
 
   return {
     theme,
