@@ -1,12 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import ResumeView from '../views/ResumeView.vue'
-import JobAnalysisView from '../views/JobAnalysisView.vue'
-import CareerProfileView from '../views/CareerProfileView.vue'
 import Dashboard from '../views/dashboard/Dashboard.vue'
 import InvoiceUpload from '../views/InvoiceUpload.vue'
 import AnalysisPage from '../views/AnalysisPage.vue'
 import BillManagement from '../views/BillManagement.vue'
+import ReimbursementStatistics from '../views/ReimbursementStatistics.vue'
+import SettingsCenter from '../views/SettingsCenter.vue'
 
 const routes = [
   {
@@ -15,19 +14,9 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: Dashboard
-  },
-  {
     path: '/upload',
     name: 'InvoiceUpload',
     component: InvoiceUpload
-  },
-  {
-    path: '/analysis',
-    name: 'AnalysisPage',
-    component: AnalysisPage
   },
   {
     path: '/bills',
@@ -35,19 +24,24 @@ const routes = [
     component: BillManagement
   },
   {
-    path: '/resume',
-    name: 'Resume',
-    component: ResumeView
+    path: '/visualization',
+    name: 'Visualization',
+    component: Dashboard
   },
   {
-    path: '/job-analysis',
-    name: 'JobAnalysis',
-    component: JobAnalysisView
+    path: '/ai-result',
+    name: 'AIResult',
+    component: AnalysisPage
   },
   {
-    path: '/profile',
-    name: 'CareerProfile',
-    component: CareerProfileView
+    path: '/statistics',
+    name: 'ReimbursementStatistics',
+    component: ReimbursementStatistics
+  },
+  {
+    path: '/settings',
+    name: 'SettingsCenter',
+    component: SettingsCenter
   }
 ]
 

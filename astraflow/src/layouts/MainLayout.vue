@@ -13,21 +13,75 @@
       <div class="text-2xl font-bold flex items-center space-x-2">
         <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse shadow-lg shadow-blue-500/50"></div>
         <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-          ASTRAFLOW
+          AstraFlow 星流
         </span>
       </div>
+
+      <!-- 桌面端导航 -->
       <div class="hidden md:flex items-center space-x-8">
-        <router-link to="/" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">首页</router-link>
-        <router-link to="/upload" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">发票上传</router-link>
-        <router-link to="/analysis" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">AI识别结果</router-link>
-        <router-link to="/dashboard" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">账单可视化</router-link>
-        <router-link to="/bills" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">账单管理</router-link>
-        <router-link to="/analytics" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">数据分析</router-link>
-        <router-link to="/profile" class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg">个人中心</router-link>
+        <router-link
+          to="/"
+          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/' }"
+        >
+          首页
+        </router-link>
+        <router-link
+          to="/upload"
+          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/upload' }"
+        >
+          发票上传
+        </router-link>
+        <router-link
+          to="/bills"
+          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/bills' }"
+        >
+          账单管理
+        </router-link>
+        <router-link
+          to="/visualization"
+          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/visualization' }"
+        >
+          可视化
+        </router-link>
+        <router-link
+          to="/ai-result"
+          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/ai-result' }"
+        >
+          AI识别
+        </router-link>
+        <router-link
+          to="/statistics"
+          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/statistics' }"
+        >
+          报销统计
+        </router-link>
+        <router-link
+          to="/settings"
+          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/settings' }"
+        >
+          设置中心
+        </router-link>
       </div>
 
+      <!-- 移动端汉堡菜单按钮 -->
+      <button
+        class="md:hidden text-gray-300 focus:outline-none"
+        @click="toggleMobileMenu"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path :d="mobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
       <!-- 右侧操作区 -->
-      <div class="flex items-center space-x-4">
+      <div class="hidden md:flex items-center space-x-4">
         <button class="hidden md:inline-flex px-4 py-2 text-gray-300 hover:text-white font-medium transition-colors duration-300">
           登录
         </button>
@@ -38,6 +92,82 @@
         <ThemeToggle />
       </div>
     </nav>
+
+    <!-- 移动端导航菜单 -->
+    <div
+      v-if="mobileMenuOpen"
+      class="md:hidden fixed inset-0 z-40 bg-black/90 backdrop-blur-lg"
+      @click="closeMobileMenu"
+    >
+      <div class="flex flex-col items-center justify-center h-full space-y-8" @click.stop>
+        <router-link
+          to="/"
+          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/' }"
+          @click="closeMobileMenu"
+        >
+          首页
+        </router-link>
+        <router-link
+          to="/upload"
+          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/upload' }"
+          @click="closeMobileMenu"
+        >
+          发票上传
+        </router-link>
+        <router-link
+          to="/bills"
+          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/bills' }"
+          @click="closeMobileMenu"
+        >
+          账单管理
+        </router-link>
+        <router-link
+          to="/visualization"
+          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/visualization' }"
+          @click="closeMobileMenu"
+        >
+          可视化
+        </router-link>
+        <router-link
+          to="/ai-result"
+          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/ai-result' }"
+          @click="closeMobileMenu"
+        >
+          AI识别
+        </router-link>
+        <router-link
+          to="/statistics"
+          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/statistics' }"
+          @click="closeMobileMenu"
+        >
+          报销统计
+        </router-link>
+        <router-link
+          to="/settings"
+          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
+          :class="{ 'text-blue-400 font-medium': $route.path === '/settings' }"
+          @click="closeMobileMenu"
+        >
+          设置中心
+        </router-link>
+        <div class="flex items-center space-x-4 mt-8">
+          <button class="px-4 py-2 text-gray-300 hover:text-white font-medium transition-colors duration-300">
+            登录
+          </button>
+          <button class="px-5 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/25">
+            注册
+          </button>
+          <!-- 移动端主题切换按钮 -->
+          <ThemeToggle />
+        </div>
+      </div>
+    </div>
 
     <!-- 主容器 -->
     <div class="relative z-10 min-h-screen flex flex-col">
@@ -71,7 +201,21 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import ThemeToggle from '../components/ui/ThemeToggle.vue'
+
+// 移动端菜单状态
+const mobileMenuOpen = ref(false)
+
+// 切换移动端菜单
+const toggleMobileMenu = () => {
+  mobileMenuOpen.value = !mobileMenuOpen.value
+}
+
+// 关闭移动端菜单
+const closeMobileMenu = () => {
+  mobileMenuOpen.value = false
+}
 </script>
 
 <style scoped>

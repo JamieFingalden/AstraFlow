@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(npm run dev:*)",
+      "Bash(go build:*)",
+      "Bash(./astraflow-server:*)",
+      "Bash(curl:*)",
+      "Bash(tree:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
