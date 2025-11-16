@@ -1,5 +1,6 @@
 server:
   port: 8080
+  jwt_secret: "astraflow_jwt_secret_key_2025"
 
 mysql:
   host: "127.0.0.1"

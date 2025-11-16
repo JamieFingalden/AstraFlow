@@ -3,3 +3,9 @@ AstraFlow-go/.idea/dataSources.xml
 AstraFlow-go/.idea/modules.xml
 AstraFlow-go/.idea/sqldialects.xml
 AstraFlow-go/.idea/vcs.xml
+.idea/.gitignore
+.idea/AstraFlow.iml
+.idea/dataSources.xml
+.idea/modules.xml
+.idea/sqldialects.xml
+.idea/vcs.xml

@@ -12,7 +12,8 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port int `mapstructure:"port"`
+	Port      int    `mapstructure:"port"`
+	JwtSecret string `mapstructure:"jwt_secret"`
 }
 
 type MySQLConfig struct {

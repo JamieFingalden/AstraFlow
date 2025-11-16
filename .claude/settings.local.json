@@ -17,7 +17,10 @@
       "Bash(timeout 5s ./go-invoice-api:*)",
       "Bash(go clean:*)",
       "Bash(go mod download:*)",
-      "Bash(go mod verify:*)"
+      "Bash(go mod verify:*)",
+      "Bash(go run:*)",
+      "Bash(mysql:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
