@@ -20,7 +20,8 @@
       "Bash(go mod verify:*)",
       "Bash(go run:*)",
       "Bash(mysql:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(go test:*)"
     ],
     "deny": [],
     "ask": []

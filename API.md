@@ -36,6 +36,8 @@ AstraFlow 是一个面向中小微企业与个人用户的财务管理系统，�
 | 创建租户 | POST | /api/v1/tenants |
 | 获取租户列表 | GET | /api/v1/tenants |
 | 获取租户详情 | GET | /api/v1/tenants/{id} |
+| 更新租户 | PUT | /api/v1/tenants/{id} |
+| 删除租户 | DELETE | /api/v1/tenants/{id} |
 
 ## **3. Invoice 发票接口**
 
