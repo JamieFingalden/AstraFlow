@@ -2,8 +2,9 @@ package middleware
 
 import (
 	"AstraFlow-go/pkg/jwt"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 // AuthMiddleware JWT认证中间件

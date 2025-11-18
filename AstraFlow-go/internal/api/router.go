@@ -4,6 +4,7 @@ import (
 	"AstraFlow-go/internal/database"
 	"AstraFlow-go/internal/handler"
 	"AstraFlow-go/pkg/middleware"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,14 +28,14 @@ func InitRouter() *gin.Engine {
 		protected.Use(middleware.AuthMiddleware())
 		{
 			protected.POST("/auth/refresh", authHandler.RefreshToken) // 刷新Token
-			protected.GET("/auth/me", authHandler.GetCurrentUser)    // 获取当前用户信息
+			protected.GET("/auth/me", authHandler.GetCurrentUser)     // 获取当前用户信息
 
 			// 租户相关接口
 			tenantHandler := handler.NewTenantHandler()
-			protected.POST("/tenants", tenantHandler.CreateTenant)   // 创建租户
-			protected.GET("/tenants", tenantHandler.GetTenantList)   // 获取租户列表
-			protected.GET("/tenants/:id", tenantHandler.GetTenant)   // 获取租户详情
-			protected.PUT("/tenants/:id", tenantHandler.UpdateTenant) // 更新租户
+			protected.POST("/tenants", tenantHandler.CreateTenant)       // 创建租户
+			protected.GET("/tenants", tenantHandler.GetTenantList)       // 获取租户列表
+			protected.GET("/tenants/:id", tenantHandler.GetTenant)       // 获取租户详情
+			protected.PUT("/tenants/:id", tenantHandler.UpdateTenant)    // 更新租户
 			protected.DELETE("/tenants/:id", tenantHandler.DeleteTenant) // 删除租户
 		}
 	}

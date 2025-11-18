@@ -3,9 +3,10 @@ package handler
 import (
 	"AstraFlow-go/internal/service"
 	"AstraFlow-go/pkg/jwt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 // AuthHandler 认证处理器

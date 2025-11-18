@@ -3,9 +3,10 @@ package database
 import (
 	"AstraFlow-go/pkg/config"
 	"fmt"
+	"log"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"log"
 )
 
 // DB 全局数据库连接实例

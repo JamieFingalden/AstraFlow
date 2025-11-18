@@ -3,17 +3,18 @@ package jwt
 import (
 	"AstraFlow-go/internal/model"
 	"AstraFlow-go/pkg/config"
-	"github.com/golang-jwt/jwt/v5"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // Claims JWT声明结构
 // 定义JWT Token中包含的用户信息和标准声明
 type Claims struct {
-	UserID   int64  `json:"user_id"`   // 用户ID
-	Username string `json:"username"`  // 用户名
-	Role     string `json:"role"`      // 用户角色
-	jwt.RegisteredClaims                // JWT标准声明
+	UserID               int64  `json:"user_id"`  // 用户ID
+	Username             string `json:"username"` // 用户名
+	Role                 string `json:"role"`     // 用户角色
+	jwt.RegisteredClaims        // JWT标准声明
 }
 
 // GenerateToken 生成JWT Token
