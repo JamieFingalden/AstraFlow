@@ -1,5 +1,5 @@
 <template>
-  <div :class="`min-h-screen transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50'}`">
+  <div :class="`flex flex-col min-h-screen transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50'}`">
     <!-- Particle background effect -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
       <div :class="`absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ${isDark ? 'bg-cyan-900/30' : 'bg-cyan-500'}`"></div>
@@ -58,7 +58,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="relative z-10 flex-grow flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-12">
+    <main class="relative z-10 flex-grow flex items-center justify-center  px-4 py-12">
       <div class="max-w-4xl w-full">
         <!-- Upload Area -->
         <transition name="upload-fade" mode="out-in">

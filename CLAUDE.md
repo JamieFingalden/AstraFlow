@@ -210,5 +210,5 @@ Key endpoints include:
 1. Create new views in `src/views/`
 2. Add routes in `src/router/index.js`
 3. Implement API services in `src/services/`
-4. Use Pinia stores for state management when needed
+4. Use Pinia stores for shared state management across components; prefer Vue composables for self-contained functionality like theme management
 5. Follow existing component patterns for consistency

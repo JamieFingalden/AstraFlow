@@ -1,5 +1,5 @@
 <template>
-  <div :class="'min-h-screen transition-colors duration-300 ' + (isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50')">
+  <div :class="'flex flex-col min-h-screen transition-colors duration-300 ' + (isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50')">
     <!-- Particle background effect -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
       <div :class="'absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ' + (isDark ? 'bg-cyan-900/30' : 'bg-cyan-500')"></div>
@@ -47,7 +47,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="relative z-10 flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Data Overview Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- 本月总支出 -->

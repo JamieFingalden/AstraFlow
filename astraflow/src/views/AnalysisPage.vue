@@ -1,5 +1,5 @@
 <template>
-  <div :class="`min-h-screen transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50'}`">
+  <div :class="`flex flex-col min-h-screen transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50'}`">
     <!-- Particle background effect -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
       <div :class="`absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ${isDark ? 'bg-cyan-900/30' : 'bg-cyan-500'}`"></div>
@@ -13,8 +13,8 @@
         ? 'bg-gray-800/70 border-gray-700/50'
         : 'bg-white/70 border-gray-200/50'
     }`">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
+      <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
           <div class="flex items-center space-x-4">
             <!-- 返回上传页按钮 -->
             <router-link
@@ -32,7 +32,7 @@
               <span class="hidden sm:inline">返回</span>
             </router-link>
 
-            <div class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            <div class="text-2xl font-bold text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text">
               AstraFlow
             </div>
             <h1 :class="`text-xl font-semibold transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-800'}`">
@@ -58,11 +58,11 @@
     </header>
 
     <!-- Main Content -->
-    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="relative z-10 flex-1 px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
       <!-- Loading State -->
       <div v-if="isLoading" class="flex flex-col items-center justify-center min-h-[60vh]">
         <div class="relative mb-6">
-          <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-200"></div>
+          <div class="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin"></div>
           <div :class="`absolute top-0 left-0 animate-spin rounded-full h-16 w-16 border-4 border-transparent border-t-blue-500`"></div>
         </div>
         <h3 :class="`text-xl font-semibold mb-2 transition-colors duration-300 ${
@@ -78,7 +78,7 @@
       </div>
 
       <!-- Analysis Results -->
-      <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div v-else class="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <!-- Left Side: Recognition Details -->
         <div class="space-y-6">
           <!-- Main Result Card -->
@@ -242,7 +242,7 @@
       </div>
 
       <!-- Action Buttons -->
-      <div v-if="!isLoading" class="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+      <div v-if="!isLoading" class="flex flex-col justify-center gap-4 mt-12 sm:flex-row">
         <button
           @click="exportExpenseReport"
           :class="`px-8 py-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
@@ -274,7 +274,7 @@
         ? 'bg-gray-800/70 border-gray-700/50'
         : 'bg-white/70 border-gray-200/50'
     }`">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <p :class="`text-center text-sm transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`">
           © 2025 AstraFlow · Smart Expense Made Simple
         </p>

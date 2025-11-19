@@ -43,15 +43,9 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useThemeStore } from '../../stores/themeStore'
+import { useTheme } from '../../composables/useTheme'
 
-const themeStore = useThemeStore()
-
-const isDark = computed(() => themeStore.isDark)
-
-const toggleTheme = () => {
-  themeStore.toggleTheme()
-}
+const { isDark, toggleTheme } = useTheme()
 </script>
 
 <style scoped>

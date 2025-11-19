@@ -9,8 +9,8 @@
 
     <!-- Header -->
     <header :class="'relative z-10 backdrop-blur-md border-b transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
+      <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
           <div class="flex items-center space-x-4">
             <!-- 返回按钮 -->
             <router-link
@@ -24,7 +24,7 @@
               <span class="hidden sm:inline">返回</span>
             </router-link>
 
-            <div class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            <div class="text-2xl font-bold text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text">
               AstraFlow
             </div>
             <h1 :class="'text-xl font-semibold transition-colors duration-300 ' + (isDark ? 'text-white' : 'text-gray-800')">
@@ -47,12 +47,12 @@
     </header>
 
     <!-- Main Content -->
-    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="flex flex-col lg:flex-row gap-6">
+    <main class="relative z-10 px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <div class="flex flex-col gap-6 lg:flex-row">
         <!-- 左侧导航菜单 -->
         <aside :class="'lg:w-64 flex-shrink-0 '">
           <!-- 移动端下拉菜单 -->
-          <div class="lg:hidden mb-6">
+          <div class="mb-6 lg:hidden">
             <select
               v-model="settingsStore.activeTab"
               :class="'w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ' + (isDark ? 'bg-gray-800/70 border-gray-700 text-white' : 'bg-white/70 border-gray-300 text-gray-900')"
@@ -130,7 +130,7 @@
               <!-- 头像 -->
               <div class="flex items-center space-x-4">
                 <div :class="'w-20 h-20 rounded-full overflow-hidden border-4 ' + (isDark ? 'border-gray-600' : 'border-gray-200')">
-                  <img :src="settingsStore.accountInfo.avatar" alt="头像" class="w-full h-full object-cover" />
+                  <img :src="settingsStore.accountInfo.avatar" alt="头像" class="object-cover w-full h-full" />
                 </div>
                 <button :class="'px-4 py-2 rounded-lg transition-all duration-200 ' + (isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700')">
                   更换头像
@@ -138,7 +138,7 @@
               </div>
 
               <!-- 用户信息表单 -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
                   <label :class="'block text-sm font-medium mb-2 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">用户名</label>
                   <input
@@ -346,7 +346,7 @@
 
     <!-- Footer -->
     <footer :class="'relative z-10 backdrop-blur-md border-t mt-12 transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <p :class="'text-center text-sm transition-colors duration-300 ' + (isDark ? 'text-gray-400' : 'text-gray-600')">
           © 2025 AstraFlow · Smart Expense Made Simple
         </p>
