@@ -26,7 +26,7 @@ func GenerateToken(user *model.User) (string, error) {
 	claims := &Claims{
 		UserID:   user.ID,
 		Username: user.Username,
-		Role:     user.Role,
+		Role:     user.RoleName,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -66,7 +66,7 @@ func GenerateRefreshToken(user *model.User) (string, error) {
 	claims := &Claims{
 		UserID:   user.ID,
 		Username: user.Username,
-		Role:     user.Role,
+		Role:     user.RoleName,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

@@ -16,7 +16,8 @@ type User struct {
 	Password  string         `gorm:"size:255;not null" json:"-"` // 密码字段，JSON序列化时忽略
 	Email     *string        `gorm:"size:100" json:"email,omitempty"`
 	Phone     *string        `gorm:"size:50" json:"phone,omitempty"`
-	Role      Role           `gorm:"foreignKey:RoleID;references:ID" json:"role,omitempty"` // 关联的角色信息
+	Role      string         `gorm:"size:30;default:personal" json:"role,omitempty"` // 用户角色（保持兼容性）
+	RoleName  string         `gorm:"-" json:"-"`                                     // 角色名称（内部使用）
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"` // 软删除时间戳

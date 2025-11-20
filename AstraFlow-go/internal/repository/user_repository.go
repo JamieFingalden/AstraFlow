@@ -24,6 +24,27 @@ func NewUserRepository() *UserRepository {
 // Create 创建用户
 // 将新用户信息插入数据库
 func (r *UserRepository) Create(user *model.User) error {
+	// 如果RoleName被设置，查找对应的角色ID并设置RoleID
+	if user.RoleName != "" {
+		var role model.Role
+		err := r.db.Where("name = ?", user.RoleName).First(&role).Error
+		if err == nil {
+			// 如果找到对应角色，设置RoleID
+			user.RoleID = &role.ID
+		}
+		// 如果找不到角色，默认为normal角色
+		if user.RoleID == nil || *user.RoleID == 0 {
+			var normalRole model.Role
+			err := r.db.Where("name = ?", "normal").First(&normalRole).Error
+			if err == nil {
+				user.RoleID = &normalRole.ID
+			}
+		}
+	}
+
+	// 为兼容旧的API响应，将RoleName赋值给Role字段
+	user.Role = user.RoleName
+
 	return r.db.Create(user).Error
 }
 
@@ -38,6 +59,10 @@ func (r *UserRepository) FindByUsername(username string) (*model.User, error) {
 		}
 		return nil, err
 	}
+
+	// 设置RoleName based on the Role field
+	user.RoleName = user.Role
+
 	return &user, nil
 }
 
@@ -52,6 +77,10 @@ func (r *UserRepository) FindByID(id int64) (*model.User, error) {
 		}
 		return nil, err
 	}
+
+	// 设置RoleName based on the Role field
+	user.RoleName = user.Role
+
 	return &user, nil
 }
 

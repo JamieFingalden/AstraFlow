@@ -24,6 +24,7 @@ func NewAuthService() *AuthService {
 
 // Register 用户注册
 // 验证用户名唯一性，加密密码，并创建新用户
+// 默认创建个人用户（personal role），当tenantID为nil时
 func (s *AuthService) Register(username, password, email, phone string, tenantID *int64) (*model.User, error) {
 	// 检查用户名是否已存在
 	existingUser, err := s.userRepo.FindByUsername(username)
@@ -47,7 +48,14 @@ func (s *AuthService) Register(username, password, email, phone string, tenantID
 		Email:    &email,
 		Phone:    &phone,
 		TenantID: tenantID,
-		Role:     "normal", // 默认角色
+	}
+
+	// 如果没有指定租户ID，则为个人用户，设置角色为"personal"
+	if tenantID == nil {
+		user.RoleName = "personal"
+	} else {
+		// 如果指定了租户ID，则为租户用户，设置角色为"normal"
+		user.RoleName = "normal"
 	}
 
 	err = s.userRepo.Create(user)
