@@ -12,10 +12,6 @@
       <!-- Logo/Brand section -->
       <header class="auth-header">
         <div class="brand-logo">
-          <div class="logo-icon">
-            <div class="logo-core"></div>
-            <div class="logo-ring"></div>
-          </div>
           <h1 class="brand-name">AstraFlow</h1>
         </div>
         <p class="brand-tagline">智慧财务管理，开启星际之旅</p>
@@ -205,7 +201,7 @@ const createStellarBackground = () => {
 /* Header */
 .auth-header {
   text-align: center;
-  margin-bottom: var(--space-3xl);
+  margin-bottom: var(--space-2xl);
   animation: fadeInDown 0.8s ease-out;
 }
 
@@ -213,39 +209,7 @@ const createStellarBackground = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-md);
   margin-bottom: var(--space-sm);
-}
-
-.logo-icon {
-  position: relative;
-  width: 60px;
-  height: 60px;
-}
-
-.logo-core {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 20px;
-  height: 20px;
-  background: var(--gradient-stellar);
-  border-radius: 50%;
-  animation: coreGlow 2s ease-in-out infinite;
-}
-
-.logo-ring {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: 3px solid transparent;
-  border-image: var(--gradient-cosmic);
-  border-image-slice: 1;
-  border-radius: 50%;
-  animation: ringRotate 10s linear infinite;
 }
 
 .brand-name {
@@ -423,11 +387,11 @@ const createStellarBackground = () => {
 
 @keyframes coreGlow {
   0%, 100% {
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
     opacity: 1;
   }
   50% {
-    transform: translate(-50%, -50%) scale(1.2);
+    transform: scale(1.1);
     opacity: 0.8;
   }
 }
@@ -435,6 +399,17 @@ const createStellarBackground = () => {
 @keyframes ringRotate {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+@keyframes ringPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.3;
+  }
 }
 
 @keyframes twinkle {
