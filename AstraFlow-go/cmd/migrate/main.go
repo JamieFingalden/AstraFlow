@@ -15,8 +15,17 @@ func main() {
 	// 初始化数据库
 	database.InitDB()
 
-	// 自动迁移数据库表
-	err := database.DB.AutoMigrate(&model.User{})
+	// 自动迁移数据库表 - 包括所有模型（使用默认复数表名）
+	err := database.DB.AutoMigrate(
+		&model.User{},
+		&model.Role{},
+		&model.Tenant{},
+		&model.Invoice{},
+		&model.OCRResult{},
+		&model.Attachment{},
+		&model.Reimbursement{},
+		&model.ReimbursementItem{},
+	)
 	if err != nil {
 		log.Fatalf("数据库迁移失败: %v", err)
 	}

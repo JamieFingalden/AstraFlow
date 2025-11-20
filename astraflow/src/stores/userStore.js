@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import apiService from '@/services/apiService'
+import api from '@/services/api'
+import { API_URLS } from '@/services/apiUrls'
 
 export const useUserStore = defineStore('user', () => {
   // State
@@ -67,7 +68,7 @@ export const useUserStore = defineStore('user', () => {
         return { success: true, user: demoUser }
       }
 
-      const response = await apiService.authAPI.login({
+      const response = await api.post(API_URLS.AUTH.LOGIN, {
         username,
         password
       })
@@ -82,7 +83,7 @@ export const useUserStore = defineStore('user', () => {
         avatar: '', // 后端暂无avatar字段
         permissions: [], // 后端暂无permissions字段，根据role生成
         role: userData.role,
-        roleId: null, // 后端暂无roleId
+        roleId: userData.role_id || null, // 后端现在提供roleId
         roleName: getRoleDisplayName(userData.role),
         tenantId: userData.tenant_id,
         tenantName: null, // 需要额外获取
@@ -117,7 +118,7 @@ export const useUserStore = defineStore('user', () => {
     error.value = null
 
     try {
-      const response = await apiService.authAPI.register(userData)
+      const response = await api.post(API_URLS.AUTH.REGISTER, userData)
       const { user: backendUser, token: access_token, refresh_token } = response.data
 
       // 转换后端用户数据格式到前端格式
@@ -128,7 +129,7 @@ export const useUserStore = defineStore('user', () => {
         avatar: '', // 后端暂无avatar字段
         permissions: [], // 后端暂无permissions字段，根据role生成
         role: backendUser.role,
-        roleId: null, // 后端暂无roleId
+        roleId: backendUser.role_id || null, // 后端现在提供roleId
         roleName: getRoleDisplayName(backendUser.role),
         tenantId: backendUser.tenant_id,
         tenantName: null, // 需要额外获取
@@ -156,7 +157,7 @@ export const useUserStore = defineStore('user', () => {
     try {
       // Call logout API to invalidate tokens
       if (accessToken.value) {
-        await apiService.post('/auth/logout')
+        await api.post(API_URLS.AUTH.LOGOUT)
       }
     } catch (err) {
       console.error('Logout error:', err)
@@ -169,7 +170,11 @@ export const useUserStore = defineStore('user', () => {
 
   const refreshTokens = async () => {
     try {
-      const response = await apiService.authAPI.refresh()
+      const response = await api.post(API_URLS.AUTH.REFRESH, {}, {
+        headers: {
+          'Authorization': `Bearer ${refreshToken.value}`
+        }
+      })
 
       const { token: access_token } = response.data
 
@@ -194,7 +199,7 @@ export const useUserStore = defineStore('user', () => {
     error.value = null
 
     try {
-      const response = await apiService.authAPI.getCurrentUser()
+      const response = await api.get(API_URLS.AUTH.ME)
       const backendUser = response.data
 
       user.value = {

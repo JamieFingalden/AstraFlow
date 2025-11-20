@@ -8,7 +8,7 @@ CREATE DATABASE IF NOT EXISTS astraflow;
 -- -----------------------------
 -- 租户表（企业模式才会用）
 -- -----------------------------
-CREATE TABLE IF NOT EXISTS tenant (
+CREATE TABLE IF NOT EXISTS tenants (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL COMMENT '租户名称（公司名称）',
     industry VARCHAR(100) DEFAULT NULL COMMENT '行业',
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS tenant (
 -- -----------------------------
 -- 用户表（租户用户 或 个人用户）
 -- -----------------------------
-CREATE TABLE IF NOT EXISTS user (
+CREATE TABLE IF NOT EXISTS users (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     tenant_id BIGINT DEFAULT NULL COMMENT '租户ID，NULL 表示个人用户',
     role_id BIGINT DEFAULT NULL COMMENT '角色ID，引用role表，NULL表示默认普通用户',
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS user (
 -- -----------------------------
 -- 发票信息表（invoice）
 -- -----------------------------
-CREATE TABLE IF NOT EXISTS invoice (
+CREATE TABLE IF NOT EXISTS invoices (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     tenant_id BIGINT DEFAULT NULL COMMENT '租户ID，NULL 表示个人用户',
     user_id BIGINT NOT NULL COMMENT '上传用户ID',
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS invoice (
 -- -----------------------------
 -- OCR 识别结果表（结构化 + 非结构化）
 -- -----------------------------
-CREATE TABLE IF NOT EXISTS ocr_result (
+CREATE TABLE IF NOT EXISTS ocr_results (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     tenant_id BIGINT DEFAULT NULL COMMENT '租户ID / 个人用户 NULL',
     user_id BIGINT NOT NULL COMMENT '关联用户ID',
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS ocr_result (
 -- -----------------------------
 -- 附件表（发票照片/支付截图/报销凭证）
 -- -----------------------------
-CREATE TABLE IF NOT EXISTS attachment (
+CREATE TABLE IF NOT EXISTS attachments (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     tenant_id BIGINT DEFAULT NULL COMMENT '租户ID（个人用户为 NULL）',
     user_id BIGINT NOT NULL COMMENT '上传者 ID',
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS attachment (
 -- -----------------------------
 -- 报销单主表
 -- -----------------------------
-CREATE TABLE IF NOT EXISTS reimbursement (
+CREATE TABLE IF NOT EXISTS reimbursements (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     tenant_id BIGINT DEFAULT NULL COMMENT '租户ID（个人用户为 NULL）',
     user_id BIGINT NOT NULL COMMENT '申请人',
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS reimbursement (
 -- -----------------------------
 -- 报销单子项（关联发票）
 -- -----------------------------
-CREATE TABLE IF NOT EXISTS reimbursement_item (
+CREATE TABLE IF NOT EXISTS reimbursement_items (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     reimbursement_id BIGINT NOT NULL COMMENT '报销单 ID（软连接）',
     invoice_id BIGINT NOT NULL COMMENT '发票 ID（软连接）',
@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS reimbursement_item (
 -- -----------------------------
 -- 角色表
 -- -----------------------------
-CREATE TABLE IF NOT EXISTS role (
+CREATE TABLE IF NOT EXISTS roles (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL UNIQUE COMMENT '角色名称',
     display_name VARCHAR(100) NOT NULL COMMENT '角色显示名称',
@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS role (
 -- -----------------------------
 -- 初始化角色数据
 -- -----------------------------
-INSERT INTO role (name, display_name, description) VALUES
+INSERT INTO roles (name, display_name, description) VALUES
 ('admin', '管理员', '拥有系统所有权限的管理员'),
 ('normal', '普通用户', '普通租户用户，具有基本操作权限'),
 ('personal', '个人用户', '个人用户，仅管理自己的数据');

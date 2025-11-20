@@ -10,7 +10,8 @@ func main() {
 	config.InitConfig()
 	r := api.InitRouter()
 
-	err := r.Run(":8080")
+	port := config.Cfg.Server.Port
+	err := r.Run(fmt.Sprintf(":%d", port))
 	if err != nil {
 		fmt.Println("Server failed:", err)
 	}

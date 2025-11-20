@@ -1,13 +1,17 @@
-import { resumeAPI } from './apiService'
+// This service is resume related and not part of core AstraFlow functionality
+// Import resumeAPI when backend endpoints are available
 
 // 简历服务
 export const useResumeService = () => {
   // 生成简历（支持真实API和Mock数据）
   const generateResume = async (resumeData) => {
     try {
-      // 尝试调用真实API
-      const response = await resumeAPI.generateResume(resumeData)
-      return response.data
+      // 暂时使用Mock数据，待后端API实现
+      if (import.meta.env.VITE_MOCK_API !== 'false') {
+        console.log('使用Mock数据生成简历')
+        return await generateMockResume(resumeData)
+      }
+      throw new Error('Resume generation API not implemented yet')
     } catch (error) {
       if (error.useMock || import.meta.env.VITE_MOCK_API === 'true') {
         console.log('使用Mock数据生成简历')
@@ -20,9 +24,12 @@ export const useResumeService = () => {
   // 获取简历建议（支持真实API和Mock数据）
   const getResumeSuggestions = async (resumeData) => {
     try {
-      // 尝试调用真实API
-      const response = await resumeAPI.getResumeSuggestions(resumeData)
-      return response.data
+      // 暂时使用Mock数据，待后端API实现
+      if (import.meta.env.VITE_MOCK_API !== 'false') {
+        console.log('使用Mock数据获取建议')
+        return await getMockSuggestions(resumeData)
+      }
+      throw new Error('Resume suggestions API not implemented yet')
     } catch (error) {
       if (error.useMock || import.meta.env.VITE_MOCK_API === 'true') {
         console.log('使用Mock数据获取建议')

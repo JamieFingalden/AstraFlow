@@ -419,12 +419,22 @@ const handleSubmit = async () => {
   successMessage.value = ''
 
   try {
-    const userData = {
+    let userData = {
       username: form.username,
       email: form.email,
       password: form.password,
       phone: '', // 前端暂无电话输入
-      tenant_id: form.userType === 'enterprise' ? null : null // 个人用户为null，企业用户需要后端创建租户
+    }
+
+    // 个人用户注册时，tenant_id 为 null (默认)
+    // 企业用户将由管理员创建，普通用户不能直接创建企业账户
+    if (form.userType === 'personal') {
+      // 个人用户：tenant_id 为 null，系统自动分配 personal 角色
+      userData.tenant_id = null
+    } else {
+      // 对于企业用户类型，我们仍然设置为 null
+      // 企业租户的创建通常由管理员通过专门的租户管理功能处理
+      userData.tenant_id = null
     }
 
     await userStore.register(userData)

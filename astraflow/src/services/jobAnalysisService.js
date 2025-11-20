@@ -1,13 +1,17 @@
-import { jobAPI } from './apiService'
+// This service is job analysis related and not part of core AstraFlow functionality
+// Import jobAPI when backend endpoints are available
 
 // 岗位分析服务
 export const useJobAnalysisService = () => {
   // 分析岗位（支持真实API和Mock数据）
   const analyzeJob = async (jobData) => {
     try {
-      // 尝试调用真实API
-      const response = await jobAPI.analyzeJob(jobData)
-      return response.data
+      // 暂时使用Mock数据，待后端API实现
+      if (import.meta.env.VITE_MOCK_API !== 'false') {
+        console.log('使用Mock数据分析岗位')
+        return await analyzeMockJob(jobData)
+      }
+      throw new Error('Job analysis API not implemented yet')
     } catch (error) {
       if (error.useMock || import.meta.env.VITE_MOCK_API === 'true') {
         console.log('使用Mock数据分析岗位')
@@ -20,8 +24,12 @@ export const useJobAnalysisService = () => {
   // 获取岗位推荐
   const getJobRecommendations = async (jobData) => {
     try {
-      const response = await jobAPI.getJobRecommendations(jobData)
-      return response.data
+      // 暂时使用Mock数据，待后端API实现
+      if (import.meta.env.VITE_MOCK_API !== 'false') {
+        console.log('使用Mock数据获取推荐')
+        return await getMockRecommendations(jobData)
+      }
+      throw new Error('Job recommendations API not implemented yet')
     } catch (error) {
       if (error.useMock || import.meta.env.VITE_MOCK_API === 'true') {
         console.log('使用Mock数据获取推荐')
@@ -34,8 +42,12 @@ export const useJobAnalysisService = () => {
   // 获取薪资分析
   const getSalaryAnalysis = async (jobTitle, location = '北京') => {
     try {
-      const response = await jobAPI.getSalaryAnalysis(jobTitle, location)
-      return response.data
+      // 暂时使用Mock数据，待后端API实现
+      if (import.meta.env.VITE_MOCK_API !== 'false') {
+        console.log('使用Mock数据获取薪资分析')
+        return await getMockSalaryAnalysis(jobTitle, location)
+      }
+      throw new Error('Salary analysis API not implemented yet')
     } catch (error) {
       if (error.useMock || import.meta.env.VITE_MOCK_API === 'true') {
         console.log('使用Mock数据获取薪资分析')

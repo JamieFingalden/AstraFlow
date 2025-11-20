@@ -211,3 +211,7 @@ Key endpoints include:
 3. Implement API services in `src/services/`
 4. Use Pinia stores for shared state management across components; prefer Vue composables for self-contained functionality like theme management
 5. Follow existing component patterns for consistency
+
+### My rules
+1. Don't repeat the start of the project
+2. Frontend and backend projects I will start, when I need to reboot, prompt "Please restart frontend/backend"

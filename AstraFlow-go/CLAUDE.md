@@ -156,3 +156,7 @@ Configuration is managed through `pkg/config/`:
 3. Add service layer logic if needed
 4. Register route in router.go
 5. Apply authentication middleware if needed
+
+### My rules
+1. Don't repeat the start of the project
+2. Frontend and backend projects I will start, when I need to reboot, prompt "Please restart frontend/backend"
