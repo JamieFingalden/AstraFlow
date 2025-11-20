@@ -24,14 +24,15 @@ CREATE TABLE tenant (
 CREATE TABLE user (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     tenant_id BIGINT DEFAULT NULL COMMENT '租户ID，NULL 表示个人用户',
+    role_id BIGINT DEFAULT NULL COMMENT '角色ID，引用role表，NULL表示默认普通用户',
     username VARCHAR(50) NOT NULL UNIQUE COMMENT '登录用户名',
     password VARCHAR(255) NOT NULL COMMENT '加密后的密码',
     email VARCHAR(100) DEFAULT NULL COMMENT '邮箱',
     phone VARCHAR(50) DEFAULT NULL COMMENT '手机号',
-    role VARCHAR(30) DEFAULT 'normal' COMMENT '用户角色：admin/normal/personal',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_user_tenant (tenant_id)
+    INDEX idx_user_tenant (tenant_id),
+    INDEX idx_user_role (role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表，支持租户用户与个人用户';
 
 
@@ -135,3 +136,26 @@ CREATE TABLE reimbursement_item (
     INDEX idx_item_reim (reimbursement_id),
     INDEX idx_item_invoice (invoice_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='报销单发票子项';
+
+
+-- -----------------------------
+-- 角色表
+-- -----------------------------
+CREATE TABLE role (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL UNIQUE COMMENT '角色名称',
+    display_name VARCHAR(100) NOT NULL COMMENT '角色显示名称',
+    description VARCHAR(255) DEFAULT NULL COMMENT '角色描述',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_role_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色表，定义用户角色';
+
+
+-- -----------------------------
+-- 初始化角色数据
+-- -----------------------------
+INSERT INTO role (name, display_name, description) VALUES
+('admin', '管理员', '拥有系统所有权限的管理员'),
+('normal', '普通用户', '普通租户用户，具有基本操作权限'),
+('personal', '个人用户', '个人用户，仅管理自己的数据');

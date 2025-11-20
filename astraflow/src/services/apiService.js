@@ -142,16 +142,46 @@ function generateRequestId() {
 // Authentication related APIs
 export const authAPI = {
   // Login
-  login: (credentials) => api.post('/auth/login', credentials),
+  login: (credentials) => {
+    // 转换字段名以匹配后端API
+    const loginData = {
+      username: credentials.username || credentials.email,
+      password: credentials.password
+    }
+    return api.post('/auth/login', loginData)
+  },
 
   // Register
-  register: (userData) => api.post('/auth/register', userData),
+  register: (userData) => {
+    // 转换字段名以匹配后端API
+    const registerData = {
+      username: userData.username || userData.email,
+      password: userData.password,
+      email: userData.email,
+      phone: userData.phone || '',
+      tenant_id: userData.tenant_id || null
+    }
+    return api.post('/auth/register', registerData)
+  },
 
   // Logout
   logout: () => api.post('/auth/logout'),
 
-  // Refresh token
-  refresh: (refreshToken) => api.post('/auth/refresh', { refresh_token: refreshToken }),
+  // Refresh token - 使用Authorization header发送refresh token
+  refresh: () => {
+    const userStore = useUserStore()
+    const refresh_token = userStore.refreshToken
+
+    if (!refresh_token) {
+      return Promise.reject(new Error('No refresh token available'))
+    }
+
+    return api.post('/auth/refresh', {}, {
+      headers: {
+        'Authorization': `Bearer ${refresh_token}`
+      }
+    })
+  },
 
   // Get current user
   getCurrentUser: () => api.get('/auth/me'),

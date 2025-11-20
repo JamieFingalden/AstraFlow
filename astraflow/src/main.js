@@ -10,5 +10,23 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 
+// Global scrollbar behavior
+let scrollTimeout
+
+const handleScroll = () => {
+  // Add scrolling class to show scrollbar
+  document.body.classList.add('scrolling')
+
+  // Clear existing timeout
+  clearTimeout(scrollTimeout)
+
+  // Remove scrolling class after scrolling stops
+  scrollTimeout = setTimeout(() => {
+    document.body.classList.remove('scrolling')
+  }, 1000) // Hide scrollbar after 1 second of inactivity
+}
+
+// Listen for scroll events globally
+window.addEventListener('scroll', handleScroll, { passive: true })
 
 app.mount('#app')

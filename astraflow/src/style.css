@@ -35,9 +35,11 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - hidden by default */
 ::-webkit-scrollbar {
   width: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 ::-webkit-scrollbar-track {
@@ -45,10 +47,32 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--gradient-stellar);
+  background: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple));
   border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(to bottom, #2563eb, #7c3aed);
+}
+
+/* Show scrollbar when scrolling */
+body.scrolling ::-webkit-scrollbar {
+  opacity: 1;
+}
+
+body.scrolling ::-webkit-scrollbar-thumb {
+  opacity: 0.8;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+
+body.scrolling * {
+  scrollbar-color: var(--color-stellar-blue) transparent;
 }

@@ -82,11 +82,8 @@
 
       <!-- 右侧操作区 -->
       <div class="nav-actions desktop-nav">
-        <button class="login-button">
-          登录
-        </button>
         <button class="register-button">
-          注册
+          登录/注册
         </button>
         <!-- 主题切换按钮 -->
         <ThemeToggle />
@@ -400,17 +397,6 @@ const closeMobileMenu = () => {
   display: flex;
   align-items: center;
   gap: 1rem;
-}
-
-.login-button {
-  display: none;
-  padding: 0.5rem 1rem;
-  color: #d1d5db;
-  font-weight: 500;
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: color 0.3s ease;
 }
 
 @media (min-width: 768px) {

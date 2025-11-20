@@ -13,7 +13,10 @@ export const useUserStore = defineStore('user', () => {
     permissions: [],
     role: '',
     tenantId: null,
-    tenantName: null
+    tenantName: null,
+    roleId: null,  // Add roleId to track the specific role
+    roleName: null,  // Add roleName for better identification
+    tenantRole: null // Add tenant role (admin, normal, personal)
   })
 
   const loading = ref(false)
@@ -32,8 +35,11 @@ export const useUserStore = defineStore('user', () => {
     isAuthenticated: true,
     permissions: ['view_bills', 'upload_invoices', 'view_reports', 'manage_users'],
     role: 'admin',
+    roleId: 1,
+    roleName: '系统管理员',
     tenantId: null,
-    tenantName: null
+    tenantName: null,
+    tenantRole: 'admin'
   }
 
   // Getters
@@ -45,39 +51,54 @@ export const useUserStore = defineStore('user', () => {
   const hasPermission = computed(() => (permission) => {
     return user.value.permissions.includes(permission)
   })
-  const isTenantUser = computed(() => !!user.value.tenantId)
-  const isPersonalUser = computed(() => user.value.role === 'personal')
+  const getIsTenantUserSimple = computed(() => !!user.value.tenantId)
+  const getIsPersonalUserSimple = computed(() => user.value.role === 'personal')
 
   // Actions
-  const login = async (email, password, rememberMe = false) => {
+  const login = async (username, password, rememberMe = false) => {
     loading.value = true
     error.value = null
 
     try {
       // Try to login with real API first
-      if (email === 'demo@astraflow.com' && password === 'Demo@123') {
+      if (username === 'demo@astraflow.com' && password === 'Demo@123') {
         // Demo login - use mock data
         handleSuccessfulLogin(demoUser, null, null, rememberMe)
         return { success: true, user: demoUser }
       }
 
-      const response = await apiService.post('/auth/login', {
-        email,
-        password,
-        remember_me: rememberMe
+      const response = await apiService.authAPI.login({
+        username,
+        password
       })
 
-      const { user: userData, access_token, refresh_token } = response.data
+      const { user: userData, token: access_token, refresh_token } = response.data
 
-      handleSuccessfulLogin(userData, access_token, refresh_token, rememberMe)
+      // 转换后端用户数据格式到前端格式
+      const frontendUserData = {
+        id: userData.id,
+        name: userData.username, // 后端使用username作为显示名
+        email: userData.email,
+        avatar: '', // 后端暂无avatar字段
+        permissions: [], // 后端暂无permissions字段，根据role生成
+        role: userData.role,
+        roleId: null, // 后端暂无roleId
+        roleName: getRoleDisplayName(userData.role),
+        tenantId: userData.tenant_id,
+        tenantName: null, // 需要额外获取
+        tenantRole: userData.tenant_id ? getTenantRoleFromRole(userData.role) : 'personal',
+        isAuthenticated: true
+      }
 
-      return { success: true, user: userData }
+      handleSuccessfulLogin(frontendUserData, access_token, refresh_token, rememberMe)
+
+      return { success: true, user: frontendUserData }
 
     } catch (err) {
       console.error('Login error:', err)
 
       // Fallback to demo account if API fails and it's demo credentials
-      if (email === 'demo@astraflow.com' && password === 'Demo@123') {
+      if (username === 'demo@astraflow.com' && password === 'Demo@123') {
         handleSuccessfulLogin(demoUser, null, null, rememberMe)
         return { success: true, user: demoUser }
       }
@@ -96,12 +117,28 @@ export const useUserStore = defineStore('user', () => {
     error.value = null
 
     try {
-      const response = await apiService.post('/auth/register', userData)
-      const { user: newUser, access_token, refresh_token } = response.data
+      const response = await apiService.authAPI.register(userData)
+      const { user: backendUser, token: access_token, refresh_token } = response.data
 
-      handleSuccessfulLogin(newUser, access_token, refresh_token, false)
+      // 转换后端用户数据格式到前端格式
+      const frontendUserData = {
+        id: backendUser.id,
+        name: backendUser.username, // 后端使用username作为显示名
+        email: backendUser.email,
+        avatar: '', // 后端暂无avatar字段
+        permissions: [], // 后端暂无permissions字段，根据role生成
+        role: backendUser.role,
+        roleId: null, // 后端暂无roleId
+        roleName: getRoleDisplayName(backendUser.role),
+        tenantId: backendUser.tenant_id,
+        tenantName: null, // 需要额外获取
+        tenantRole: backendUser.tenant_id ? getTenantRoleFromRole(backendUser.role) : 'personal',
+        isAuthenticated: true
+      }
 
-      return { success: true, user: newUser }
+      handleSuccessfulLogin(frontendUserData, access_token, refresh_token, false)
+
+      return { success: true, user: frontendUserData }
 
     } catch (err) {
       console.error('Registration error:', err)
@@ -131,24 +168,13 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const refreshTokens = async () => {
-    if (!refreshToken.value) {
-      throw new Error('No refresh token available')
-    }
-
     try {
-      const response = await apiService.post('/auth/refresh', {
-        refresh_token: refreshToken.value
-      })
+      const response = await apiService.authAPI.refresh()
 
-      const { access_token, refresh_token: new_refresh_token } = response.data
+      const { token: access_token } = response.data
 
       accessToken.value = access_token
       localStorage.setItem('accessToken', access_token)
-
-      if (new_refresh_token) {
-        refreshToken.value = new_refresh_token
-        localStorage.setItem('refreshToken', new_refresh_token)
-      }
 
       return access_token
 
@@ -168,15 +194,25 @@ export const useUserStore = defineStore('user', () => {
     error.value = null
 
     try {
-      const response = await apiService.get('/auth/me')
-      const userData = response.data
+      const response = await apiService.authAPI.getCurrentUser()
+      const backendUser = response.data
 
       user.value = {
-        ...userData,
+        id: backendUser.id || null,
+        name: backendUser.username || '',
+        email: backendUser.email || '',
+        avatar: '', // 后端暂无avatar字段
+        permissions: [], // 后端暂无permissions字段，根据role生成
+        role: backendUser.role || '',
+        roleId: null, // 后端暂无roleId
+        roleName: getRoleDisplayName(backendUser.role),
+        tenantId: backendUser.tenant_id || null,
+        tenantName: null, // 需要额外获取
+        tenantRole: backendUser.tenant_id ? getTenantRoleFromRole(backendUser.role) : 'personal',
         isAuthenticated: true
       }
 
-      return userData
+      return user.value
 
     } catch (err) {
       console.error('Fetch current user error:', err)
@@ -196,16 +232,58 @@ export const useUserStore = defineStore('user', () => {
     return user.value.role === role
   }
 
+  const hasRoleId = (roleId) => {
+    return user.value.roleId === roleId
+  }
+
+  const hasTenantRole = (tenantRole) => {
+    return user.value.tenantRole === tenantRole
+  }
+
+  const isSystemAdmin = () => {
+    return user.value.role === 'admin' || user.value.roleId === 1
+  }
+
+  const isTenantAdmin = () => {
+    return user.value.tenantRole === 'admin' || user.value.role === 'tenant_admin'
+  }
+
+  const isTenantUser = () => {
+    return user.value.tenantRole === 'normal' || user.value.role === 'tenant_user'
+  }
+
+  const isPersonalUser = () => {
+    return user.value.role === 'personal' || user.value.tenantRole === 'personal'
+  }
+
   const canAccess = (permission) => {
     if (!user.value.isAuthenticated) return false
     if (user.value.role === 'admin') return true
+    if (user.value.tenantRole === 'admin') return true
+    return user.value.permissions.includes(permission)
+  }
+
+  const canAccessTenantFeature = (permission) => {
+    if (!user.value.isAuthenticated) return false
+    if (!user.value.tenantId) return false  // Not a tenant user
+    if (user.value.tenantRole === 'admin') return true
     return user.value.permissions.includes(permission)
   }
 
   // Helper functions
   const handleSuccessfulLogin = (userData, accessTokenValue, refreshTokenValue, rememberMe) => {
     user.value = {
-      ...userData,
+      id: userData.id || null,
+      name: userData.name || '',
+      email: userData.email || '',
+      avatar: userData.avatar || '',
+      permissions: userData.permissions || [],
+      role: userData.role || '',
+      roleId: userData.roleId || null,
+      roleName: userData.roleName || getRoleDisplayName(userData.role),
+      tenantId: userData.tenantId || null,
+      tenantName: userData.tenantName || null,
+      tenantRole: userData.tenantRole || getTenantRoleFromRole(userData.role),
       isAuthenticated: true
     }
 
@@ -225,6 +303,26 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // 辅助函数：获取角色显示名称
+  const getRoleDisplayName = (role) => {
+    const roleMap = {
+      'admin': '系统管理员',
+      'normal': '普通用户',
+      'personal': '个人用户',
+      'tenant_admin': '企业管理员',
+      'tenant_user': '企业用户'
+    }
+    return roleMap[role] || role
+  }
+
+  // 根据角色获取租户角色
+  const getTenantRoleFromRole = (role) => {
+    if (role === 'admin' || role === 'tenant_admin') return 'admin'
+    if (role === 'normal' || role === 'tenant_user') return 'normal'
+    if (role === 'personal') return 'personal'
+    return 'normal'
+  }
+
   const clearAuthState = () => {
     user.value = {
       id: null,
@@ -234,8 +332,11 @@ export const useUserStore = defineStore('user', () => {
       isAuthenticated: false,
       permissions: [],
       role: '',
+      roleId: null,
+      roleName: null,
       tenantId: null,
-      tenantName: null
+      tenantName: null,
+      tenantRole: null
     }
 
     accessToken.value = null
@@ -282,8 +383,6 @@ export const useUserStore = defineStore('user', () => {
     getUserRole,
     getUserPermissions,
     hasPermission,
-    isTenantUser,
-    isPersonalUser,
 
     // Actions
     login,
@@ -293,7 +392,14 @@ export const useUserStore = defineStore('user', () => {
     fetchCurrentUser,
     updateUser,
     hasRole,
+    hasRoleId,
+    hasTenantRole,
+    isSystemAdmin,
+    isTenantAdmin,
+    isTenantUser,
+    isPersonalUser,
     canAccess,
+    canAccessTenantFeature,
     initializeAuth,
     clearAuthState
   }

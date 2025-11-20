@@ -5,28 +5,28 @@
       <p class="form-subtitle">登录到您的 AstraFlow 账户</p>
     </div>
 
-    <!-- Email Input -->
+    <!-- Email/Username Input -->
     <div class="form-field">
-      <label for="email" class="field-label">
-        邮箱地址
+      <label for="username" class="field-label">
+        用户名/邮箱
         <span class="required">*</span>
       </label>
       <div class="input-wrapper">
-        <div class="input-icon">📧</div>
+        <div class="input-icon">👤</div>
         <input
-          id="email"
-          v-model="form.email"
-          type="email"
-          placeholder="请输入您的邮箱"
+          id="username"
+          v-model="form.username"
+          type="text"
+          placeholder="请输入用户名或邮箱"
           :disabled="loading"
-          :class="{ 'has-error': errors.email }"
+          :class="{ 'has-error': errors.username }"
           class="form-input"
-          @blur="validateEmail"
-          autocomplete="email"
+          @blur="validateUsername"
+          autocomplete="username"
         />
       </div>
-      <div v-if="errors.email" class="field-error">
-        {{ errors.email }}
+      <div v-if="errors.username" class="field-error">
+        {{ errors.username }}
       </div>
     </div>
 
@@ -126,35 +126,29 @@ const successMessage = ref('')
 const generalError = ref('')
 
 const form = reactive({
-  email: '',
+  username: '',
   password: '',
   rememberMe: false
 })
 
 const errors = reactive({
-  email: '',
+  username: '',
   password: ''
 })
 
 const isFormValid = computed(() => {
-  return form.email &&
+  return form.username &&
          form.password &&
-         !errors.email &&
+         !errors.username &&
          !errors.password &&
          !loading.value
 })
 
-const validateEmail = () => {
-  errors.email = ''
+const validateUsername = () => {
+  errors.username = ''
 
-  if (!form.email) {
-    errors.email = '请输入邮箱地址'
-    return false
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(form.email)) {
-    errors.email = '请输入有效的邮箱地址'
+  if (!form.username) {
+    errors.username = '请输入用户名或邮箱'
     return false
   }
 
@@ -178,10 +172,10 @@ const validatePassword = () => {
 }
 
 const validateForm = () => {
-  const isEmailValid = validateEmail()
+  const isUsernameValid = validateUsername()
   const isPasswordValid = validatePassword()
 
-  return isEmailValid && isPasswordValid
+  return isUsernameValid && isPasswordValid
 }
 
 const handleSubmit = async () => {
@@ -194,7 +188,7 @@ const handleSubmit = async () => {
   successMessage.value = ''
 
   try {
-    await userStore.login(form.email, form.password, form.rememberMe)
+    await userStore.login(form.username, form.password, form.rememberMe)
 
     successMessage.value = '登录成功！正在跳转...'
 
@@ -208,7 +202,7 @@ const handleSubmit = async () => {
 
     // Handle different error scenarios
     if (error.response?.status === 401) {
-      generalError.value = '邮箱或密码错误，请重试'
+      generalError.value = '用户名或密码错误，请重试'
     } else if (error.response?.status === 429) {
       generalError.value = '登录尝试次数过多，请稍后再试'
     } else if (error.message.includes('Network')) {
@@ -228,12 +222,12 @@ const handleForgotPassword = () => {
 }
 
 const fillDemoCredentials = () => {
-  form.email = 'demo@astraflow.com'
+  form.username = 'demo@astraflow.com'
   form.password = 'Demo@123'
   form.rememberMe = true
 
   // Clear any existing errors
-  errors.email = ''
+  errors.username = ''
   errors.password = ''
   generalError.value = ''
 }

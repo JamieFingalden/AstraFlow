@@ -423,8 +423,8 @@ const handleSubmit = async () => {
       username: form.username,
       email: form.email,
       password: form.password,
-      userType: form.userType,
-      tenantName: form.userType === 'enterprise' ? form.tenantName : undefined
+      phone: '', // 前端暂无电话输入
+      tenant_id: form.userType === 'enterprise' ? null : null // 个人用户为null，企业用户需要后端创建租户
     }
 
     await userStore.register(userData)
@@ -441,7 +441,7 @@ const handleSubmit = async () => {
 
     // Handle different error scenarios
     if (error.response?.status === 409) {
-      generalError.value = '该邮箱已被注册，请使用其他邮箱或直接登录'
+      generalError.value = '该用户名或邮箱已被注册，请使用其他用户名或邮箱'
     } else if (error.response?.status === 400) {
       generalError.value = '注册信息有误，请检查后重试'
     } else if (error.message.includes('Network')) {
