@@ -1,96 +1,69 @@
 <template>
-  <div :class="`min-h-screen transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50'}`">
+  <div class="dashboard-container" :data-theme="isDark ? 'dark' : 'light'">
     <!-- Particle background effect -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-      <div :class="`absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ${isDark ? 'bg-cyan-900/30' : 'bg-cyan-500'}`"></div>
-      <div :class="`absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ${isDark ? 'bg-blue-900/30' : 'bg-blue-500'}`"></div>
-      <div :class="`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ${isDark ? 'bg-purple-900/30' : 'bg-purple-500'}`"></div>
+    <div class="particle-background">
+      <div class="particle particle-cyan"></div>
+      <div class="particle particle-blue"></div>
+      <div class="particle particle-purple"></div>
     </div>
 
     <!-- Header -->
-    <header :class="`relative z-10 backdrop-blur-md border-b transition-all duration-300 ${
-      isDark
-        ? 'bg-gray-800/70 border-gray-700/50'
-        : 'bg-white/70 border-gray-200/50'
-    }`">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4">
-            <!-- 返回主页按钮 -->
-            <router-link
-              to="/"
-              :class="`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                isDark
-                  ? 'hover:bg-gray-700/50 text-gray-300 hover:text-white'
-                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-              }`"
-              title="返回主页"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m15 18-6-6 6-6"/>
-              </svg>
-              <span class="hidden sm:inline">返回</span>
-            </router-link>
+    <header class="dashboard-header">
+      <div class="header-container">
+        <div class="header-left">
+          <!-- 返回主页按钮 -->
+          <router-link to="/" class="back-button" title="返回主页">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
+            <span class="back-text">返回</span>
+          </router-link>
 
-            <div class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-              AstraFlow
-            </div>
-            <h1 :class="`text-xl font-semibold transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-800'}`">
-              账单可视化 Dashboard
-            </h1>
+          <div class="brand-name">
+            AstraFlow
           </div>
+          <h1 class="page-title">账单可视化 Dashboard</h1>
+        </div>
 
-          <div class="flex items-center space-x-4">
-            <button
-              @click="toggleTheme"
-              :class="`p-2 rounded-lg transition-all duration-200 ${
-                isDark
-                  ? 'bg-gray-700/50 hover:bg-gray-600/50 text-gray-300'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-              }`"
-            >
-              <SunIcon v-if="isDark" :size="20" />
-              <MoonIcon v-else :size="20" />
-            </button>
+        <div class="header-right">
+          <button @click="toggleTheme" class="theme-toggle">
+            <SunIcon v-if="isDark" :size="20" />
+            <MoonIcon v-else :size="20" />
+          </button>
 
-            <div class="flex items-center space-x-2">
-              <div class="w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center">
-                <UserCircle :size="20" class="text-white" />
-              </div>
-              <span :class="`text-sm transition-colors duration-300 ${isDark ? 'text-gray-300' : 'text-gray-700'}`">用户</span>
+          <div class="user-info">
+            <div class="user-avatar">
+              <UserCircle :size="20" class="user-icon" />
             </div>
+            <span class="user-name">用户</span>
           </div>
         </div>
       </div>
     </header>
 
     <!-- Main Content -->
-    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="main-content">
       <!-- Key Metrics Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="metrics-grid">
         <div
           v-for="(metric, index) in metrics"
           :key="metric.title"
-          :ref="el => setCardRef(el, index)"
-          :class="`rounded-xl p-6 border backdrop-blur-md transition-all duration-300 ${
-            isDark
-              ? 'bg-gray-800/70 border-gray-700/50 hover:shadow-cyan-500/10'
-              : 'bg-white/70 border-gray-200/50 hover:shadow-cyan-500/20'
-          }`"
+          ref="el => setCardRef(el, index)"
+          class="metric-card"
           @mouseenter="handleCardHover(index, true)"
           @mouseleave="handleCardHover(index, false)"
         >
-          <div class="flex items-center justify-between">
-            <div>
-              <p :class="`text-sm mb-1 transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`">
+          <div class="metric-content">
+            <div class="metric-info">
+              <p class="metric-title">
                 {{ metric.title }}
               </p>
-              <p :class="`text-2xl font-bold transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-800'}`">
+              <p class="metric-value">
                 {{ metric.value }}
               </p>
-              <p class="text-xs mt-1 text-green-500">{{ metric.change }}</p>
+              <p class="metric-change">{{ metric.change }}</p>
             </div>
-            <div :class="`p-3 rounded-lg bg-gradient-to-r ${metric.color} text-white`">
+            <div class="metric-icon" :class="metric.color.replace('from-', 'bg-').replace(' to-', '-to-')">
               <component :is="metric.icon" :size="24" />
             </div>
           </div>
@@ -98,20 +71,13 @@
       </div>
 
       <!-- Charts Row -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <div class="charts-row">
         <!-- Expense Categories Pie Chart -->
-        <div
-          ref="pieChartRef"
-          :class="`rounded-xl p-6 border backdrop-blur-md transition-all duration-300 ${
-            isDark
-              ? 'bg-gray-800/70 border-gray-700/50'
-              : 'bg-white/70 border-gray-200/50'
-          }`"
-        >
-          <h3 :class="`text-lg font-semibold mb-4 transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-800'}`">
+        <div ref="pieChartRef" class="chart-card">
+          <h3 class="chart-title">
             支出类别占比
           </h3>
-          <div class="h-80">
+          <div class="chart-container">
             <PieChart>
               <Pie
                 :data="expenseCategories"
@@ -138,18 +104,11 @@
         </div>
 
         <!-- Weekly Expense Trend Line Chart -->
-        <div
-          ref="lineChartRef"
-          :class="`rounded-xl p-6 border backdrop-blur-md transition-all duration-300 ${
-            isDark
-              ? 'bg-gray-800/70 border-gray-700/50'
-              : 'bg-white/70 border-gray-200/50'
-          }`"
-        >
-          <h3 :class="`text-lg font-semibold mb-4 transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-800'}`">
+        <div ref="lineChartRef" class="chart-card">
+          <h3 class="chart-title">
             每周支出趋势
           </h3>
-          <div class="h-80">
+          <div class="chart-container">
             <LineChart :data="weeklyExpenses">
               <CartesianGrid
                 strokeDasharray="3 3"
@@ -187,72 +146,45 @@
       </div>
 
       <!-- Recent Bills and AI Insights -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="content-row">
         <!-- Recent Bills Table -->
-        <div
-          ref="billsTableRef"
-          :class="`rounded-xl p-6 border backdrop-blur-md transition-all duration-300 ${
-            isDark
-              ? 'bg-gray-800/70 border-gray-700/50'
-              : 'bg-white/70 border-gray-200/50'
-          }`"
-        >
-          <h3 :class="`text-lg font-semibold mb-4 transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-800'}`">
+        <div ref="billsTableRef" class="bills-card">
+          <h3 class="card-title">
             最近账单
           </h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+          <div class="bills-table-container">
+            <table class="bills-table">
               <thead>
-                <tr :class="`border-b transition-colors duration-300 ${isDark ? 'border-gray-700' : 'border-gray-200'}`">
-                  <th :class="`text-left py-3 px-4 transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`">日期</th>
-                  <th :class="`text-left py-3 px-4 transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`">商户</th>
-                  <th :class="`text-left py-3 px-4 transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`">类别</th>
-                  <th :class="`text-left py-3 px-4 transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`">金额</th>
-                  <th :class="`text-left py-3 px-4 transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`">状态</th>
+                <tr class="table-header-row">
+                  <th class="table-header-cell">日期</th>
+                  <th class="table-header-cell">商户</th>
+                  <th class="table-header-cell">类别</th>
+                  <th class="table-header-cell">金额</th>
+                  <th class="table-header-cell">状态</th>
                 </tr>
               </thead>
               <tbody>
                 <tr
                   v-for="bill in recentBills"
                   :key="bill.id"
-                  :class="`border-b transition-all duration-300 ${
-                    isDark
-                      ? 'border-gray-800 hover:bg-gray-700/30'
-                      : 'border-gray-100 hover:bg-gray-50'
-                  }`"
+                  class="table-row"
                 >
-                  <td :class="`py-3 px-4 transition-colors duration-300 ${isDark ? 'text-gray-300' : 'text-gray-700'}`">
+                  <td class="table-cell">
                     {{ bill.date }}
                   </td>
-                  <td :class="`py-3 px-4 transition-colors duration-300 ${isDark ? 'text-gray-300' : 'text-gray-700'}`">
+                  <td class="table-cell">
                     {{ bill.vendor }}
                   </td>
-                  <td class="py-3 px-4">
-                    <span :class="`px-2 py-1 rounded-full text-xs transition-colors duration-300 ${
-                      isDark
-                        ? 'bg-blue-900/50 text-blue-300'
-                        : 'bg-blue-100 text-blue-800'
-                    }`">
+                  <td class="table-cell">
+                    <span class="status-badge status-badge-blue">
                       {{ bill.category }}
                     </span>
                   </td>
-                  <td :class="`py-3 px-4 font-medium transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-800'}`">
+                  <td class="table-cell table-cell-bold">
                     ¥{{ bill.amount }}
                   </td>
-                  <td class="py-3 px-4">
-                    <span :class="`px-2 py-1 rounded-full text-xs transition-colors duration-300 ${
-                      bill.status === '已通过'
-                        ? isDark
-                          ? 'bg-green-900/50 text-green-300'
-                          : 'bg-green-100 text-green-800'
-                        : bill.status === '待审核'
-                        ? isDark
-                          ? 'bg-yellow-900/50 text-yellow-300'
-                          : 'bg-yellow-100 text-yellow-800'
-                        : isDark
-                          ? 'bg-red-900/50 text-red-300'
-                          : 'bg-red-100 text-red-800'
-                    }`">
+                  <td class="table-cell">
+                    <span class="status-badge" :class="getStatusBadgeClass(bill.status)">
                       {{ bill.status }}
                     </span>
                   </td>
@@ -263,36 +195,18 @@
         </div>
 
         <!-- AI Insights -->
-        <div
-          ref="aiInsightsRef"
-          :class="`rounded-xl p-6 border backdrop-blur-md transition-all duration-300 ${
-            isDark
-              ? 'bg-gray-800/70 border-gray-700/50'
-              : 'bg-white/70 border-gray-200/50'
-          }`"
-        >
-          <h3 :class="`text-lg font-semibold mb-4 transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-800'}`">
+        <div ref="aiInsightsRef" class="insights-card">
+          <h3 class="card-title">
             AI 分析提示
           </h3>
-          <div class="space-y-4">
+          <div class="insights-container">
             <div
               v-for="insight in aiInsights"
               :key="insight.id"
-              :class="`p-4 rounded-lg border-l-4 transition-colors duration-300 ${
-                insight.type === 'warning'
-                  ? isDark
-                    ? 'bg-yellow-900/20 border-yellow-600 text-yellow-300'
-                    : 'bg-yellow-50 border-yellow-500 text-yellow-800'
-                  : insight.type === 'info'
-                  ? isDark
-                    ? 'bg-blue-900/20 border-blue-600 text-blue-300'
-                    : 'bg-blue-50 border-blue-500 text-blue-800'
-                  : isDark
-                    ? 'bg-red-900/20 border-red-600 text-red-300'
-                    : 'bg-red-50 border-red-500 text-red-800'
-              }`"
+              class="insight-item"
+              :class="getInsightClass(insight.type)"
             >
-              <p class="text-sm">{{ insight.message }}</p>
+              <p class="insight-text">{{ insight.message }}</p>
             </div>
           </div>
         </div>
@@ -300,29 +214,10 @@
     </main>
 
     <!-- Footer -->
-    <footer :class="`relative z-10 backdrop-blur-md border-t mt-12 transition-all duration-300 ${
-      isDark
-        ? 'bg-gray-800/70 border-gray-700/50'
-        : 'bg-white/70 border-gray-200/50'
-    }`">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <!-- 返回主页按钮 -->
-        <div class="flex flex-col items-center space-y-4">
-          <router-link
-            to="/"
-            :class="`inline-flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
-              isDark
-                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/25'
-                : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg shadow-cyan-500/30'
-            }`"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m15 18-6-6 6-6"/>
-            </svg>
-            <span>返回主页</span>
-          </router-link>
-
-          <p :class="`text-center text-sm transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`">
+    <footer class="dashboard-footer">
+      <div class="footer-container">
+        <div class="footer-content">
+          <p class="footer-text">
             © 2025 AstraFlow · Smart Expense Made Simple
           </p>
         </div>
@@ -511,22 +406,783 @@ const metrics = ref([
     change: '-2.1%'
   }
 ])
+
+// Helper methods for dynamic classes
+const getStatusBadgeClass = (status) => {
+  if (status === '已通过') return 'status-badge-green'
+  if (status === '待审核') return 'status-badge-yellow'
+  return 'status-badge-red'
+}
+
+const getInsightClass = (type) => {
+  if (type === 'warning') return 'insight-warning'
+  if (type === 'info') return 'insight-info'
+  return 'insight-alert'
+}
 </script>
 
 <style scoped>
-/* 暗色模式下的粒子背景优化 */
-.dark .animate-pulse {
-  opacity: 0.3;
+/* Main Container */
+.dashboard-container {
+  min-height: 100vh;
+  transition: color 0.3s ease, background-color 0.3s ease;
 }
 
-/* 确保所有过渡效果流畅 */
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+.dashboard-container[data-theme="dark"] {
+  background-color: #111827;
 }
 
-/* 暗色模式下的卡片阴影增强 */
-.dark .hover\:shadow-cyan-500\/10:hover {
-  box-shadow: 0 20px 25px -5px rgba(56, 189, 248, 0.15), 0 10px 10px -5px rgba(56, 189, 248, 0.08);
+.dashboard-container[data-theme="light"] {
+  background: linear-gradient(135deg, #eff6ff, #ecfeff, #e0f2fe);
+}
+
+/* Particle Background */
+.particle-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  filter: blur(5rem);
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.particle-cyan {
+  top: -10rem;
+  right: -10rem;
+}
+
+.dashboard-container[data-theme="dark"] .particle-cyan {
+  background-color: rgba(34, 211, 238, 0.3);
+}
+
+.dashboard-container[data-theme="light"] .particle-cyan {
+  background-color: #06b6d4;
+}
+
+.particle-blue {
+  bottom: -10rem;
+  left: -10rem;
+}
+
+.dashboard-container[data-theme="dark"] .particle-blue {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+.dashboard-container[data-theme="light"] .particle-blue {
+  background-color: #3b82f6;
+}
+
+.particle-purple {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.dashboard-container[data-theme="dark"] .particle-purple {
+  background-color: rgba(147, 51, 234, 0.3);
+}
+
+.dashboard-container[data-theme="light"] .particle-purple {
+  background-color: #a855f7;
+}
+
+/* Header */
+.dashboard-header {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .dashboard-header {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.dashboard-container[data-theme="light"] .dashboard-header {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.header-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 4rem;
+  flex-wrap: nowrap;
+}
+
+@media (min-width: 640px) {
+  .header-container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .header-container {
+    padding: 0 2rem;
+  }
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 15;
+  min-width: 0; /* Allow flex item to shrink */
+  overflow: hidden;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  color: inherit;
+}
+
+.dashboard-container[data-theme="dark"] .back-button {
+  color: #d1d5db;
+}
+
+.dashboard-container[data-theme="dark"] .back-button:hover {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: white;
+}
+
+.dashboard-container[data-theme="light"] .back-button {
+  color: #4b5563;
+}
+
+.dashboard-container[data-theme="light"] .back-button:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.back-text {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .back-text {
+    display: inline;
+  }
+}
+
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #22d3ee, #3b82f6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.dashboard-container[data-theme="dark"] .page-title {
+  color: white;
+}
+
+.dashboard-container[data-theme="light"] .page-title {
+  color: #1f2937;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 2; /* Don't grow */
+}
+
+.theme-toggle {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dashboard-container[data-theme="dark"] .theme-toggle {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: #d1d5db;
+}
+
+.dashboard-container[data-theme="dark"] .theme-toggle:hover {
+  background-color: rgba(75, 85, 99, 0.5);
+}
+
+.dashboard-container[data-theme="light"] .theme-toggle {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.dashboard-container[data-theme="light"] .theme-toggle:hover {
+  background-color: #e5e7eb;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-avatar {
+  width: 2rem;
+  height: 2rem;
+  background: linear-gradient(135deg, #22d3ee, #3b82f6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-icon {
+  color: white;
+}
+
+.user-name {
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .user-name {
+  color: #d1d5db;
+}
+
+.dashboard-container[data-theme="light"] .user-name {
+  color: #374151;
+}
+
+/* Main Content */
+.main-content {
+  position: relative;
+  z-index: 10;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .main-content {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    padding: 2rem 2rem;
+  }
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.metric-card {
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .metric-card {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.dashboard-container[data-theme="light"] .metric-card {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.metric-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metric-info {
+  flex: 1;
+}
+
+.metric-title {
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .metric-title {
+  color: #9ca3af;
+}
+
+.dashboard-container[data-theme="light"] .metric-title {
+  color: #4b5363;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .metric-value {
+  color: white;
+}
+
+.dashboard-container[data-theme="light"] .metric-value {
+  color: #1f2937;
+}
+
+.metric-change {
+  font-size: 0.75rem;
+  color: #10b981;
+}
+
+.metric-icon {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  color: white;
+}
+
+.bg-blue-500-to-cyan-500 {
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+}
+
+.bg-green-500-to-emerald-500 {
+  background: linear-gradient(135deg, #10b981, #047857);
+}
+
+.bg-purple-500-to-pink-500 {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+}
+
+.bg-amber-500-to-orange-500 {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+}
+
+/* Charts Row */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .charts-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.chart-card {
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .chart-card {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.dashboard-container[data-theme="light"] .chart-card {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.chart-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  transition: color 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .chart-title {
+  color: white;
+}
+
+.dashboard-container[data-theme="light"] .chart-title {
+  color: #1f2937;
+}
+
+.chart-container {
+  height: 20rem;
+}
+
+/* Content Row */
+.content-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .content-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.bills-card,
+.insights-card {
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .bills-card,
+.dashboard-container[data-theme="dark"] .insights-card {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.dashboard-container[data-theme="light"] .bills-card,
+.dashboard-container[data-theme="light"] .insights-card {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  transition: color 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .card-title {
+  color: white;
+}
+
+.dashboard-container[data-theme="light"] .card-title {
+  color: #1f2937;
+}
+
+.bills-table-container {
+  overflow-x: auto;
+}
+
+.bills-table {
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.table-header-row {
+  border-bottom: 1px solid;
+  transition: border-color 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .table-header-row {
+  border-color: #374151;
+}
+
+.dashboard-container[data-theme="light"] .table-header-row {
+  border-color: #e5e7eb;
+}
+
+.table-header-cell {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .table-header-cell {
+  color: #9ca3af;
+}
+
+.dashboard-container[data-theme="light"] .table-header-cell {
+  color: #4b5563;
+}
+
+.table-row {
+  border-bottom: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .table-row {
+  border-color: #1f2937;
+}
+
+.dashboard-container[data-theme="light"] .table-row {
+  border-color: #f3f4f6;
+}
+
+.dashboard-container[data-theme="dark"] .table-row:hover {
+  background-color: rgba(55, 65, 81, 0.3);
+}
+
+.dashboard-container[data-theme="light"] .table-row:hover {
+  background-color: rgba(249, 250, 251, 0.5);
+}
+
+.table-cell {
+  padding: 0.75rem 1rem;
+  transition: color 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .table-cell {
+  color: #d1d5db;
+}
+
+.dashboard-container[data-theme="light"] .table-cell {
+  color: #374151;
+}
+
+.table-cell-bold {
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .table-cell-bold {
+  color: white;
+}
+
+.dashboard-container[data-theme="light"] .table-cell-bold {
+  color: #111827;
+}
+
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-badge-blue {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.dashboard-container[data-theme="dark"] .status-badge-blue {
+  background-color: #1e3a8a;
+  color: #bfdbfe;
+}
+
+.status-badge-green {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.dashboard-container[data-theme="dark"] .status-badge-green {
+  background-color: #14532d;
+  color: #bbf7d0;
+}
+
+.status-badge-yellow {
+  background-color: #fef3c7;
+  color: #a16207;
+}
+
+.dashboard-container[data-theme="dark"] .status-badge-yellow {
+  background-color: #7c2d12;
+  color: #fde68a;
+}
+
+.status-badge-red {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.dashboard-container[data-theme="dark"] .status-badge-red {
+  background-color: #7f1d1d;
+  color: #fecaca;
+}
+
+.insights-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.insight-item {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border-left-width: 4px;
+}
+
+.insight-warning {
+  background-color: #fef3c7;
+  border-left-color: #f59e0b;
+  color: #a16207;
+}
+
+.dashboard-container[data-theme="dark"] .insight-warning {
+  background-color: #7c2d12;
+  color: #fde68a;
+}
+
+.insight-info {
+  background-color: #dbeafe;
+  border-left-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+.dashboard-container[data-theme="dark"] .insight-info {
+  background-color: #1e3a8a;
+  color: #bfdbfe;
+}
+
+.insight-alert {
+  background-color: #fee2e2;
+  border-left-color: #ef4444;
+  color: #b91c1c;
+}
+
+.dashboard-container[data-theme="dark"] .insight-alert {
+  background-color: #7f1d1d;
+  color: #fecaca;
+}
+
+/* Footer */
+.dashboard-footer {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-top: 1px solid;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .dashboard-footer {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.dashboard-container[data-theme="light"] .dashboard-footer {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.footer-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .footer-container {
+    padding: 1.5rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer-container {
+    padding: 1.5rem 2rem;
+  }
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.home-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  background: linear-gradient(135deg, #06b6d4, #3b82f6);
+  color: white;
+}
+
+.home-button:hover {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, #0891b2, #2563eb);
+}
+
+.dashboard-container[data-theme="dark"] .home-button {
+  box-shadow: 0 10px 15px -3px rgba(6, 182, 212, 0.25);
+}
+
+.dashboard-container[data-theme="light"] .home-button {
+  box-shadow: 0 10px 15px -3px rgba(6, 182, 212, 0.3);
+}
+
+.dashboard-container[data-theme="dark"] .home-button:hover {
+  box-shadow: 0 20px 25px -5px rgba(6, 182, 212, 0.3);
+}
+
+.dashboard-container[data-theme="light"] .home-button:hover {
+  box-shadow: 0 20px 25px -5px rgba(6, 182, 212, 0.4);
+}
+
+.footer-text {
+  text-align: center;
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .footer-text {
+  color: #9ca3af;
+}
+
+.dashboard-container[data-theme="light"] .footer-text {
+  color: #6b7280;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 </style>

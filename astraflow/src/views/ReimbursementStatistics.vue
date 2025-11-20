@@ -1,42 +1,42 @@
 <template>
-  <div :class="'flex flex-col min-h-screen transition-colors duration-300 ' + (isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50')">
+  <div :class="'stats-main-container ' + (isDark ? 'dark-theme' : 'light-theme')">
     <!-- Particle background effect -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-      <div :class="'absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ' + (isDark ? 'bg-cyan-900/30' : 'bg-cyan-500')"></div>
-      <div :class="'absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ' + (isDark ? 'bg-blue-900/30' : 'bg-blue-500')"></div>
-      <div :class="'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ' + (isDark ? 'bg-purple-900/30' : 'bg-purple-500')"></div>
+    <div class="fixed-container">
+      <div :class="'particle-circle particle-1 ' + (isDark ? 'dark-particle' : 'light-particle')"></div>
+      <div :class="'particle-circle particle-2 ' + (isDark ? 'dark-particle' : 'light-particle')"></div>
+      <div :class="'particle-circle particle-3 ' + (isDark ? 'dark-particle' : 'light-particle')"></div>
     </div>
 
     <!-- Header -->
-    <header :class="'relative z-10 backdrop-blur-md border-b transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4">
+    <header :class="'stats-header ' + (isDark ? 'dark-theme' : 'light-theme')">
+      <div class="container">
+        <div class="header-content">
+          <div class="header-left">
             <!-- 返回按钮 -->
             <router-link
               to="/"
-              :class="'flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ' + (isDark ? 'hover:bg-gray-700/50 text-gray-300 hover:text-white' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900')"
+              :class="'back-button ' + (isDark ? 'dark-theme' : 'light-theme')"
               title="返回首页"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m15 18-6-6 6-6"/>
               </svg>
-              <span class="hidden sm:inline">返回</span>
+              <span class="back-button-text">返回</span>
             </router-link>
 
-            <div class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            <div class="brand-text">
               AstraFlow
             </div>
-            <h1 :class="'text-xl font-semibold transition-colors duration-300 ' + (isDark ? 'text-white' : 'text-gray-800')">
+            <h1 :class="'page-title ' + (isDark ? 'dark-theme' : 'light-theme')">
               报销统计
             </h1>
           </div>
 
-          <div class="flex items-center space-x-4">
+          <div class="header-right">
             <!-- 主题切换按钮 -->
             <button
               @click="toggleTheme"
-              :class="'p-2 rounded-lg transition-all duration-200 ' + (isDark ? 'bg-gray-700/50 hover:bg-gray-600/50 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700')"
+              :class="'theme-toggle-btn ' + (isDark ? 'dark-theme' : 'light-theme')"
             >
               <SunIcon v-if="isDark" :size="20" />
               <MoonIcon v-else :size="20" />
@@ -47,92 +47,94 @@
     </header>
 
     <!-- Main Content -->
-    <main class="relative z-10 flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="stats-main-content">
       <!-- Data Overview Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="stats-cards-grid">
         <!-- 本月总支出 -->
-        <div :class="'rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 hover:scale-105 hover:shadow-xl ' + (isDark ? 'bg-gradient-to-br from-red-900/30 to-orange-900/30 border-red-700/50' : 'bg-gradient-to-br from-red-50 to-orange-50 border-red-200/50')">
-          <div class="flex items-center justify-between mb-4">
-            <div :class="'p-3 rounded-xl ' + (isDark ? 'bg-red-900/50' : 'bg-red-100')">
-              <WalletIcon :size="24" :class="isDark ? 'text-red-400' : 'text-red-600'" />
+        <div :class="'stats-card ' + (isDark ? 'dark-theme red-theme' : 'light-theme red-theme')">
+          <div class="card-header">
+            <div :class="'card-icon-container ' + (isDark ? 'dark-theme red-theme' : 'light-theme red-theme')">
+              <WalletIcon :size="24" :class="isDark ? 'card-icon-dark' : 'card-icon-light'" />
             </div>
-            <span :class="'text-xs font-medium px-2 py-1 rounded-full ' + (isDark ? 'bg-red-900/50 text-red-300' : 'bg-red-100 text-red-700')">
+            <span :class="'card-badge ' + (isDark ? 'dark-theme red-theme' : 'light-theme red-theme')">
               本月
             </span>
           </div>
-          <h3 :class="'text-sm font-medium mb-2 ' + (isDark ? 'text-gray-400' : 'text-gray-600')">本月总支出</h3>
-          <p :class="'text-2xl font-bold ' + (isDark ? 'text-white' : 'text-gray-900')">¥12,486.50</p>
-          <p :class="'text-xs mt-2 ' + (isDark ? 'text-gray-500' : 'text-gray-500')">较上月 +8.5%</p>
+          <h3 :class="'card-subtitle ' + (isDark ? 'dark-theme' : 'light-theme')">本月总支出</h3>
+          <p :class="'card-value ' + (isDark ? 'dark-theme' : 'light-theme')">¥12,486.50</p>
+          <p :class="'card-change ' + (isDark ? 'dark-theme' : 'light-theme')">较上月 +8.5%</p>
         </div>
 
         <!-- 报销通过金额 -->
-        <div :class="'rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 hover:scale-105 hover:shadow-xl ' + (isDark ? 'bg-gradient-to-br from-green-900/30 to-emerald-900/30 border-green-700/50' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200/50')">
-          <div class="flex items-center justify-between mb-4">
-            <div :class="'p-3 rounded-xl ' + (isDark ? 'bg-green-900/50' : 'bg-green-100')">
-              <CheckCircleIcon :size="24" :class="isDark ? 'text-green-400' : 'text-green-600'" />
+        <div :class="'stats-card ' + (isDark ? 'dark-theme green-theme' : 'light-theme green-theme')">
+          <div class="card-header">
+            <div :class="'card-icon-container ' + (isDark ? 'dark-theme green-theme' : 'light-theme green-theme')">
+              <CheckCircleIcon :size="24" :class="isDark ? 'card-icon-dark' : 'card-icon-light'" />
             </div>
-            <span :class="'text-xs font-medium px-2 py-1 rounded-full ' + (isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700')">
+            <span :class="'card-badge ' + (isDark ? 'dark-theme green-theme' : 'light-theme green-theme')">
               已通过
             </span>
           </div>
-          <h3 :class="'text-sm font-medium mb-2 ' + (isDark ? 'text-gray-400' : 'text-gray-600')">报销通过金额</h3>
-          <p :class="'text-2xl font-bold ' + (isDark ? 'text-white' : 'text-gray-900')">¥8,234.00</p>
-          <p :class="'text-xs mt-2 ' + (isDark ? 'text-gray-500' : 'text-gray-500')">通过率 66.0%</p>
+          <h3 :class="'card-subtitle ' + (isDark ? 'dark-theme' : 'light-theme')">报销通过金额</h3>
+          <p :class="'card-value ' + (isDark ? 'dark-theme' : 'light-theme')">¥8,234.00</p>
+          <p :class="'card-change ' + (isDark ? 'dark-theme' : 'light-theme')">通过率 66.0%</p>
         </div>
 
         <!-- 未报销金额 -->
-        <div :class="'rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 hover:scale-105 hover:shadow-xl ' + (isDark ? 'bg-gradient-to-br from-yellow-900/30 to-amber-900/30 border-yellow-700/50' : 'bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200/50')">
-          <div class="flex items-center justify-between mb-4">
-            <div :class="'p-3 rounded-xl ' + (isDark ? 'bg-yellow-900/50' : 'bg-yellow-100')">
-              <ClockIcon :size="24" :class="isDark ? 'text-yellow-400' : 'text-yellow-600'" />
+        <div :class="'stats-card ' + (isDark ? 'dark-theme yellow-theme' : 'light-theme yellow-theme')">
+          <div class="card-header">
+            <div :class="'card-icon-container ' + (isDark ? 'dark-theme yellow-theme' : 'light-theme yellow-theme')">
+              <ClockIcon :size="24" :class="isDark ? 'card-icon-dark' : 'card-icon-light'" />
             </div>
-            <span :class="'text-xs font-medium px-2 py-1 rounded-full ' + (isDark ? 'bg-yellow-900/50 text-yellow-300' : 'bg-yellow-100 text-yellow-700')">
+            <span :class="'card-badge ' + (isDark ? 'dark-theme yellow-theme' : 'light-theme yellow-theme')">
               待处理
             </span>
           </div>
-          <h3 :class="'text-sm font-medium mb-2 ' + (isDark ? 'text-gray-400' : 'text-gray-600')">未报销金额</h3>
-          <p :class="'text-2xl font-bold ' + (isDark ? 'text-white' : 'text-gray-900')">¥4,252.50</p>
-          <p :class="'text-xs mt-2 ' + (isDark ? 'text-gray-500' : 'text-gray-500')">34.0% 待报销</p>
+          <h3 :class="'card-subtitle ' + (isDark ? 'dark-theme' : 'light-theme')">未报销金额</h3>
+          <p :class="'card-value ' + (isDark ? 'dark-theme' : 'light-theme')">¥4,252.50</p>
+          <p :class="'card-change ' + (isDark ? 'dark-theme' : 'light-theme')">34.0% 待报销</p>
         </div>
 
         <!-- 报销通过率 -->
-        <div :class="'rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 hover:scale-105 hover:shadow-xl ' + (isDark ? 'bg-gradient-to-br from-purple-900/30 to-indigo-900/30 border-purple-700/50' : 'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200/50')">
-          <div class="flex items-center justify-between mb-4">
-            <div :class="'p-3 rounded-xl ' + (isDark ? 'bg-purple-900/50' : 'bg-purple-100')">
-              <TrendingUpIcon :size="24" :class="isDark ? 'text-purple-400' : 'text-purple-600'" />
+        <div :class="'stats-card ' + (isDark ? 'dark-theme purple-theme' : 'light-theme purple-theme')">
+          <div class="card-header">
+            <div :class="'card-icon-container ' + (isDark ? 'dark-theme purple-theme' : 'light-theme purple-theme')">
+              <TrendingUpIcon :size="24" :class="isDark ? 'card-icon-dark' : 'card-icon-light'" />
             </div>
-            <span :class="'text-xs font-medium px-2 py-1 rounded-full ' + (isDark ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700')">
+            <span :class="'card-badge ' + (isDark ? 'dark-theme purple-theme' : 'light-theme purple-theme')">
               统计
             </span>
           </div>
-          <h3 :class="'text-sm font-medium mb-2 ' + (isDark ? 'text-gray-400' : 'text-gray-600')">报销通过率</h3>
-          <p :class="'text-2xl font-bold ' + (isDark ? 'text-white' : 'text-gray-900')">66.0%</p>
-          <p :class="'text-xs mt-2 ' + (isDark ? 'text-gray-500' : 'text-gray-500')">较上月 +2.3%</p>
+          <h3 :class="'card-subtitle ' + (isDark ? 'dark-theme' : 'light-theme')">报销通过率</h3>
+          <p :class="'card-value ' + (isDark ? 'dark-theme' : 'light-theme')">66.0%</p>
+          <p :class="'card-change ' + (isDark ? 'dark-theme' : 'light-theme')">较上月 +2.3%</p>
         </div>
       </div>
 
       <!-- Charts Section -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="charts-grid">
         <!-- Monthly Trend Bar Chart -->
-        <div :class="'rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-          <h3 :class="'text-lg font-semibold mb-6 ' + (isDark ? 'text-white' : 'text-gray-900')">最近6个月报销趋势</h3>
-          <div ref="barChartRef" :style="{ height: '300px' }" class="w-full"></div>
+        <div :class="'chart-card ' + (isDark ? 'dark-theme' : 'light-theme')">
+          <h3 :class="'chart-title ' + (isDark ? 'dark-theme' : 'light-theme')">最近6个月报销趋势</h3>
+          <div ref="barChartRef" :style="{ height: '300px' }" class="chart-container"></div>
         </div>
 
         <!-- Category Distribution Pie Chart -->
-        <div :class="'rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-          <h3 :class="'text-lg font-semibold mb-6 ' + (isDark ? 'text-white' : 'text-gray-900')">支出分类分布</h3>
-          <div ref="pieChartRef" :style="{ height: '300px' }" class="w-full"></div>
+        <div :class="'chart-card ' + (isDark ? 'dark-theme' : 'light-theme')">
+          <h3 :class="'chart-title ' + (isDark ? 'dark-theme' : 'light-theme')">支出分类分布</h3>
+          <div ref="pieChartRef" :style="{ height: '300px' }" class="chart-container"></div>
         </div>
       </div>
     </main>
 
     <!-- Footer -->
-    <footer :class="'relative z-10 backdrop-blur-md border-t mt-12 transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <p :class="'text-center text-sm transition-colors duration-300 ' + (isDark ? 'text-gray-400' : 'text-gray-600')">
-          © 2025 AstraFlow · Smart Expense Made Simple
-        </p>
+    <footer :class="'stats-footer ' + (isDark ? 'dark-theme' : 'light-theme')">
+      <div class="footer-container">
+        <div class="footer-content">
+          <p :class="'footer-text ' + (isDark ? 'dark-theme' : 'light-theme')">
+            © 2025 AstraFlow · Smart Expense Made Simple
+          </p>
+        </div>
       </div>
     </footer>
   </div>
@@ -415,19 +417,581 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Custom animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+/* 主容器 */
+.stats-main-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+.stats-main-container.dark-theme {
+  background-color: #111827;
 }
 
-/* Chart container responsive */
+.stats-main-container.light-theme {
+  background: linear-gradient(135deg, #eff6ff, #f0f9ff, #e0e7ff);
+}
+
+/* 固定容器 */
+.fixed-container {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* 粒子圆圈 */
+.particle-circle {
+  position: absolute;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  filter: blur(6rem);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+.particle-1 {
+  top: -10rem;
+  right: -10rem;
+}
+
+.particle-2 {
+  bottom: -10rem;
+  left: -10rem;
+}
+
+.particle-3 {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.particle-circle.dark-particle {
+  background-color: rgba(6, 182, 212, 0.3);
+}
+
+.particle-circle.light-particle {
+  background-color: #06b6d4;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* 头部 */
+.stats-header {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.stats-header.dark-theme {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.stats-header.light-theme {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 2rem;
+  }
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 4rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* 返回按钮 */
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.back-button.dark-theme {
+  color: #d1d5db;
+}
+
+.back-button.light-theme {
+  color: #4b5563;
+}
+
+.back-button:hover.dark-theme {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: #ffffff;
+}
+
+.back-button:hover.light-theme {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.back-button-text {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .back-button-text {
+    display: inline;
+  }
+}
+
+/* 品牌文字 */
+.brand-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #06b6d4, #3b82f6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* 页面标题 */
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.page-title.dark-theme {
+  color: #ffffff;
+}
+
+.page-title.light-theme {
+  color: #1f2937;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* 主题切换按钮 */
+.theme-toggle-btn {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.theme-toggle-btn.dark-theme {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: #d1d5db;
+}
+
+.theme-toggle-btn.light-theme {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.theme-toggle-btn:hover.dark-theme {
+  background-color: rgba(75, 85, 99, 0.5);
+}
+
+.theme-toggle-btn:hover.light-theme {
+  background-color: #e5e7eb;
+}
+
+/* 主内容 */
+.stats-main-content {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .stats-main-content {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-main-content {
+    padding: 2rem 2rem;
+  }
+}
+
+/* 统计卡片网格 */
+.stats-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .stats-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* 统计卡片 */
+.stats-card {
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+}
+
+.stats-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.stats-card.dark-theme {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.stats-card.light-theme {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+/* 红色主题 */
+.stats-card.red-theme.dark-theme {
+  background: linear-gradient(135deg, rgba(127, 29, 29, 0.3), rgba(146, 39, 64, 0.3));
+  border-color: rgba(209, 55, 78, 0.5);
+}
+
+.stats-card.red-theme.light-theme {
+  background: linear-gradient(135deg, #fef2f2, #fff7f7);
+  border-color: rgba(254, 202, 202, 0.5);
+}
+
+/* 绿色主题 */
+.stats-card.green-theme.dark-theme {
+  background: linear-gradient(135deg, rgba(21, 128, 61, 0.3), rgba(22, 101, 52, 0.3));
+  border-color: rgba(74, 222, 128, 0.5);
+}
+
+.stats-card.green-theme.light-theme {
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  border-color: rgba(187, 247, 208, 0.5);
+}
+
+/* 黄色主题 */
+.stats-card.yellow-theme.dark-theme {
+  background: linear-gradient(135deg, rgba(161, 98, 7, 0.3), rgba(180, 83, 9, 0.3));
+  border-color: rgba(253, 230, 138, 0.5);
+}
+
+.stats-card.yellow-theme.light-theme {
+  background: linear-gradient(135deg, #fefce8, #fef9c3);
+  border-color: rgba(254, 240, 138, 0.5);
+}
+
+/* 紫色主题 */
+.stats-card.purple-theme.dark-theme {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.3), rgba(76, 29, 149, 0.3));
+  border-color: rgba(165, 180, 252, 0.5);
+}
+
+.stats-card.purple-theme.light-theme {
+  background: linear-gradient(135deg, #f5f3ff, #faf5ff);
+  border-color: rgba(224, 231, 255, 0.5);
+}
+
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+/* 卡片图标容器 */
+.card-icon-container {
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+}
+
+.card-icon-container.dark-theme.red-theme {
+  background-color: rgba(127, 29, 29, 0.5);
+}
+
+.card-icon-container.light-theme.red-theme {
+  background-color: #fee2e2;
+}
+
+.card-icon-container.dark-theme.green-theme {
+  background-color: rgba(21, 128, 61, 0.5);
+}
+
+.card-icon-container.light-theme.green-theme {
+  background-color: #dcfce7;
+}
+
+.card-icon-container.dark-theme.yellow-theme {
+  background-color: rgba(161, 98, 7, 0.5);
+}
+
+.card-icon-container.light-theme.yellow-theme {
+  background-color: #fef9c3;
+}
+
+.card-icon-container.dark-theme.purple-theme {
+  background-color: rgba(88, 28, 135, 0.5);
+}
+
+.card-icon-container.light-theme.purple-theme {
+  background-color: #e0e7ff;
+}
+
+/* 卡片徽章 */
+.card-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.card-badge.dark-theme.red-theme {
+  background-color: rgba(127, 29, 29, 0.5);
+  color: #fcd34d;
+}
+
+.card-badge.light-theme.red-theme {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.card-badge.dark-theme.green-theme {
+  background-color: rgba(21, 128, 61, 0.5);
+  color: #86efac;
+}
+
+.card-badge.light-theme.green-theme {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.card-badge.dark-theme.yellow-theme {
+  background-color: rgba(161, 98, 7, 0.5);
+  color: #fde68a;
+}
+
+.card-badge.light-theme.yellow-theme {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+.card-badge.dark-theme.purple-theme {
+  background-color: rgba(88, 28, 135, 0.5);
+  color: #c7d2fe;
+}
+
+.card-badge.light-theme.purple-theme {
+  background-color: #e0e7ff;
+  color: #4f46e5;
+}
+
+/* 卡片子标题 */
+.card-subtitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.card-subtitle.dark-theme {
+  color: #9ca3af;
+}
+
+.card-subtitle.light-theme {
+  color: #4b5563;
+}
+
+/* 卡片值 */
+.card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.card-value.dark-theme {
+  color: #ffffff;
+}
+
+.card-value.light-theme {
+  color: #1f2937;
+}
+
+/* 卡片变化 */
+.card-change {
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.card-change.dark-theme {
+  color: #6b7280;
+}
+
+.card-change.light-theme {
+  color: #6b7280;
+}
+
+/* 图标类 */
+.card-icon-dark {
+  color: #fbbf24;
+}
+
+.card-icon-light {
+  color: #dc2626;
+}
+
+/* 图表网格 */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 图表卡片 */
+.chart-card {
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+}
+
+.chart-card.dark-theme {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.chart-card.light-theme {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+/* 图表标题 */
+.chart-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.chart-title.dark-theme {
+  color: #ffffff;
+}
+
+.chart-title.light-theme {
+  color: #1f2937;
+}
+
+/* 图表容器 */
+.chart-container {
+  width: 100%;
+}
+
+/* 页脚 */
+.stats-footer {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-top: 1px solid;
+  margin-top: 3rem;
+  transition: all 0.3s ease;
+}
+
+.footer-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stats-footer.dark-theme {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.stats-footer.light-theme {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.footer-text {
+  text-align: center;
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.footer-text.dark-theme {
+  color: #9ca3af;
+}
+
+.footer-text.light-theme {
+  color: #6b7280;
+}
+
+/* 响应式图表容器 */
 @media (max-width: 768px) {
-  .grid > div {
+  .chart-container {
     min-height: 250px;
   }
 }

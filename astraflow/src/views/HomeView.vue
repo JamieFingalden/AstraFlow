@@ -1,65 +1,65 @@
 <template>
   <MainLayout>
     <!-- 英雄区 -->
-    <div class="min-h-screen flex flex-col items-center justify-center px-6 relative">
+    <div class="hero-container">
       <!-- 主标题 -->
-      <div class="text-center mb-12">
-        <h1 class="text-6xl md:text-8xl lg:text-9xl font-black mb-6 animate-float">
-          <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 drop-shadow-2xl">
+      <div class="title-section">
+        <h1 class="main-title animate-float">
+          <span class="gradient-text">
             星流
           </span>
         </h1>
-        <div class="text-2xl md:text-4xl lg:text-5xl font-bold mb-4 text-gray-300">
+        <div class="subtitle">
           AI智能报销管理平台
         </div>
-        <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+        <p class="description">
           AI自动识别发票账单，一键完成智能报销
         </p>
       </div>
 
       <!-- 核心功能 -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full mb-12">
-        <div class="group relative p-8 rounded-2xl bg-gradient-to-br from-blue-900/30 to-purple-900/30 backdrop-blur-md border border-blue-500/20 hover:border-blue-400/50 transition-all duration-500 hover:scale-105">
-          <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl opacity-0 group-hover:opacity-30 blur transition-opacity duration-500"></div>
-          <div class="relative">
-            <div class="text-4xl mb-4">📄</div>
-            <h3 class="text-xl font-bold mb-2 text-blue-300">智能识别</h3>
-            <p class="text-gray-400">AI自动识别发票、收据和账单信息</p>
+      <div class="features-grid">
+        <div class="feature-card feature-card-blue">
+          <div class="feature-glow feature-glow-blue"></div>
+          <div class="feature-content">
+            <div class="feature-icon">📄</div>
+            <h3 class="feature-title">智能识别</h3>
+            <p class="feature-desc">AI自动识别发票、收据和账单信息</p>
           </div>
         </div>
 
-        <div class="group relative p-8 rounded-2xl bg-gradient-to-br from-purple-900/30 to-pink-900/30 backdrop-blur-md border border-purple-500/20 hover:border-purple-400/50 transition-all duration-500 hover:scale-105">
-          <div class="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl opacity-0 group-hover:opacity-30 blur transition-opacity duration-500"></div>
-          <div class="relative">
-            <div class="text-4xl mb-4">🎯</div>
-            <h3 class="text-xl font-bold mb-2 text-purple-300">自动分类</h3>
-            <p class="text-gray-400">智能分类管理，账单结构化一目了然</p>
+        <div class="feature-card feature-card-purple">
+          <div class="feature-glow feature-glow-purple"></div>
+          <div class="feature-content">
+            <div class="feature-icon">🎯</div>
+            <h3 class="feature-title">自动分类</h3>
+            <p class="feature-desc">智能分类管理，账单结构化一目了然</p>
           </div>
         </div>
 
-        <div class="group relative p-8 rounded-2xl bg-gradient-to-br from-pink-900/30 to-orange-900/30 backdrop-blur-md border border-pink-500/20 hover:border-pink-400/50 transition-all duration-500 hover:scale-105">
-          <div class="absolute -inset-1 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl opacity-0 group-hover:opacity-30 blur transition-opacity duration-500"></div>
-          <div class="relative">
-            <div class="text-4xl mb-4">🚀</div>
-            <h3 class="text-xl font-bold mb-2 text-pink-300">一键报销</h3>
-            <p class="text-gray-400">快速生成报销单，告别繁琐流程</p>
+        <div class="feature-card feature-card-pink">
+          <div class="feature-glow feature-glow-pink"></div>
+          <div class="feature-content">
+            <div class="feature-icon">🚀</div>
+            <h3 class="feature-title">一键报销</h3>
+            <p class="feature-desc">快速生成报销单，告别繁琐流程</p>
           </div>
         </div>
       </div>
 
       <!-- CTA按钮 -->
-      <div class="flex flex-col sm:flex-row gap-4">
-        <router-link to="/upload" class="cta-primary px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full font-bold text-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/50">
+      <div class="cta-container">
+        <router-link to="/upload" class="cta-primary">
           上传发票账单
         </router-link>
-        <router-link to="/dashboard" class="cta-secondary px-8 py-4 border-2 border-purple-500/50 rounded-full font-bold text-lg hover:bg-purple-500/10 transition-all duration-300">
+        <router-link to="/dashboard" class="cta-secondary">
           账单可视化
         </router-link>
       </div>
     </div>
 
     <!-- 流动效果 -->
-    <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent"></div>
+    <div class="flow-gradient"></div>
   </MainLayout>
 </template>
 
@@ -68,6 +68,252 @@ import MainLayout from '../layouts/MainLayout.vue'
 </script>
 
 <style scoped>
+/* 主容器 */
+.hero-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.5rem;
+  position: relative;
+}
+
+/* 标题区域 */
+.title-section {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.main-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .main-title {
+    font-size: 5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main-title {
+    font-size: 6rem;
+  }
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #60a5fa, #a855f7, #ec4899);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 25px 25px rgba(0, 0, 0, 0.25));
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #d1d5db;
+}
+
+@media (min-width: 768px) {
+  .subtitle {
+    font-size: 2.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .subtitle {
+    font-size: 3rem;
+  }
+}
+
+.description {
+  font-size: 1.125rem;
+  color: #9ca3af;
+  max-width: 42rem;
+  margin: 0 auto;
+  line-height: 1.75;
+}
+
+@media (min-width: 768px) {
+  .description {
+    font-size: 1.25rem;
+  }
+}
+
+/* 功能网格 */
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  max-width: 72rem;
+  width: 100%;
+  margin-bottom: 3rem;
+}
+
+@media (min-width: 768px) {
+  .features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 功能卡片 */
+.feature-card {
+  position: relative;
+  padding: 2rem;
+  border-radius: 1rem;
+  backdrop-filter: blur(12px);
+  border: 1px solid;
+  transition: all 0.5s ease;
+}
+
+.feature-card:hover {
+  transform: scale(1.05);
+}
+
+.feature-card-blue {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.3), rgba(91, 33, 182, 0.3));
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.feature-card-blue:hover {
+  border-color: rgba(96, 165, 250, 0.5);
+}
+
+.feature-card-purple {
+  background: linear-gradient(135deg, rgba(91, 33, 182, 0.3), rgba(159, 18, 57, 0.3));
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+.feature-card-purple:hover {
+  border-color: rgba(168, 85, 247, 0.5);
+}
+
+.feature-card-pink {
+  background: linear-gradient(135deg, rgba(159, 18, 57, 0.3), rgba(221, 107, 32, 0.3));
+  border-color: rgba(236, 72, 153, 0.2);
+}
+
+.feature-card-pink:hover {
+  border-color: rgba(251, 146, 60, 0.5);
+}
+
+/* 功能卡片光晕 */
+.feature-glow {
+  position: absolute;
+  inset: -0.25rem;
+  border-radius: 1rem;
+  opacity: 0;
+  filter: blur(1rem);
+  transition: opacity 0.5s ease;
+}
+
+.feature-card:hover .feature-glow {
+  opacity: 0.3;
+}
+
+.feature-glow-blue {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+}
+
+.feature-glow-purple {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+}
+
+.feature-glow-pink {
+  background: linear-gradient(135deg, #ec4899, #fb923c);
+}
+
+/* 功能内容 */
+.feature-content {
+  position: relative;
+}
+
+.feature-icon {
+  font-size: 2.25rem;
+  margin-bottom: 1rem;
+}
+
+.feature-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.feature-card-blue .feature-title {
+  color: #93c5fd;
+}
+
+.feature-card-purple .feature-title {
+  color: #d8b4fe;
+}
+
+.feature-card-pink .feature-title {
+  color: #fbcfe8;
+}
+
+.feature-desc {
+  color: #9ca3af;
+  line-height: 1.6;
+}
+
+/* CTA区域 */
+.cta-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .cta-container {
+    flex-direction: row;
+  }
+}
+
+.cta-primary,
+.cta-secondary {
+  display: inline-block;
+  padding: 1rem 2rem;
+  font-weight: 700;
+  font-size: 1.125rem;
+  text-decoration: none;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+}
+
+.cta-primary {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+}
+
+.cta-primary:hover {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  transform: scale(1.05);
+  box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.5);
+}
+
+.cta-secondary {
+  border: 2px solid rgba(139, 92, 246, 0.5);
+  color: white;
+}
+
+.cta-secondary:hover {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+/* 流动渐变 */
+.flow-gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 8rem;
+  background: linear-gradient(to top, #000000, transparent);
+}
+
 /* 浮动动画 */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
@@ -78,121 +324,104 @@ import MainLayout from '../layouts/MainLayout.vue'
   animation: float 6s ease-in-out infinite;
 }
 
-/* 渐变文字效果 */
+/* 渐变动画 */
 @keyframes gradient {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-.bg-gradient-to-r {
+.gradient-text {
   background-size: 200% 200%;
   animation: gradient 3s ease infinite;
 }
 
-/* 主题支持 */
-/* 暗色主题（默认） */
-.hero-gradient {
-  background: linear-gradient(135deg, #1e293b, #0f172a);
+/* 亮色主题适配 */
+[data-theme="light"] .hero-container {
+  background: linear-gradient(135deg, #ffffff, #f8fafc, #ffffff);
 }
 
-/* 亮色主题 - 全面优化 */
-[data-theme="light"] .hero-gradient {
-  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-}
-
-/* 主要文字 - 强制覆盖 */
-[data-theme="light"] .text-gray-300 {
-  color: var(--color-text-primary) !important;
+[data-theme="light"] .subtitle {
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 
-[data-theme="light"] .text-gray-400 {
-  color: var(--color-text-secondary) !important;
+[data-theme="light"] .description {
+  color: var(--color-text-secondary);
 }
 
-/* 主标题渐变文字 - 亮色主题专用 */
-[data-theme="light"] .bg-gradient-to-r {
-  background: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple), var(--color-aurora-pink)) !important;
-  background-clip: text !important;
-  -webkit-background-clip: text !important;
-  color: transparent !important;
+[data-theme="light"] .gradient-text {
+  background: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple), var(--color-aurora-pink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
-/* 功能卡片 - 完全重新设计 */
-[data-theme="light"] .group {
-  /* 覆盖Tailwind的背景渐变 */
-  background: var(--color-bg-card) !important;
-  border: 1px solid var(--color-border-light) !important;
-  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.08) !important;
+[data-theme="light"] .feature-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.08);
 }
 
-[data-theme="light"] .group:hover {
-  background: rgba(255, 255, 255, 0.98) !important;
-  border-color: var(--color-stellar-blue) !important;
-  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.15) !important;
-  transform: scale(1.02) !important;
+[data-theme="light"] .feature-card:hover {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: var(--color-stellar-blue);
+  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.15);
+  transform: scale(1.02);
 }
 
-/* 覆盖功能卡片的悬停光晕效果 */
-[data-theme="light"] .group .absolute {
-  background: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple)) !important;
-  opacity: 0.1 !important;
+[data-theme="light"] .feature-glow {
+  background: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple));
+  opacity: 0.1;
 }
 
-[data-theme="light"] .group:hover .absolute {
-  opacity: 0.2 !important;
+[data-theme="light"] .feature-card:hover .feature-glow {
+  opacity: 0.2;
 }
 
-/* 功能卡片标题 - 更高对比度 */
-[data-theme="light"] .text-blue-300 {
-  color: var(--color-stellar-blue) !important;
-  font-weight: 700 !important;
+[data-theme="light"] .feature-card-blue .feature-title {
+  color: var(--color-stellar-blue);
+  font-weight: 700;
 }
 
-[data-theme="light"] .text-purple-300 {
-  color: var(--color-nebula-purple) !important;
-  font-weight: 700 !important;
+[data-theme="light"] .feature-card-purple .feature-title {
+  color: var(--color-nebula-purple);
+  font-weight: 700;
 }
 
-[data-theme="light"] .text-pink-300 {
-  color: var(--color-aurora-pink) !important;
-  font-weight: 700 !important;
+[data-theme="light"] .feature-card-pink .feature-title {
+  color: var(--color-aurora-pink);
+  font-weight: 700;
 }
 
-/* 功能卡片描述文字 */
-[data-theme="light"] .group .text-gray-400 {
-  color: var(--color-text-secondary) !important;
-  line-height: 1.6 !important;
+[data-theme="light"] .feature-desc {
+  color: var(--color-text-secondary);
 }
 
-/* CTA按钮区域优化 - 统一白色文字 */
-
-/* "开始星流之旅" 主按钮 - 亮色主题 */
 [data-theme="light"] .cta-primary {
-  background: linear-gradient(135deg, #1e40af, #7c3aed) !important;
-  color: white !important;
-  font-weight: 700 !important;
-  box-shadow: 0 8px 25px rgba(30, 64, 175, 0.3) !important;
-  border: none !important;
+  background: linear-gradient(135deg, #1e40af, #7c3aed);
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 8px 25px rgba(30, 64, 175, 0.3);
+  border: none;
   position: relative;
   overflow: hidden;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="light"] .cta-primary:hover {
-  background: linear-gradient(135deg, #1e3a8a, #6d28d9) !important;
-  box-shadow: 0 12px 35px rgba(30, 64, 175, 0.4) !important;
-  transform: translateY(-3px) scale(1.02) !important;
-  color: white !important;
+  background: linear-gradient(135deg, #1e3a8a, #6d28d9);
+  box-shadow: 0 12px 35px rgba(30, 64, 175, 0.4);
+  transform: translateY(-3px) scale(1.02);
+  color: white;
 }
 
 [data-theme="light"] .cta-primary:active {
-  transform: translateY(-1px) scale(1.01) !important;
-  color: white !important;
+  transform: translateY(-1px) scale(1.01);
+  color: white;
 }
 
-/* "开始星流之旅" 按钮内部光晕效果 */
 [data-theme="light"] .cta-primary::before {
   content: '';
   position: absolute;
@@ -208,98 +437,27 @@ import MainLayout from '../layouts/MainLayout.vue'
   left: 100%;
 }
 
-/* "探索更多" 次按钮 - 亮色主题 */
 [data-theme="light"] .cta-secondary {
-  background: rgba(124, 58, 237, 0.9) !important;
-  border: 2px solid #7c3aed !important;
-  color: white !important;
-  font-weight: 600 !important;
+  background: rgba(124, 58, 237, 0.9);
+  border: 2px solid #7c3aed;
+  color: white;
+  font-weight: 600;
   backdrop-filter: blur(10px);
   position: relative;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="light"] .cta-secondary:hover {
-  background: rgba(37, 99, 235, 0.9) !important;
-  border-color: #2563eb !important;
-  color: white !important;
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3) !important;
-  transform: translateY(-2px) !important;
+  background: rgba(37, 99, 235, 0.9);
+  border-color: #2563eb;
+  color: white;
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+  transform: translateY(-2px);
 }
 
-/* 确保常态下就是白色文字 - 超强优先级 */
-.cta-primary:not(:hover):not(:active):not(:focus),
-.cta-secondary:not(:hover):not(:active):not(:focus),
-a.cta-primary:not(:hover):not(:active):not(:focus),
-a.cta-secondary:not(:hover):not(:active):not(:focus) {
-  color: white !important;
-}
-
-/* 确保所有状态下都是白色文字 */
-.cta-primary,
-.cta-secondary,
-a.cta-primary,
-a.cta-secondary,
-.cta-primary *,
-.cta-secondary * {
-  color: white !important;
-}
-
-.cta-primary:hover,
-.cta-secondary:hover,
-a.cta-primary:hover,
-a.cta-secondary:hover,
-.cta-primary:hover *,
-.cta-secondary:hover * {
-  color: white !important;
-}
-
-/* 针对所有可能的状态 */
-.cta-primary:active,
-.cta-secondary:active,
-.cta-primary:focus,
-.cta-secondary:focus {
-  color: white !important;
-}
-
-/* 特别针对router-link的内部文字 */
-.cta-primary span,
-.cta-secondary span,
-.cta-primary .text-lg,
-.cta-secondary .text-lg {
-  color: white !important;
-}
-
-/* 按钮通用优化 */
 [data-theme="light"] .cta-primary,
 [data-theme="light"] .cta-secondary {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  border-radius: 9999px !important;
-}
-
-/* 确保按钮容器在亮色主题下的间距 */
-[data-theme="light"] .flex-col.sm\:flex-row {
-  gap: 1.25rem !important;
-}
-
-/* 整体背景和布局优化 */
-[data-theme="light"] .min-h-screen {
-  background: linear-gradient(135deg, #ffffff, #f8fafc, #ffffff);
-}
-
-/* 确保所有文字在亮色主题下都有足够对比度 */
-[data-theme="light"] .text-center {
-  color: var(--color-text-primary);
-}
-
-[data-theme="light"] .text-2xl,
-[data-theme="light"] .text-4xl,
-[data-theme="light"] .text-5xl {
-  color: var(--color-text-primary) !important;
-}
-
-[data-theme="light"] .text-lg,
-[data-theme="light"] .text-xl {
-  color: var(--color-text-secondary) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 9999px;
 }
 </style>

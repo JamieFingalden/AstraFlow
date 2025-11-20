@@ -1,53 +1,41 @@
 <template>
-  <div :class="`flex flex-col min-h-screen transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50'}`">
+  <div :class="`app-container ${isDark ? 'dark-theme' : 'light-theme'}`">
     <!-- Particle background effect -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
-      <div :class="`absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ${isDark ? 'bg-cyan-900/30' : 'bg-cyan-500'}`"></div>
-      <div :class="`absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ${isDark ? 'bg-blue-900/30' : 'bg-blue-500'}`"></div>
-      <div :class="`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ${isDark ? 'bg-purple-900/30' : 'bg-purple-500'}`"></div>
+      <div :class="`absolute -top-40 -right-40 particle-cyan ${isDark ? 'dark-particle' : 'light-particle'}`"></div>
+      <div :class="`absolute -bottom-40 -left-40 particle-blue ${isDark ? 'dark-particle' : 'light-particle'}`"></div>
+      <div :class="`absolute top-1/2 left-1/2 particle-purple ${isDark ? 'dark-particle' : 'light-particle'}`"></div>
     </div>
 
     <!-- Header -->
-    <header :class="`relative z-10 backdrop-blur-md border-b transition-all duration-300 ${
-      isDark
-        ? 'bg-gray-800/70 border-gray-700/50'
-        : 'bg-white/70 border-gray-200/50'
-    }`">
-      <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center space-x-4">
+    <header :class="`relative z-10 header ${isDark ? 'dark-header' : 'light-header'}`">
+      <div class="container">
+        <div class="header-content">
+          <div class="header-left">
             <!-- 返回上传页按钮 -->
             <router-link
               to="/upload"
-              :class="`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                isDark
-                  ? 'hover:bg-gray-700/50 text-gray-300 hover:text-white'
-                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-              }`"
+              :class="`back-button ${isDark ? 'dark-back-button' : 'light-back-button'}`"
               title="返回上传页"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m15 18-6-6 6-6"/>
               </svg>
-              <span class="hidden sm:inline">返回</span>
+              <span class="hidden-sm">返回</span>
             </router-link>
 
-            <div class="text-2xl font-bold text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text">
+            <div class="brand-gradient">
               AstraFlow
             </div>
-            <h1 :class="`text-xl font-semibold transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-800'}`">
+            <h1 :class="`page-title ${isDark ? 'dark-text' : 'light-text'}`">
               AI识别结果 Analysis
             </h1>
           </div>
 
-          <div class="flex items-center space-x-4">
+          <div class="header-right">
             <button
               @click="toggleTheme"
-              :class="`p-2 rounded-lg transition-all duration-200 ${
-                isDark
-                  ? 'bg-gray-700/50 hover:bg-gray-600/50 text-gray-300'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-              }`"
+              :class="`theme-toggle-btn ${isDark ? 'dark-theme-toggle' : 'light-theme-toggle'}`"
             >
               <SunIcon v-if="isDark" :size="20" />
               <MoonIcon v-else :size="20" />
@@ -58,67 +46,49 @@
     </header>
 
     <!-- Main Content -->
-    <main class="relative z-10 flex-1 px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
+    <main class="relative z-10 main-content">
       <!-- Loading State -->
-      <div v-if="isLoading" class="flex flex-col items-center justify-center min-h-[60vh]">
-        <div class="relative mb-6">
-          <div class="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin"></div>
-          <div :class="`absolute top-0 left-0 animate-spin rounded-full h-16 w-16 border-4 border-transparent border-t-blue-500`"></div>
+      <div v-if="isLoading" class="loading-container">
+        <div class="spinner-container">
+          <div class="spinner-border"></div>
+          <div :class="`spinner-inner ${isDark ? 'dark-spinner' : 'light-spinner'}`"></div>
         </div>
-        <h3 :class="`text-xl font-semibold mb-2 transition-colors duration-300 ${
-          isDark ? 'text-white' : 'text-gray-800'
-        }`">
+        <h3 :class="`loading-title ${isDark ? 'dark-text' : 'light-text'}`">
           AI 正在分析中...
         </h3>
-        <p :class="`text-sm transition-colors duration-300 ${
-          isDark ? 'text-gray-400' : 'text-gray-600'
-        }`">
+        <p :class="`loading-subtitle ${isDark ? 'dark-muted-text' : 'light-muted-text'}`">
           请稍候，我们正在深入分析您的账单信息
         </p>
       </div>
 
       <!-- Analysis Results -->
-      <div v-else class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div v-else class="results-container">
         <!-- Left Side: Recognition Details -->
-        <div class="space-y-6">
+        <div class="results-left">
           <!-- Main Result Card -->
           <div
-            :class="`rounded-2xl p-8 backdrop-blur-md border transition-all duration-300 ${
-              isDark
-                ? 'bg-gray-800/70 border-gray-700/50'
-                : 'bg-white/70 border-gray-200/50'
-            }`"
+            :class="`result-card ${isDark ? 'dark-result-card' : 'light-result-card'}`"
           >
-            <h2 :class="`text-2xl font-bold mb-6 transition-colors duration-300 ${
-              isDark ? 'text-white' : 'text-gray-800'
-            }`">
+            <h2 :class="`card-title ${isDark ? 'dark-text' : 'light-text'}`">
               识别结果摘要
             </h2>
 
-            <div class="grid grid-cols-1 gap-4">
+            <div class="details-grid">
               <!-- Amount -->
               <div
                 v-for="(detail, index) in recognitionDetails"
                 :key="detail.label"
-                :class="`flex items-center p-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] ${
-                  isDark ? 'bg-gray-700/50' : 'bg-gray-50'
-                }`"
+                :class="`detail-item ${isDark ? 'dark-detail-item' : 'light-detail-item'}`"
                 :style="{ animationDelay: `${index * 100}ms` }"
               >
-                <div :class="`p-3 rounded-lg mr-4 ${
-                  detail.iconBg
-                }`">
+                <div :class="`detail-icon ${detail.iconBg}`">
                   <component :is="detail.icon" :size="20" :class="detail.iconColor" />
                 </div>
-                <div class="flex-grow">
-                  <p :class="`text-sm mb-1 transition-colors duration-300 ${
-                    isDark ? 'text-gray-400' : 'text-gray-600'
-                  }`">
+                <div class="detail-content">
+                  <p :class="`detail-label ${isDark ? 'dark-muted-text' : 'light-muted-text'}`">
                     {{ detail.label }}
                   </p>
-                  <p :class="`text-lg font-semibold transition-colors duration-300 ${
-                    isDark ? 'text-white' : 'text-gray-800'
-                  }`">
+                  <p :class="`detail-value ${isDark ? 'dark-text' : 'light-text'}`">
                     {{ detail.value }}
                   </p>
                 </div>
@@ -128,65 +98,39 @@
 
           <!-- AI Insights Card -->
           <div
-            :class="`rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 ${
-              isDark
-                ? 'bg-gradient-to-r from-blue-900/30 to-cyan-900/30 border-blue-700/50'
-                : 'bg-gradient-to-r from-blue-50/70 to-cyan-50/70 border-blue-200/50'
-            }`"
+            :class="`insights-card ${isDark ? 'dark-insights-card' : 'light-insights-card'}`"
           >
-            <div class="flex items-center mb-4">
-              <div :class="`p-2 rounded-lg mr-3 ${
-                isDark ? 'bg-blue-900/50' : 'bg-blue-100'
-              }`">
-                <BrainCircuitIcon :size="20" class="text-blue-500" />
+            <div class="insights-header">
+              <div :class="`insights-icon ${isDark ? 'dark-insights-icon' : 'light-insights-icon'}`">
+                <BrainCircuitIcon :size="20" class="insights-icon-svg" />
               </div>
-              <h3 :class="`text-lg font-semibold transition-colors duration-300 ${
-                isDark ? 'text-white' : 'text-gray-800'
-              }`">
+              <h3 :class="`insights-title ${isDark ? 'dark-text' : 'light-text'}`">
                 AI 智能总结
               </h3>
             </div>
 
-            <div class="space-y-3">
+            <div class="insights-list">
               <div
                 v-for="insight in aiInsights"
                 :key="insight.id"
-                :class="`p-3 rounded-lg border-l-4 transition-all duration-300 ${
-                  insight.type === 'warning'
-                    ? isDark
-                      ? 'bg-yellow-900/20 border-yellow-600 text-yellow-300'
-                      : 'bg-yellow-50 border-yellow-500 text-yellow-800'
-                    : insight.type === 'info'
-                    ? isDark
-                      ? 'bg-blue-900/20 border-blue-600 text-blue-300'
-                      : 'bg-blue-50 border-blue-500 text-blue-800'
-                    : isDark
-                      ? 'bg-green-900/20 border-green-600 text-green-300'
-                      : 'bg-green-50 border-green-500 text-green-800'
-                }`"
+                :class="`insight-item ${isDark ? 'dark-insight-' + insight.type : 'light-insight-' + insight.type}`"
               >
-                <p class="text-sm">{{ insight.message }}</p>
+                <p class="insight-text">{{ insight.message }}</p>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Right Side: Data Analysis -->
-        <div class="space-y-6">
+        <div class="results-right">
           <!-- Category Distribution Pie Chart -->
           <div
-            :class="`rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 ${
-              isDark
-                ? 'bg-gray-800/70 border-gray-700/50'
-                : 'bg-white/70 border-gray-200/50'
-            }`"
+            :class="`chart-card ${isDark ? 'dark-chart-card' : 'light-chart-card'}`"
           >
-            <h3 :class="`text-lg font-semibold mb-4 transition-colors duration-300 ${
-              isDark ? 'text-white' : 'text-gray-800'
-            }`">
+            <h3 :class="`chart-title ${isDark ? 'dark-text' : 'light-text'}`">
               支出类别占比
             </h3>
-            <div class="h-64">
+            <div class="chart-container">
               <v-chart
                 :option="categoryChartOption"
                 :theme="isDark() ? 'dark' : 'light'"
@@ -197,18 +141,12 @@
 
           <!-- 7-Day Trend Line Chart -->
           <div
-            :class="`rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 ${
-              isDark
-                ? 'bg-gray-800/70 border-gray-700/50'
-                : 'bg-white/70 border-gray-200/50'
-            }`"
+            :class="`chart-card ${isDark ? 'dark-chart-card' : 'light-chart-card'}`"
           >
-            <h3 :class="`text-lg font-semibold mb-4 transition-colors duration-300 ${
-              isDark ? 'text-white' : 'text-gray-800'
-            }`">
+            <h3 :class="`chart-title ${isDark ? 'dark-text' : 'light-text'}`">
               近7天消费趋势
             </h3>
-            <div class="h-64">
+            <div class="chart-container">
               <v-chart
                 :option="trendChartOption"
                 :theme="isDark() ? 'dark' : 'light'"
@@ -219,18 +157,12 @@
 
           <!-- Payment Source Bar Chart -->
           <div
-            :class="`rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 ${
-              isDark
-                ? 'bg-gray-800/70 border-gray-700/50'
-                : 'bg-white/70 border-gray-200/50'
-            }`"
+            :class="`chart-card ${isDark ? 'dark-chart-card' : 'light-chart-card'}`"
           >
-            <h3 :class="`text-lg font-semibold mb-4 transition-colors duration-300 ${
-              isDark ? 'text-white' : 'text-gray-800'
-            }`">
+            <h3 :class="`chart-title ${isDark ? 'dark-text' : 'light-text'}`">
               支付来源金额统计
             </h3>
-            <div class="h-64">
+            <div class="chart-container">
               <v-chart
                 :option="sourceChartOption"
                 :theme="isDark() ? 'dark' : 'light'"
@@ -242,40 +174,28 @@
       </div>
 
       <!-- Action Buttons -->
-      <div v-if="!isLoading" class="flex flex-col justify-center gap-4 mt-12 sm:flex-row">
+      <div v-if="!isLoading" class="action-buttons">
         <button
           @click="exportExpenseReport"
-          :class="`px-8 py-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
-            isDark
-              ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30'
-              : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40'
-          }`"
+          :class="`primary-btn ${isDark ? 'dark-primary-btn' : 'light-primary-btn'}`"
         >
-          <DownloadIcon :size="20" class="inline mr-2" />
+          <DownloadIcon :size="20" class="btn-icon" />
           导出为报销单
         </button>
         <button
           @click="goToUpload"
-          :class="`px-8 py-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
-            isDark
-              ? 'border border-gray-600 hover:bg-gray-700 text-gray-300'
-              : 'border border-gray-300 hover:bg-gray-100 text-gray-700'
-          }`"
+          :class="`secondary-btn ${isDark ? 'dark-secondary-btn' : 'light-secondary-btn'}`"
         >
-          <UploadIcon :size="20" class="inline mr-2" />
+          <UploadIcon :size="20" class="btn-icon" />
           返回上传页
         </button>
       </div>
     </main>
 
     <!-- Footer -->
-    <footer :class="`relative z-10 backdrop-blur-md border-t mt-12 transition-all duration-300 ${
-      isDark
-        ? 'bg-gray-800/70 border-gray-700/50'
-        : 'bg-white/70 border-gray-200/50'
-    }`">
-      <div class="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <p :class="`text-center text-sm transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`">
+    <footer :class="`relative z-10 footer ${isDark ? 'dark-footer' : 'light-footer'}`">
+      <div class="container">
+        <p :class="`footer-text ${isDark ? 'dark-muted-text' : 'light-muted-text'}`">
           © 2025 AstraFlow · Smart Expense Made Simple
         </p>
       </div>
@@ -633,7 +553,735 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Fade in animation for detail cards */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+/* Dark and light theme backgrounds */
+.dark-theme {
+  background-color: #111827; /* gray-900 */
+}
+
+.light-theme {
+  background: linear-gradient(to bottom right, #eff6ff, #ecfeff, #e0e7ff); /* from-blue-50 via-cyan-50 to-indigo-50 */
+}
+
+/* Particle background effect */
+.fixed {
+  position: fixed;
+}
+
+.inset-0 {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.pointer-events-none {
+  pointer-events: none;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.-top-40 {
+  top: -10rem;
+}
+
+.-right-40 {
+  right: -10rem;
+}
+
+.-bottom-40 {
+  bottom: -10rem;
+}
+
+.-left-40 {
+  left: -10rem;
+}
+
+.top-1\/2 {
+  top: 50%;
+}
+
+.left-1\/2 {
+  left: 50%;
+}
+
+.transform {
+  transform: translate(0, 0);
+}
+
+.-translate-x-1\/2 {
+  transform: translateX(-50%);
+}
+
+.-translate-y-1\/2 {
+  transform: translateY(-50%);
+}
+
+.w-80 {
+  width: 20rem;
+}
+
+.h-80 {
+  height: 20rem;
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+.mix-blend-multiply {
+  mix-blend-mode: multiply;
+}
+
+.filter {
+  filter: blur(0);
+}
+
+.blur-xl {
+  filter: blur(24px);
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.particle-cyan {
+  background-color: #0ea5e9; /* cyan-500 */
+}
+
+.particle-blue {
+  background-color: #3b82f6; /* blue-500 */
+}
+
+.particle-purple {
+  background-color: #8b5cf6; /* purple-500 */
+}
+
+.dark-particle {
+  background-color: rgba(14, 159, 233, 0.3); /* cyan-500/30 */
+}
+
+.light-particle {
+  background-color: #0ea5e9; /* cyan-500 */
+}
+
+/* Header styles */
+.header {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-bottom-width: 1px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark-header {
+  background-color: rgba(55, 65, 81, 0.7); /* gray-800/70 */
+  border-color: rgba(55, 65, 81, 0.5); /* gray-700/50 */
+}
+
+.light-header {
+  background-color: rgba(255, 255, 255, 0.7); /* white/70 */
+  border-color: rgba(229, 231, 235, 0.5); /* gray-200/50 */
+}
+
+.container {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  max-width: 89.6rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 4rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Back button */
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark-back-button {
+  color: #d1d5db; /* gray-300 */
+  background-color: transparent;
+}
+
+.dark-back-button:hover {
+  background-color: rgba(55, 65, 81, 0.5); /* gray-700/50 */
+  color: #ffffff; /* white */
+}
+
+.light-back-button {
+  color: #4b5563; /* gray-600 */
+  background-color: transparent;
+}
+
+.light-back-button:hover {
+  background-color: #f3f4f6; /* gray-100 */
+  color: #1f2937; /* gray-900 */
+}
+
+.hidden-sm {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .hidden-sm {
+    display: inline;
+  }
+}
+
+/* Brand gradient */
+.brand-gradient {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(to right, #22d3ee, #3b82f6); /* from-cyan-400 to-blue-500 */
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Page title */
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.dark-text {
+  color: #ffffff; /* white */
+}
+
+.light-text {
+  color: #1f2937; /* gray-800 */
+}
+
+/* Theme toggle button */
+.theme-toggle-btn {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark-theme-toggle {
+  background-color: rgba(55, 65, 81, 0.5); /* gray-700/50 */
+}
+
+.dark-theme-toggle:hover {
+  background-color: rgba(75, 85, 99, 0.5); /* gray-600/50 */
+  color: #d1d5db; /* gray-300 */
+}
+
+.light-theme-toggle {
+  background-color: #f3f4f6; /* gray-100 */
+}
+
+.light-theme-toggle:hover {
+  background-color: #e5e7eb; /* gray-200 */
+  color: #374151; /* gray-700 */
+}
+
+/* Main content */
+.main-content {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  padding: 2rem 1rem;
+  max-width: 89.6rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .main-content {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Loading styles */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.spinner-container {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.spinner-border {
+  width: 4rem;
+  height: 4rem;
+  border: 4px solid #e5e7eb; /* blue-200 */
+  border-radius: 9999px;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4rem;
+  height: 4rem;
+  border: 4px solid transparent;
+  border-top-color: #3b82f6; /* blue-500 */
+  border-radius: 9999px;
+  animation: spin 1s linear infinite;
+}
+
+.dark-spinner {
+  border-top-color: #3b82f6; /* blue-500 */
+}
+
+.light-spinner {
+  border-top-color: #3b82f6; /* blue-500 */
+}
+
+.loading-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.loading-subtitle {
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.dark-muted-text {
+  color: #9ca3af; /* gray-400 */
+}
+
+.light-muted-text {
+  color: #4b5563; /* gray-600 */
+}
+
+/* Results container */
+.results-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .results-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.results-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.results-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Result card */
+.result-card {
+  border-radius: 1rem;
+  padding: 2rem;
+  backdrop-filter: blur(12px);
+  border: 1px solid;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark-result-card {
+  background-color: rgba(55, 65, 81, 0.7); /* gray-800/70 */
+  border-color: rgba(55, 65, 81, 0.5); /* gray-700/50 */
+}
+
+.light-result-card {
+  background-color: rgba(255, 255, 255, 0.7); /* white/70 */
+  border-color: rgba(229, 231, 235, 0.5); /* gray-200/50 */
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  transition: color 0.3s ease;
+}
+
+/* Details grid */
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+/* Detail item */
+.detail-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scale(1);
+  animation: fadeInUp 0.6s ease-out;
+  opacity: 0;
+}
+
+.detail-item:hover {
+  transform: scale(1.02);
+}
+
+.dark-detail-item {
+  background-color: rgba(55, 65, 81, 0.5); /* gray-700/50 */
+}
+
+.light-detail-item {
+  background-color: #f9fafb; /* gray-50 */
+}
+
+.detail-icon {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-right: 1rem;
+}
+
+.detail-content {
+  flex: 1;
+}
+
+.detail-label {
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.detail-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+/* Insights card */
+.insights-card {
+  border-radius: 1rem;
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+  border: 1px solid;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark-insights-card {
+  background: linear-gradient(90deg, rgba(30, 58, 138, 0.3), rgba(6, 182, 212, 0.3)); /* from-blue-900/30 to-cyan-900/30 */
+  border-color: rgba(37, 99, 235, 0.5); /* blue-700/50 */
+}
+
+.light-insights-card {
+  background: linear-gradient(90deg, rgba(239, 246, 255, 0.7), rgba(224, 231, 255, 0.7)); /* from-blue-50/70 to-cyan-50/70 */
+  border-color: rgba(209, 213, 219, 0.5); /* blue-200/50 */
+}
+
+.insights-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.insights-icon {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  margin-right: 0.75rem;
+}
+
+.dark-insights-icon {
+  background-color: rgba(30, 58, 138, 0.5); /* blue-900/50 */
+}
+
+.light-insights-icon {
+  background-color: #dbeafe; /* blue-100 */
+}
+
+.insights-icon-svg {
+  color: #3b82f6; /* blue-500 */
+}
+
+.insights-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.insight-item {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border-left-width: 4px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark-insight-warning {
+  background-color: rgba(146, 64, 14, 0.2); /* yellow-900/20 */
+  border-color: #d97706; /* yellow-600 */
+  color: #fbbf24; /* yellow-300 */
+}
+
+.light-insight-warning {
+  background-color: #fefce8; /* yellow-50 */
+  border-color: #eab308; /* yellow-500 */
+  color: #92400e; /* yellow-800 */
+}
+
+.dark-insight-info {
+  background-color: rgba(30, 58, 138, 0.2); /* blue-900/20 */
+  border-color: #3730a3; /* blue-600 */
+  color: #93c5fd; /* blue-300 */
+}
+
+.light-insight-info {
+  background-color: #eff6ff; /* blue-50 */
+  border-color: #3b82f6; /* blue-500 */
+  color: #1e40af; /* blue-800 */
+}
+
+.dark-insight-success {
+  background-color: rgba(21, 128, 61, 0.2); /* green-900/20 */
+  border-color: #16a34a; /* green-600 */
+  color: #4ade80; /* green-300 */
+}
+
+.light-insight-success {
+  background-color: #f0fdf4; /* green-50 */
+  border-color: #22c55e; /* green-500 */
+  color: #166534; /* green-800 */
+}
+
+/* Chart card */
+.chart-card {
+  border-radius: 1rem;
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+  border: 1px solid;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark-chart-card {
+  background-color: rgba(55, 65, 81, 0.7); /* gray-800/70 */
+  border-color: rgba(55, 65, 81, 0.5); /* gray-700/50 */
+}
+
+.light-chart-card {
+  background-color: rgba(255, 255, 255, 0.7); /* white/70 */
+  border-color: rgba(229, 231, 235, 0.5); /* gray-200/50 */
+}
+
+.chart-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  transition: color 0.3s ease;
+}
+
+.chart-container {
+  height: 16rem;
+}
+
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+@media (min-width: 640px) {
+  .action-buttons {
+    flex-direction: row;
+  }
+}
+
+.primary-btn {
+  padding: 2rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scale(1);
+}
+
+.primary-btn:hover {
+  transform: scale(1.05);
+}
+
+.dark-primary-btn {
+  background: linear-gradient(90deg, #2563eb, #0891b2); /* from-blue-600 to-cyan-600 */
+  color: #ffffff; /* white */
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25);
+}
+
+.dark-primary-btn:hover {
+  background: linear-gradient(90deg, #3b82f6, #0ea5e9); /* from-blue-500 to-cyan-500 */
+  box-shadow: 0 12px 25px rgba(59, 130, 246, 0.3);
+}
+
+.light-primary-btn {
+  background: linear-gradient(90deg, #3b82f6, #06b6d4); /* from-blue-500 to-cyan-500 */
+  color: #ffffff; /* white */
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.light-primary-btn:hover {
+  background: linear-gradient(90deg, #2563eb, #0891b2); /* from-blue-600 to-cyan-600 */
+  box-shadow: 0 12px 25px rgba(59, 130, 246, 0.4);
+}
+
+.secondary-btn {
+  padding: 2rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scale(1);
+}
+
+.secondary-btn:hover {
+  transform: scale(1.05);
+}
+
+.dark-secondary-btn {
+  border: 1px solid #4b5563; /* border-gray-600 */
+  background-color: transparent;
+  color: #d1d5db; /* gray-300 */
+}
+
+.dark-secondary-btn:hover {
+  background-color: #374151; /* gray-700 */
+}
+
+.light-secondary-btn {
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  background-color: transparent;
+  color: #374151; /* gray-700 */
+}
+
+.light-secondary-btn:hover {
+  background-color: #f3f4f6; /* gray-100 */
+}
+
+.btn-icon {
+  display: inline;
+  margin-right: 0.5rem;
+}
+
+/* Footer */
+.footer {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-top-width: 1px;
+  margin-top: 3rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark-footer {
+  background-color: rgba(55, 65, 81, 0.7); /* gray-800/70 */
+  border-color: rgba(55, 65, 81, 0.5); /* gray-700/50 */
+}
+
+.light-footer {
+  background-color: rgba(255, 255, 255, 0.7); /* white/70 */
+  border-color: rgba(229, 231, 235, 0.5); /* gray-200/50 */
+}
+
+.footer-text {
+  text-align: center;
+  font-size: 0.875rem;
+  padding: 1.5rem 0;
+  transition: color 0.3s ease;
+}
+
+/* Animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -645,23 +1293,13 @@ onMounted(async () => {
   }
 }
 
-.grid > div {
-  animation: fadeInUp 0.6s ease-out forwards;
-  opacity: 0;
-}
-
-/* Particle background optimization */
-.dark .animate-pulse {
-  opacity: 0.3;
-}
-
 /* Smooth transitions */
 .transition-all {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Chart container glow effects */
+/* Chart container glow effects on hover */
 .backdrop-blur-md:hover {
   box-shadow: 0 20px 25px -5px rgba(56, 189, 248, 0.25), 0 10px 10px -5px rgba(56, 189, 248, 0.15);
 }

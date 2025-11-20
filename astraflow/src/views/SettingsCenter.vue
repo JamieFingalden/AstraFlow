@@ -1,42 +1,42 @@
 <template>
-  <div :class="'min-h-screen transition-colors duration-300 ' + (isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50')">
+  <div :class="'settings-main-container ' + (isDark ? 'dark-theme' : 'light-theme')">
     <!-- Particle background effect -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-      <div :class="'absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ' + (isDark ? 'bg-cyan-900/30' : 'bg-cyan-500')"></div>
-      <div :class="'absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ' + (isDark ? 'bg-blue-900/30' : 'bg-blue-500')"></div>
-      <div :class="'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ' + (isDark ? 'bg-purple-900/30' : 'bg-purple-500')"></div>
+    <div class="fixed-container">
+      <div :class="'particle-circle particle-1 ' + (isDark ? 'dark-particle' : 'light-particle')"></div>
+      <div :class="'particle-circle particle-2 ' + (isDark ? 'dark-particle' : 'light-particle')"></div>
+      <div :class="'particle-circle particle-3 ' + (isDark ? 'dark-particle' : 'light-particle')"></div>
     </div>
 
     <!-- Header -->
-    <header :class="'relative z-10 backdrop-blur-md border-b transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-      <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center space-x-4">
+    <header :class="'settings-header ' + (isDark ? 'dark-theme' : 'light-theme')">
+      <div class="container">
+        <div class="header-content">
+          <div class="header-left">
             <!-- 返回按钮 -->
             <router-link
               to="/"
-              :class="'flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ' + (isDark ? 'hover:bg-gray-700/50 text-gray-300 hover:text-white' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900')"
+              :class="'back-button ' + (isDark ? 'dark-theme' : 'light-theme')"
               title="返回首页"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m15 18-6-6 6-6"/>
               </svg>
-              <span class="hidden sm:inline">返回</span>
+              <span class="back-button-text">返回</span>
             </router-link>
 
-            <div class="text-2xl font-bold text-transparent bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text">
+            <div class="brand-text">
               AstraFlow
             </div>
-            <h1 :class="'text-xl font-semibold transition-colors duration-300 ' + (isDark ? 'text-white' : 'text-gray-800')">
+            <h1 :class="'page-title ' + (isDark ? 'dark-theme' : 'light-theme')">
               设置中心
             </h1>
           </div>
 
-          <div class="flex items-center space-x-4">
+          <div class="header-right">
             <!-- 主题切换按钮 -->
             <button
               @click="toggleTheme"
-              :class="'p-2 rounded-lg transition-all duration-200 ' + (isDark ? 'bg-gray-700/50 hover:bg-gray-600/50 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700')"
+              :class="'theme-toggle-btn ' + (isDark ? 'dark-theme' : 'light-theme')"
             >
               <SunIcon v-if="isDark" :size="20" />
               <MoonIcon v-else :size="20" />
@@ -47,15 +47,15 @@
     </header>
 
     <!-- Main Content -->
-    <main class="relative z-10 px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
-      <div class="flex flex-col gap-6 lg:flex-row">
+    <main class="settings-main-content">
+      <div class="settings-content-wrapper">
         <!-- 左侧导航菜单 -->
-        <aside :class="'lg:w-64 flex-shrink-0 '">
+        <aside class="settings-sidebar">
           <!-- 移动端下拉菜单 -->
-          <div class="mb-6 lg:hidden">
+          <div class="mobile-nav-select">
             <select
               v-model="settingsStore.activeTab"
-              :class="'w-full px-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ' + (isDark ? 'bg-gray-800/70 border-gray-700 text-white' : 'bg-white/70 border-gray-300 text-gray-900')"
+              :class="'nav-select ' + (isDark ? 'dark-theme' : 'light-theme')"
               @change="handleTabChange"
             >
               <option value="account">账户信息</option>
@@ -66,15 +66,12 @@
           </div>
 
           <!-- 桌面端垂直菜单 -->
-          <nav :class="'hidden lg:block rounded-2xl p-4 backdrop-blur-md border transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-            <ul class="space-y-2">
+          <nav :class="'settings-nav ' + (isDark ? 'dark-theme' : 'light-theme')">
+            <ul class="nav-list">
               <li>
                 <button
                   @click="setActiveTab('account')"
-                  :class="'w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center space-x-3 ' +
-                    (settingsStore.activeTab === 'account'
-                      ? (isDark ? 'bg-blue-900/50 text-blue-300 border-l-4 border-blue-400' : 'bg-blue-50 text-blue-700 border-l-4 border-blue-500')
-                      : (isDark ? 'hover:bg-gray-700/50 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))"
+                  :class="'nav-item ' + (settingsStore.activeTab === 'account' ? 'active' : '') + ' ' + (isDark ? 'dark-theme' : 'light-theme')"
                 >
                   <UserIcon :size="20" />
                   <span>账户信息</span>
@@ -83,10 +80,7 @@
               <li>
                 <button
                   @click="setActiveTab('preferences')"
-                  :class="'w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center space-x-3 ' +
-                    (settingsStore.activeTab === 'preferences'
-                      ? (isDark ? 'bg-blue-900/50 text-blue-300 border-l-4 border-blue-400' : 'bg-blue-50 text-blue-700 border-l-4 border-blue-500')
-                      : (isDark ? 'hover:bg-gray-700/50 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))"
+                  :class="'nav-item ' + (settingsStore.activeTab === 'preferences' ? 'active' : '') + ' ' + (isDark ? 'dark-theme' : 'light-theme')"
                 >
                   <SettingsIcon :size="20" />
                   <span>报销偏好</span>
@@ -95,10 +89,7 @@
               <li>
                 <button
                   @click="setActiveTab('ai')"
-                  :class="'w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center space-x-3 ' +
-                    (settingsStore.activeTab === 'ai'
-                      ? (isDark ? 'bg-blue-900/50 text-blue-300 border-l-4 border-blue-400' : 'bg-blue-50 text-blue-700 border-l-4 border-blue-500')
-                      : (isDark ? 'hover:bg-gray-700/50 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))"
+                  :class="'nav-item ' + (settingsStore.activeTab === 'ai' ? 'active' : '') + ' ' + (isDark ? 'dark-theme' : 'light-theme')"
                 >
                   <CpuIcon :size="20" />
                   <span>AI 接口配置</span>
@@ -107,10 +98,7 @@
               <li>
                 <button
                   @click="setActiveTab('appearance')"
-                  :class="'w-full text-left px-4 py-3 rounded-lg transition-all duration-200 flex items-center space-x-3 ' +
-                    (settingsStore.activeTab === 'appearance'
-                      ? (isDark ? 'bg-blue-900/50 text-blue-300 border-l-4 border-blue-400' : 'bg-blue-50 text-blue-700 border-l-4 border-blue-500')
-                      : (isDark ? 'hover:bg-gray-700/50 text-gray-300' : 'hover:bg-gray-100 text-gray-700'))"
+                  :class="'nav-item ' + (settingsStore.activeTab === 'appearance' ? 'active' : '') + ' ' + (isDark ? 'dark-theme' : 'light-theme')"
                 >
                   <PaletteIcon :size="20" />
                   <span>系统外观</span>
@@ -121,55 +109,55 @@
         </aside>
 
         <!-- 右侧内容区域 -->
-        <section class="flex-1">
+        <section class="settings-content">
           <!-- 账户信息面板 -->
-          <div v-if="settingsStore.activeTab === 'account'" :class="'rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-            <h2 :class="'text-2xl font-bold mb-6 ' + (isDark ? 'text-white' : 'text-gray-900')">账户信息</h2>
+          <div v-if="settingsStore.activeTab === 'account'" :class="'settings-panel ' + (isDark ? 'dark-theme' : 'light-theme')">
+            <h2 :class="'panel-title ' + (isDark ? 'dark-theme' : 'light-theme')">账户信息</h2>
 
-            <div class="space-y-6">
+            <div class="panel-content">
               <!-- 头像 -->
-              <div class="flex items-center space-x-4">
-                <div :class="'w-20 h-20 rounded-full overflow-hidden border-4 ' + (isDark ? 'border-gray-600' : 'border-gray-200')">
-                  <img :src="settingsStore.accountInfo.avatar" alt="头像" class="object-cover w-full h-full" />
+              <div class="avatar-section">
+                <div :class="'avatar-container ' + (isDark ? 'dark-theme' : 'light-theme')">
+                  <img :src="settingsStore.accountInfo.avatar" alt="头像" class="avatar-image" />
                 </div>
-                <button :class="'px-4 py-2 rounded-lg transition-all duration-200 ' + (isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700')">
+                <button :class="'avatar-upload-btn ' + (isDark ? 'dark-theme' : 'light-theme')">
                   更换头像
                 </button>
               </div>
 
               <!-- 用户信息表单 -->
-              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div>
-                  <label :class="'block text-sm font-medium mb-2 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">用户名</label>
+              <div class="form-grid">
+                <div class="form-field">
+                  <label :class="'form-label ' + (isDark ? 'dark-theme' : 'light-theme')">用户名</label>
                   <input
                     v-model="tempAccountInfo.username"
                     type="text"
-                    :class="'w-full px-4 py-2 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ' + (isDark ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white/50 border-gray-300 text-gray-900')"
+                    :class="'form-input ' + (isDark ? 'dark-theme' : 'light-theme')"
                   />
                 </div>
-                <div>
-                  <label :class="'block text-sm font-medium mb-2 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">邮箱</label>
+                <div class="form-field">
+                  <label :class="'form-label ' + (isDark ? 'dark-theme' : 'light-theme')">邮箱</label>
                   <input
                     v-model="tempAccountInfo.email"
                     type="email"
-                    :class="'w-full px-4 py-2 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ' + (isDark ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white/50 border-gray-300 text-gray-900')"
+                    :class="'form-input ' + (isDark ? 'dark-theme' : 'light-theme')"
                   />
                 </div>
-                <div class="md:col-span-2">
-                  <label :class="'block text-sm font-medium mb-2 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">公司名称</label>
+                <div class="form-field full-width">
+                  <label :class="'form-label ' + (isDark ? 'dark-theme' : 'light-theme')">公司名称</label>
                   <input
                     v-model="tempAccountInfo.company"
                     type="text"
-                    :class="'w-full px-4 py-2 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ' + (isDark ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white/50 border-gray-300 text-gray-900')"
+                    :class="'form-input ' + (isDark ? 'dark-theme' : 'light-theme')"
                   />
                 </div>
               </div>
 
               <!-- 保存按钮 -->
-              <div class="flex justify-end">
+              <div class="button-row">
                 <button
                   @click="saveAccountInfo"
-                  :class="'px-6 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ' + (isDark ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white')"
+                  :class="'primary-btn ' + (isDark ? 'dark-theme' : 'light-theme')"
                 >
                   保存修改
                 </button>
@@ -178,45 +166,45 @@
           </div>
 
           <!-- 报销偏好面板 -->
-          <div v-if="settingsStore.activeTab === 'preferences'" :class="'rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-            <h2 :class="'text-2xl font-bold mb-6 ' + (isDark ? 'text-white' : 'text-gray-900')">报销偏好</h2>
+          <div v-if="settingsStore.activeTab === 'preferences'" :class="'settings-panel ' + (isDark ? 'dark-theme' : 'light-theme')">
+            <h2 :class="'panel-title ' + (isDark ? 'dark-theme' : 'light-theme')">报销偏好</h2>
 
-            <div class="space-y-6">
+            <div class="panel-content">
               <!-- 自动分类开关 -->
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 :class="'font-medium ' + (isDark ? 'text-white' : 'text-gray-900')">自动分类</h3>
-                  <p :class="'text-sm mt-1 ' + (isDark ? 'text-gray-400' : 'text-gray-600')">自动识别账单分类</p>
+              <div class="toggle-section">
+                <div class="toggle-info">
+                  <h3 :class="'toggle-title ' + (isDark ? 'dark-theme' : 'light-theme')">自动分类</h3>
+                  <p :class="'toggle-description ' + (isDark ? 'dark-theme' : 'light-theme')">自动识别账单分类</p>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
+                <label class="switch">
                   <input
                     type="checkbox"
                     v-model="tempPreferences.autoCategory"
-                    :class="'sr-only peer'"
+                    class="switch-input"
                   />
-                  <div :class="'w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[\'\'] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600'"></div>
+                  <span class="switch-slider"></span>
                 </label>
               </div>
 
               <!-- 报销上限提醒 -->
-              <div>
-                <label :class="'block text-sm font-medium mb-2 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">报销上限提醒阈值</label>
-                <div class="flex items-center space-x-2">
+              <div class="form-field">
+                <label :class="'form-label ' + (isDark ? 'dark-theme' : 'light-theme')">报销上限提醒阈值</label>
+                <div class="input-with-unit">
                   <input
                     v-model.number="tempPreferences.spendingLimit"
                     type="number"
-                    :class="'flex-1 px-4 py-2 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ' + (isDark ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white/50 border-gray-300 text-gray-900')"
+                    :class="'form-input ' + (isDark ? 'dark-theme' : 'light-theme')"
                   />
-                  <span :class="'text-sm ' + (isDark ? 'text-gray-400' : 'text-gray-600')">元</span>
+                  <span :class="'unit-label ' + (isDark ? 'dark-theme' : 'light-theme')">元</span>
                 </div>
               </div>
 
               <!-- 货币单位 -->
-              <div>
-                <label :class="'block text-sm font-medium mb-2 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">货币单位</label>
+              <div class="form-field">
+                <label :class="'form-label ' + (isDark ? 'dark-theme' : 'light-theme')">货币单位</label>
                 <select
                   v-model="tempPreferences.currency"
-                  :class="'w-full px-4 py-2 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ' + (isDark ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white/50 border-gray-300 text-gray-900')"
+                  :class="'form-select ' + (isDark ? 'dark-theme' : 'light-theme')"
                 >
                   <option value="CNY">人民币 (¥)</option>
                   <option value="USD">美元 ($)</option>
@@ -224,10 +212,10 @@
               </div>
 
               <!-- 保存按钮 -->
-              <div class="flex justify-end">
+              <div class="button-row">
                 <button
                   @click="savePreferences"
-                  :class="'px-6 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ' + (isDark ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white')"
+                  :class="'primary-btn ' + (isDark ? 'dark-theme' : 'light-theme')"
                 >
                   保存偏好设置
                 </button>
@@ -236,104 +224,98 @@
           </div>
 
           <!-- AI接口配置面板 -->
-          <div v-if="settingsStore.activeTab === 'ai'" :class="'rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-            <h2 :class="'text-2xl font-bold mb-6 ' + (isDark ? 'text-white' : 'text-gray-900')">AI 接口配置</h2>
+          <div v-if="settingsStore.activeTab === 'ai'" :class="'settings-panel ' + (isDark ? 'dark-theme' : 'light-theme')">
+            <h2 :class="'panel-title ' + (isDark ? 'dark-theme' : 'light-theme')">AI 接口配置</h2>
 
-            <div class="space-y-6">
+            <div class="panel-content">
               <!-- Flask接口URL -->
-              <div>
-                <label :class="'block text-sm font-medium mb-2 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">Flask 识别接口 URL</label>
+              <div class="form-field">
+                <label :class="'form-label ' + (isDark ? 'dark-theme' : 'light-theme')">Flask 识别接口 URL</label>
                 <input
                   v-model="tempAiConfig.flaskUrl"
                   type="url"
                   placeholder="http://localhost:5000/api/ocr"
-                  :class="'w-full px-4 py-2 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ' + (isDark ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white/50 border-gray-300 text-gray-900')"
+                  :class="'form-input ' + (isDark ? 'dark-theme' : 'light-theme')"
                 />
               </div>
 
               <!-- API密钥 -->
-              <div>
-                <label :class="'block text-sm font-medium mb-2 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">API 密钥</label>
+              <div class="form-field">
+                <label :class="'form-label ' + (isDark ? 'dark-theme' : 'light-theme')">API 密钥</label>
                 <input
                   v-model="tempAiConfig.apiKey"
                   type="password"
                   placeholder="输入您的API密钥"
-                  :class="'w-full px-4 py-2 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ' + (isDark ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white/50 border-gray-300 text-gray-900')"
+                  :class="'form-input ' + (isDark ? 'dark-theme' : 'light-theme')"
                 />
               </div>
 
               <!-- 操作按钮 -->
-              <div class="flex space-x-4">
+              <div class="button-row">
                 <button
                   @click="testConnection"
                   :disabled="testing"
-                  :class="'px-6 py-2 rounded-lg font-semibold transition-all duration-300 ' + (testing ? 'opacity-50 cursor-not-allowed' : 'transform hover:scale-105') + ' ' + (isDark ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-green-500 hover:bg-green-600 text-white')"
+                  :class="'secondary-btn ' + (testing ? 'disabled' : '') + ' ' + (isDark ? 'dark-theme' : 'light-theme')"
                 >
                   {{ testing ? '测试中...' : '测试连接' }}
                 </button>
                 <button
                   @click="saveAiConfig"
-                  :class="'px-6 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ' + (isDark ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white')"
+                  :class="'primary-btn ' + (isDark ? 'dark-theme' : 'light-theme')"
                 >
                   保存配置
                 </button>
               </div>
 
               <!-- 连接状态提示 -->
-              <div v-if="connectionStatus" :class="'p-4 rounded-lg ' + (connectionStatus.success ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300')">
+              <div v-if="connectionStatus" :class="'status-message ' + (connectionStatus.success ? 'success' : 'error') + ' ' + (isDark ? 'dark-theme' : 'light-theme')">
                 {{ connectionStatus.message }}
               </div>
             </div>
           </div>
 
           <!-- 系统外观面板 -->
-          <div v-if="settingsStore.activeTab === 'appearance'" :class="'rounded-2xl p-6 backdrop-blur-md border transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-            <h2 :class="'text-2xl font-bold mb-6 ' + (isDark ? 'text-white' : 'text-gray-900')">系统外观</h2>
+          <div v-if="settingsStore.activeTab === 'appearance'" :class="'settings-panel ' + (isDark ? 'dark-theme' : 'light-theme')">
+            <h2 :class="'panel-title ' + (isDark ? 'dark-theme' : 'light-theme')">系统外观</h2>
 
-            <div class="space-y-6">
+            <div class="panel-content">
               <!-- 主题切换 -->
-              <div>
-                <label :class="'block text-sm font-medium mb-3 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">主题模式</label>
-                <div class="grid grid-cols-3 gap-3">
+              <div class="theme-section">
+                <label :class="'form-label ' + (isDark ? 'dark-theme' : 'light-theme')">主题模式</label>
+                <div class="theme-options">
                   <button
                     v-for="theme in themeOptions"
                     :key="theme.value"
                     @click="tempAppearance.theme = theme.value"
-                    :class="'p-3 rounded-lg border-2 transition-all duration-200 ' +
-                      (tempAppearance.theme === theme.value
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                        : 'border-gray-300 dark:border-gray-600')"
+                    :class="'theme-option ' + (tempAppearance.theme === theme.value ? 'active' : '') + ' ' + (isDark ? 'dark-theme' : 'light-theme')"
                   >
-                    <component :is="theme.icon" :size="20" :class="'mx-auto mb-1 ' + (isDark ? 'text-gray-300' : 'text-gray-700')" />
-                    <span :class="'text-xs ' + (isDark ? 'text-gray-300' : 'text-gray-700')">{{ theme.label }}</span>
+                    <component :is="theme.icon" :size="20" :class="'theme-option-icon ' + (isDark ? 'dark-theme' : 'light-theme')" />
+                    <span :class="'theme-option-label ' + (isDark ? 'dark-theme' : 'light-theme')">{{ theme.label }}</span>
                   </button>
                 </div>
               </div>
 
               <!-- 主色调选择 -->
-              <div>
-                <label :class="'block text-sm font-medium mb-3 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">主色调</label>
-                <div class="grid grid-cols-4 gap-3">
+              <div class="color-section">
+                <label :class="'form-label ' + (isDark ? 'dark-theme' : 'light-theme')">主色调</label>
+                <div class="color-options">
                   <button
                     v-for="color in colorOptions"
                     :key="color.value"
                     @click="tempAppearance.primaryColor = color.value"
-                    :class="'p-3 rounded-lg border-2 transition-all duration-200 ' +
-                      (tempAppearance.primaryColor === color.value
-                        ? 'border-gray-900 dark:border-white'
-                        : 'border-gray-300 dark:border-gray-600')"
+                    :class="'color-option ' + (tempAppearance.primaryColor === color.value ? 'active' : '') + ' ' + (isDark ? 'dark-theme' : 'light-theme')"
                   >
-                    <div :class="'w-6 h-6 rounded-full mx-auto mb-1 ' + color.class"></div>
-                    <span :class="'text-xs ' + (isDark ? 'text-gray-300' : 'text-gray-700')">{{ color.label }}</span>
+                    <div :class="'color-swatch ' + color.value"></div>
+                    <span :class="'color-label ' + (isDark ? 'dark-theme' : 'light-theme')">{{ color.label }}</span>
                   </button>
                 </div>
               </div>
 
               <!-- 保存按钮 -->
-              <div class="flex justify-end">
+              <div class="button-row">
                 <button
                   @click="saveAppearance"
-                  :class="'px-6 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ' + (isDark ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white')"
+                  :class="'primary-btn ' + (isDark ? 'dark-theme' : 'light-theme')"
                 >
                   保存外观设置
                 </button>
@@ -345,11 +327,13 @@
     </main>
 
     <!-- Footer -->
-    <footer :class="'relative z-10 backdrop-blur-md border-t mt-12 transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-      <div class="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <p :class="'text-center text-sm transition-colors duration-300 ' + (isDark ? 'text-gray-400' : 'text-gray-600')">
-          © 2025 AstraFlow · Smart Expense Made Simple
-        </p>
+    <footer :class="'stats-footer ' + (isDark ? 'dark-theme' : 'light-theme')">
+      <div class="footer-container">
+        <div class="footer-content">
+          <p :class="'footer-text ' + (isDark ? 'dark-theme' : 'light-theme')">
+            © 2025 AstraFlow · Smart Expense Made Simple
+          </p>
+        </div>
       </div>
     </footer>
   </div>
@@ -470,26 +454,1004 @@ watch(() => settingsStore.appearance, (newVal) => {
 </script>
 
 <style scoped>
-/* 自定义动画 */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* 主容器 */
+.settings-main-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.rounded-2xl {
-  animation: fadeIn 0.3s ease-out;
+.settings-main-container.dark-theme {
+  background-color: #111827;
+}
+
+.settings-main-container.light-theme {
+  background: linear-gradient(135deg, #eff6ff, #f0f9ff, #e0e7ff);
+}
+
+/* 主内容 */
+.settings-main-content {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  max-width: 80rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .settings-main-content {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .settings-main-content {
+    padding: 2rem 2rem;
+  }
+}
+
+/* 固定容器 */
+.fixed-container {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* 粒子圆圈 */
+.particle-circle {
+  position: absolute;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  filter: blur(6rem);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+.particle-1 {
+  top: -10rem;
+  right: -10rem;
+}
+
+.particle-2 {
+  bottom: -10rem;
+  left: -10rem;
+}
+
+.particle-3 {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.particle-circle.dark-particle {
+  background-color: rgba(6, 182, 212, 0.3);
+}
+
+.particle-circle.light-particle {
+  background-color: #06b6d4;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* 头部 */
+.settings-header {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid;
+  transition: all 0.3s ease;
+  height: 4rem;
+}
+
+.settings-header.dark-theme {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.settings-header.light-theme {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.container {
+  padding: 0 1rem;
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 2rem;
+  }
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 4rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* 返回按钮 */
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.back-button.dark-theme {
+  color: #d1d5db;
+}
+
+.back-button.light-theme {
+  color: #4b5563;
+}
+
+.back-button:hover.dark-theme {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: #ffffff;
+}
+
+.back-button:hover.light-theme {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.back-button-text {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .back-button-text {
+    display: inline;
+  }
+}
+
+/* 品牌文字 */
+.brand-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #06b6d4, #3b82f6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* 页面标题 */
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.page-title.dark-theme {
+  color: #ffffff;
+}
+
+.page-title.light-theme {
+  color: #1f2937;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* 主题切换按钮 */
+.theme-toggle-btn {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.theme-toggle-btn.dark-theme {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: #d1d5db;
+}
+
+.theme-toggle-btn.light-theme {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.theme-toggle-btn:hover.dark-theme {
+  background-color: rgba(75, 85, 99, 0.5);
+}
+
+.theme-toggle-btn:hover.light-theme {
+  background-color: #e5e7eb;
+}
+
+.settings-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .settings-content-wrapper {
+    flex-direction: row;
+  }
+}
+
+/* 侧边栏 */
+.settings-sidebar {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .settings-sidebar {
+    width: 16rem;
+    flex-shrink: 0;
+  }
+}
+
+/* 移动端导航选择 */
+.mobile-nav-select {
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .mobile-nav-select {
+    display: none;
+  }
+}
+
+.nav-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+  background-color: transparent;
+  font-size: 1rem;
+}
+
+.nav-select.dark-theme {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: #374151;
+  color: #ffffff;
+}
+
+.nav-select.light-theme {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: #d1d5db;
+  color: #1f2937;
+}
+
+/* 设置导航 */
+.settings-nav {
+  display: none;
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+}
+
+@media (min-width: 1024px) {
+  .settings-nav {
+    display: block;
+  }
+}
+
+.settings-nav.dark-theme {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.settings-nav.light-theme {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-item.dark-theme {
+  color: #d1d5db;
+}
+
+.nav-item.light-theme {
+  color: #4b5563;
+}
+
+.nav-item:hover.dark-theme {
+  background-color: rgba(55, 65, 81, 0.5);
+}
+
+.nav-item:hover.light-theme {
+  background-color: #f3f4f6;
+}
+
+.nav-item.active {
+  border-left: 4px solid;
+  font-weight: 500;
+}
+
+.nav-item.active.dark-theme {
+  background-color: rgba(30, 58, 138, 0.5);
+  color: #93c5fd;
+  border-color: #60a5fa;
+}
+
+.nav-item.active.light-theme {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border-color: #3b82f6;
+}
+
+/* 设置内容 */
+.settings-content {
+  flex: 1;
+  max-width: 60rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .settings-content {
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .settings-content {
+    padding: 0 0.5rem;
+  }
+}
+
+/* 设置面板 */
+.settings-panel {
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+  width: 100%;
+  max-width: 100%;
+}
+
+.settings-panel.dark-theme {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.settings-panel.light-theme {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+/* 面板标题 */
+.panel-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.panel-title.dark-theme {
+  color: #ffffff;
+}
+
+.panel-title.light-theme {
+  color: #1f2937;
+}
+
+/* 面板内容 */
+.panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* 头像区域 */
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.avatar-container {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid;
+}
+
+.avatar-container.dark-theme {
+  border-color: #4b5563;
+}
+
+.avatar-container.light-theme {
+  border-color: #e5e7eb;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-upload-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.avatar-upload-btn.dark-theme {
+  background-color: #374151;
+  color: #d1d5db;
+}
+
+.avatar-upload-btn.light-theme {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.avatar-upload-btn:hover.dark-theme {
+  background-color: #4b5563;
+}
+
+.avatar-upload-btn:hover.light-theme {
+  background-color: #e5e7eb;
+}
+
+/* 表单网格 */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 表单字段 */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-field.full-width {
+  grid-column: span 2;
+}
+
+/* 表单标签 */
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: block;
+}
+
+.form-label.dark-theme {
+  color: #d1d5db;
+}
+
+.form-label.light-theme {
+  color: #4b5563;
+}
+
+/* 表单输入 */
+.form-input {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+  background-color: transparent;
+}
+
+.form-input.dark-theme {
+  background-color: rgba(55, 65, 81, 0.5);
+  border-color: #4b5563;
+  color: #ffffff;
+}
+
+.form-input.light-theme {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-color: #d1d5db;
+  color: #1f2937;
+}
+
+.form-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* 表单选择 */
+.form-select {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+  background-color: transparent;
+  font-size: 1rem;
+}
+
+.form-select.dark-theme {
+  background-color: rgba(55, 65, 81, 0.5);
+  border-color: #4b5563;
+  color: #ffffff;
+}
+
+.form-select.light-theme {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-color: #d1d5db;
+  color: #1f2937;
+}
+
+/* 按钮行 */
+.button-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 主要按钮 */
+.primary-btn {
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  border: none;
+  cursor: pointer;
+}
+
+.primary-btn.dark-theme {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.primary-btn.light-theme {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.primary-btn:hover {
+  transform: scale(1.05);
+}
+
+.primary-btn:hover.dark-theme {
+  background-color: #3b82f6;
+}
+
+.primary-btn:hover.light-theme {
+  background-color: #2563eb;
+}
+
+/* 次要按钮 */
+.secondary-btn {
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  border: none;
+  cursor: pointer;
+}
+
+.secondary-btn.dark-theme {
+  background-color: #16a34a;
+  color: #ffffff;
+}
+
+.secondary-btn.light-theme {
+  background-color: #22c55e;
+  color: #ffffff;
+}
+
+.secondary-btn:hover:not(.disabled) {
+  transform: scale(1.05);
+}
+
+.secondary-btn:hover:not(.disabled).dark-theme {
+  background-color: #22c55e;
+}
+
+.secondary-btn:hover:not(.disabled).light-theme {
+  background-color: #16a34a;
+}
+
+.secondary-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 切换部分 */
+.toggle-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 640px) {
+  .toggle-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+}
+
+.toggle-info {
+  flex: 1;
+}
+
+.toggle-title {
+  font-weight: 500;
+}
+
+.toggle-title.dark-theme {
+  color: #ffffff;
+}
+
+.toggle-title.light-theme {
+  color: #1f2937;
+}
+
+.toggle-description {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.toggle-description.dark-theme {
+  color: #9ca3af;
+}
+
+.toggle-description.light-theme {
+  color: #6b7280;
+}
+
+/* 开关组件 */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 2.75rem;
+  height: 1.5rem;
+}
+
+.switch-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e5e7eb;
+  transition: .4s;
+  border-radius: 9999px;
+}
+
+[data-theme="dark"] .switch-slider {
+  background-color: #374151;
+}
+
+.switch-slider::after {
+  position: absolute;
+  content: "";
+  height: 1.25rem;
+  width: 1.25rem;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 9999px;
+}
+
+[data-theme="dark"] .switch-slider::after {
+  background-color: #f9fafb;
+}
+
+.switch-input:checked + .switch-slider {
+  background-color: #3b82f6;
+}
+
+.switch-input:checked + .switch-slider::after {
+  transform: translateX(1.125rem);
+}
+
+/* 带单位的输入 */
+.input-with-unit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.unit-label {
+  font-size: 0.875rem;
+}
+
+.unit-label.dark-theme {
+  color: #9ca3af;
+}
+
+.unit-label.light-theme {
+  color: #6b7280;
+}
+
+/* 状态消息 */
+.status-message {
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.status-message.success {
+  background-color: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+}
+
+.status-message.error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.status-message.success.dark-theme {
+  background-color: rgba(22, 163, 74, 0.3);
+  color: #86efac;
+}
+
+.status-message.error.dark-theme {
+  background-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+/* 主题部分 */
+.theme-section,
+.color-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* 主题选项 */
+.theme-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+/* 主题选项按钮 */
+.theme-option {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 2px solid;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  cursor: pointer;
+}
+
+.theme-option.dark-theme {
+  border-color: #374151;
+}
+
+.theme-option.light-theme {
+  border-color: #d1d5db;
+}
+
+.theme-option.active {
+  border-color: #3b82f6;
+}
+
+.theme-option.active.dark-theme {
+  background-color: rgba(30, 64, 175, 0.1);
+}
+
+.theme-option.active.light-theme {
+  background-color: #eff6ff;
+}
+
+.theme-option-icon {
+  margin: 0 auto 0.25rem auto;
+}
+
+.theme-option-icon.dark-theme {
+  color: #d1d5db;
+}
+
+.theme-option-icon.light-theme {
+  color: #4b5563;
+}
+
+.theme-option-label {
+  font-size: 0.75rem;
+}
+
+.theme-option-label.dark-theme {
+  color: #d1d5db;
+}
+
+.theme-option-label.light-theme {
+  color: #4b5563;
+}
+
+/* 颜色选项 */
+.color-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+/* 颜色选项按钮 */
+.color-option {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 2px solid;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  cursor: pointer;
+}
+
+.color-option.dark-theme {
+  border-color: #374151;
+}
+
+.color-option.light-theme {
+  border-color: #d1d5db;
+}
+
+.color-option.active {
+  border-color: #1f2937;
+}
+
+[data-theme="dark"] .color-option.active {
+  border-color: #ffffff;
+}
+
+/* 颜色色块 */
+.color-swatch {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+}
+
+.color-swatch.blue { background-color: #3b82f6; }
+.color-swatch.green { background-color: #22c55e; }
+.color-swatch.purple { background-color: #8b5cf6; }
+.color-swatch.gray { background-color: #6b7280; }
+
+.color-label {
+  font-size: 0.75rem;
+}
+
+.color-label.dark-theme {
+  color: #d1d5db;
+}
+
+.color-label.light-theme {
+  color: #4b5563;
+}
+
+/* 页脚 */
+.stats-footer {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-top: 1px solid;
+  margin-top: 3rem;
+  transition: all 0.3s ease;
+}
+
+.stats-footer.dark-theme {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.stats-footer.light-theme {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.footer-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.footer-text {
+  text-align: center;
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.footer-text.dark-theme {
+  color: #9ca3af;
+}
+
+.footer-text.light-theme {
+  color: #6b7280;
 }
 
 /* 响应式网格 */
 @media (max-width: 1024px) {
-  .grid-cols-3 {
+  .theme-options {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 640px) {
-  .grid-cols-3,
-  .grid-cols-4 {
+  .theme-options,
+  .color-options {
     grid-template-columns: 1fr;
   }
 }

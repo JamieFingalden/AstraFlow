@@ -34,7 +34,6 @@ Key frontend technologies:
 - Vite for fast development and build
 - Pinia for state management
 - Vue Router for client-side routing
-- Tailwind CSS for styling
 - Axios for HTTP requests
 - ECharts and Recharts for data visualization
 

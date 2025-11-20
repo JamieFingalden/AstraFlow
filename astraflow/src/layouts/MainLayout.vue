@@ -1,70 +1,70 @@
 <template>
-  <div class="min-h-screen bg-black text-white relative overflow-hidden">
+  <div class="app-container">
     <!-- 星空背景 -->
-    <div class="fixed inset-0 bg-gradient-to-b from-black via-blue-950/20 to-black">
-      <div class="absolute inset-0">
-        <div class="stars absolute inset-0"></div>
-        <div class="stars2 absolute inset-0"></div>
+    <div class="background-container">
+      <div class="stars-container">
+        <div class="stars"></div>
+        <div class="stars2"></div>
       </div>
     </div>
 
     <!-- 导航栏 -->
-    <nav class="relative z-50 flex items-center justify-between p-6 backdrop-blur-lg bg-gradient-to-r from-black/20 via-blue-900/20 to-black/20 rounded-2xl mx-6 my-4 transition-all duration-300 ease-in-out">
-      <div class="text-2xl font-bold flex items-center space-x-2">
-        <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse shadow-lg shadow-blue-500/50"></div>
-        <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+    <nav class="navbar">
+      <div class="brand">
+        <div class="brand-indicator"></div>
+        <span class="brand-text">
           AstraFlow 星流
         </span>
       </div>
 
       <!-- 桌面端导航 -->
-      <div class="hidden md:flex items-center space-x-8">
+      <div class="nav-links desktop-nav">
         <router-link
           to="/"
-          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/' }"
+          class="nav-link"
+          :class="{ 'nav-link-active': $route.path === '/' }"
         >
           首页
         </router-link>
         <router-link
           to="/upload"
-          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/upload' }"
+          class="nav-link"
+          :class="{ 'nav-link-active': $route.path === '/upload' }"
         >
           发票上传
         </router-link>
         <router-link
           to="/bills"
-          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/bills' }"
+          class="nav-link"
+          :class="{ 'nav-link-active': $route.path === '/bills' }"
         >
           账单管理
         </router-link>
         <router-link
           to="/visualization"
-          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/visualization' }"
+          class="nav-link"
+          :class="{ 'nav-link-active': $route.path === '/visualization' }"
         >
           可视化
         </router-link>
         <router-link
           to="/ai-result"
-          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/ai-result' }"
+          class="nav-link"
+          :class="{ 'nav-link-active': $route.path === '/ai-result' }"
         >
           AI识别
         </router-link>
         <router-link
           to="/statistics"
-          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/statistics' }"
+          class="nav-link"
+          :class="{ 'nav-link-active': $route.path === '/statistics' }"
         >
           报销统计
         </router-link>
         <router-link
           to="/settings"
-          class="text-gray-300 hover:text-white transition-all duration-300 px-3 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/settings' }"
+          class="nav-link"
+          :class="{ 'nav-link-active': $route.path === '/settings' }"
         >
           设置中心
         </router-link>
@@ -72,20 +72,20 @@
 
       <!-- 移动端汉堡菜单按钮 -->
       <button
-        class="md:hidden text-gray-300 focus:outline-none"
+        class="mobile-menu-button"
         @click="toggleMobileMenu"
       >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="hamburger-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path :d="mobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
 
       <!-- 右侧操作区 -->
-      <div class="hidden md:flex items-center space-x-4">
-        <button class="hidden md:inline-flex px-4 py-2 text-gray-300 hover:text-white font-medium transition-colors duration-300">
+      <div class="nav-actions desktop-nav">
+        <button class="login-button">
           登录
         </button>
-        <button class="inline-flex px-5 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/25">
+        <button class="register-button">
           注册
         </button>
         <!-- 主题切换按钮 -->
@@ -96,71 +96,71 @@
     <!-- 移动端导航菜单 -->
     <div
       v-if="mobileMenuOpen"
-      class="md:hidden fixed inset-0 z-40 bg-black/90 backdrop-blur-lg"
+      class="mobile-menu-overlay"
       @click="closeMobileMenu"
     >
-      <div class="flex flex-col items-center justify-center h-full space-y-8" @click.stop>
+      <div class="mobile-menu-content" @click.stop>
         <router-link
           to="/"
-          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/' }"
+          class="mobile-nav-link"
+          :class="{ 'mobile-nav-link-active': $route.path === '/' }"
           @click="closeMobileMenu"
         >
           首页
         </router-link>
         <router-link
           to="/upload"
-          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/upload' }"
+          class="mobile-nav-link"
+          :class="{ 'mobile-nav-link-active': $route.path === '/upload' }"
           @click="closeMobileMenu"
         >
           发票上传
         </router-link>
         <router-link
           to="/bills"
-          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/bills' }"
+          class="mobile-nav-link"
+          :class="{ 'mobile-nav-link-active': $route.path === '/bills' }"
           @click="closeMobileMenu"
         >
           账单管理
         </router-link>
         <router-link
           to="/visualization"
-          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/visualization' }"
+          class="mobile-nav-link"
+          :class="{ 'mobile-nav-link-active': $route.path === '/visualization' }"
           @click="closeMobileMenu"
         >
           可视化
         </router-link>
         <router-link
           to="/ai-result"
-          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/ai-result' }"
+          class="mobile-nav-link"
+          :class="{ 'mobile-nav-link-active': $route.path === '/ai-result' }"
           @click="closeMobileMenu"
         >
           AI识别
         </router-link>
         <router-link
           to="/statistics"
-          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/statistics' }"
+          class="mobile-nav-link"
+          :class="{ 'mobile-nav-link-active': $route.path === '/statistics' }"
           @click="closeMobileMenu"
         >
           报销统计
         </router-link>
         <router-link
           to="/settings"
-          class="text-2xl text-gray-300 hover:text-white transition-all duration-300 px-4 py-2 rounded-lg"
-          :class="{ 'text-blue-400 font-medium': $route.path === '/settings' }"
+          class="mobile-nav-link"
+          :class="{ 'mobile-nav-link-active': $route.path === '/settings' }"
           @click="closeMobileMenu"
         >
           设置中心
         </router-link>
-        <div class="flex items-center space-x-4 mt-8">
-          <button class="px-4 py-2 text-gray-300 hover:text-white font-medium transition-colors duration-300">
+        <div class="mobile-actions">
+          <button class="mobile-login-button">
             登录
           </button>
-          <button class="px-5 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/25">
+          <button class="mobile-register-button">
             注册
           </button>
           <!-- 移动端主题切换按钮 -->
@@ -170,29 +170,27 @@
     </div>
 
     <!-- 主容器 -->
-    <div class="relative z-10 min-h-screen flex flex-col">
-      <main class="flex-grow">
+    <div class="main-container">
+      <main class="main-content">
         <slot></slot>
       </main>
 
       <!-- 页脚 -->
-      <footer class="flex-shrink-0">
-        <div class="border-t border-blue-500/20 bg-black/30 backdrop-blur-sm">
-          <div class="container mx-auto px-6 py-8">
-            <div class="text-center">
-              <div class="flex items-center justify-center space-x-2 mb-4">
-                <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400 text-lg font-bold">
-                  ASTRAFLOW
-                </span>
-              </div>
-              <p class="text-gray-400 text-sm">
-                Smart Expense Made Simple ✨
-              </p>
-              <p class="text-gray-500 text-xs mt-2">
-                © 2025 AstraFlow. All rights reserved.
-              </p>
+      <footer class="footer">
+        <div class="footer-container">
+          <div class="footer-content">
+            <div class="footer-brand">
+              <div class="footer-indicator"></div>
+              <span class="footer-brand-text">
+                ASTRAFLOW
+              </span>
             </div>
+            <p class="footer-tagline">
+              Smart Expense Made Simple ✨
+            </p>
+            <p class="footer-copyright">
+              © 2025 AstraFlow. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
@@ -219,6 +217,27 @@ const closeMobileMenu = () => {
 </script>
 
 <style scoped>
+/* 主容器 */
+.app-container {
+  min-height: 100vh;
+  background-color: #000000;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 背景容器 */
+.background-container {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(to bottom, #000000, rgba(30, 58, 138, 0.2), #000000);
+}
+
+.stars-container {
+  position: absolute;
+  inset: 0;
+}
+
 /* 星空动画 */
 .stars, .stars2 {
   position: absolute;
@@ -243,8 +262,346 @@ const closeMobileMenu = () => {
   to { transform: translateY(-2000px); }
 }
 
+/* 导航栏 */
+.navbar {
+  position: relative;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.2), rgba(30, 58, 138, 0.2), rgba(0, 0, 0, 0.2));
+  border-radius: 1rem;
+  margin: 1rem 1.5rem;
+  transition: all 0.3s ease-in-out;
+  min-height: 3rem;
+}
+
+/* On mobile, ensure proper flex sizing to prevent wrapping */
+@media (max-width: 767px) {
+  .navbar {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .brand {
+    flex: 1;
+  }
+
+  .mobile-menu-button {
+    flex: 0;
+  }
+
+  .nav-actions {
+    display: none;
+  }
+}
+
+/* 品牌 */
+.brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-indicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.5);
+}
+
+.brand-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #60a5fa, #a855f7, #ec4899);
+}
+
+/* 桌面端导航 */
+.desktop-nav {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .desktop-nav {
+    display: flex;
+  }
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE 10+ */
+}
+
+.nav-links::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+@media (min-width: 1024px) {
+  .nav-links {
+    gap: 2rem;
+  }
+}
+
+.nav-link {
+  color: #d1d5db;
+  transition: all 0.3s ease;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: #ffffff;
+}
+
+.nav-link-active {
+  color: #60a5fa;
+  font-weight: 500;
+}
+
+/* 移动端菜单按钮 */
+.mobile-menu-button {
+  display: block;
+  color: #d1d5db;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .mobile-menu-button {
+    display: none;
+  }
+}
+
+.hamburger-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* 右侧操作区 */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.login-button {
+  display: none;
+  padding: 0.5rem 1rem;
+  color: #d1d5db;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .login-button {
+    display: inline-flex;
+  }
+}
+
+.login-button:hover {
+  color: #ffffff;
+}
+
+.register-button {
+  display: inline-flex;
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  color: #ffffff;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.register-button:hover {
+  background: linear-gradient(to right, #2563eb, #7c3aed);
+  transform: scale(1.05);
+  box-shadow: 0 0 50px -12px rgba(59, 130, 246, 0.25);
+}
+
+/* 移动端导航菜单 */
+.mobile-menu-overlay {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background-color: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(12px);
+}
+
+@media (min-width: 768px) {
+  .mobile-menu-overlay {
+    display: none;
+  }
+}
+
+.mobile-menu-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 2rem;
+}
+
+.mobile-nav-link {
+  font-size: 1.5rem;
+  color: #d1d5db;
+  transition: all 0.3s ease;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+}
+
+.mobile-nav-link:hover {
+  color: #ffffff;
+}
+
+.mobile-nav-link-active {
+  color: #60a5fa;
+  font-weight: 500;
+}
+
+.mobile-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.mobile-login-button {
+  padding: 0.5rem 1rem;
+  color: #d1d5db;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.mobile-login-button:hover {
+  color: #ffffff;
+}
+
+.mobile-register-button {
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  color: #ffffff;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.mobile-register-button:hover {
+  background: linear-gradient(to right, #2563eb, #7c3aed);
+  transform: scale(1.05);
+  box-shadow: 0 0 50px -12px rgba(59, 130, 246, 0.25);
+}
+
+/* 主容器 */
+.main-container {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+}
+
+/* 页脚 */
+.footer {
+  flex-shrink: 0;
+}
+
+.footer-container {
+  border-top: 1px solid rgba(59, 130, 246, 0.2);
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.footer-indicator {
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.footer-brand-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #60a5fa, #06b6d4);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.footer-tagline {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.footer-copyright {
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+}
+
 /* 主题支持 */
-/* 亮色主题下的背景调整 - 增强对比度 */
+[data-theme="light"] .app-container {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+[data-theme="light"] .background-container {
+  background: linear-gradient(to bottom, #ffffff, #f1f5f9, #ffffff);
+}
+
+/* 亮色主题下的星空动画 - 调整颜色和透明度 */
 [data-theme="light"] .stars {
   background: transparent url('data:image/svg+xml,%3Csvg width="100" height="100" xmlns="http://www.w3.org/2000/svg"%3E%3Ccircle cx="50" cy="50" r="0.5" fill="%232563eb"/%3E%3C/svg%3E') repeat;
   opacity: 0.4;
@@ -255,58 +612,78 @@ const closeMobileMenu = () => {
   opacity: 0.3;
 }
 
-[data-theme="light"] .bg-gradient-to-b {
-  background: linear-gradient(to bottom, #ffffff, #f1f5f9, #ffffff);
-}
-
-/* 亮色主题下的导航栏调整 - 增强可读性 */
-[data-theme="light"] nav {
+/* 亮色主题下的导航栏 */
+[data-theme="light"] .navbar {
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--color-border-light);
   backdrop-filter: blur(20px);
 }
 
-[data-theme="light"] .hover\:border-blue-400\/40:hover {
+[data-theme="light"] .navbar:hover {
   border-color: var(--color-stellar-blue);
   box-shadow: 0 8px 32px rgba(37, 99, 235, 0.15);
 }
 
 /* 导航链接亮色主题 */
-[data-theme="light"] .text-gray-300 {
+[data-theme="light"] .nav-link {
   color: var(--color-text-secondary);
   transition: color 0.3s ease;
 }
 
-[data-theme="light"] .text-gray-300:hover {
+[data-theme="light"] .nav-link:hover {
   color: var(--color-stellar-blue);
 }
 
-[data-theme="light"] .text-blue-400 {
+[data-theme="light"] .nav-link-active {
   color: var(--color-stellar-blue);
   font-weight: 600;
 }
 
-/* 亮色主题下的页脚调整 - 更好的对比度 */
-[data-theme="light"] footer > div {
+[data-theme="light"] .mobile-nav-link {
+  color: var(--color-text-secondary);
+}
+
+[data-theme="light"] .mobile-nav-link:hover {
+  color: var(--color-stellar-blue);
+}
+
+[data-theme="light"] .mobile-nav-link-active {
+  color: var(--color-stellar-blue);
+  font-weight: 600;
+}
+
+/* 亮色主题下的页脚 */
+[data-theme="light"] .footer-container {
   background: rgba(255, 255, 255, 0.95);
   border-top: 1px solid var(--color-border-light);
 }
 
-[data-theme="light"] .text-gray-400 {
+[data-theme="light"] .footer-tagline {
   color: var(--color-text-muted);
 }
 
-[data-theme="light"] .text-gray-500 {
+[data-theme="light"] .footer-copyright {
   color: var(--color-text-muted);
   opacity: 0.7;
 }
 
 /* 品牌文字亮色主题适配 */
-[data-theme="light"] .bg-clip-text {
-  background: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple), var(--color-aurora-pink));
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
+[data-theme="light"] .brand-text {
+  background-image: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple), var(--color-aurora-pink));
   filter: none;
+}
+
+[data-theme="light"] .footer-brand-text {
+  background-image: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple));
+}
+
+/* 脉冲动画 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 </style>

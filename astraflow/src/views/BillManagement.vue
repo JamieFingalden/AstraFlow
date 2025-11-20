@@ -1,93 +1,70 @@
 <template>
-  <div :class="'min-h-screen transition-colors duration-300 ' + (isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50')">
+  <div class="app-container" :data-theme="isDark ? 'dark' : 'light'">
     <!-- Particle background effect -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-      <div :class="'absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ' + (isDark ? 'bg-cyan-900/30' : 'bg-cyan-500')"></div>
-      <div :class="'absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ' + (isDark ? 'bg-blue-900/30' : 'bg-blue-500')"></div>
-      <div :class="'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ' + (isDark ? 'bg-purple-900/30' : 'bg-purple-500')"></div>
+    <div class="particle-background">
+      <div class="particle particle-cyan"></div>
+      <div class="particle particle-blue"></div>
+      <div class="particle particle-purple"></div>
     </div>
 
     <!-- Header -->
-    <header :class="'relative z-10 backdrop-blur-md border-b transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4">
-            <!-- 返回按钮 -->
-            <router-link
-              to="/"
-              :class="'flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ' + (isDark ? 'hover:bg-gray-700/50 text-gray-300 hover:text-white' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900')"
-              title="返回首页"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m15 18-6-6 6-6"/>
-              </svg>
-              <span class="hidden sm:inline">返回</span>
-            </router-link>
+    <header class="app-header">
+      <div class="header-container">
+        <div class="header-left">
+          <!-- 返回按钮 -->
+          <router-link to="/" class="back-button" title="返回首页">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
+            <span class="back-text">返回</span>
+          </router-link>
 
-            <div class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-              AstraFlow
-            </div>
-            <h1 :class="'text-xl font-semibold transition-colors duration-300 ' + (isDark ? 'text-white' : 'text-gray-800')">
-              账单管理
-            </h1>
+          <div class="brand-name">
+            AstraFlow
           </div>
+          <h1 class="page-title">账单管理</h1>
+        </div>
 
-          <div class="flex items-center space-x-4">
-            <!-- 添加账单按钮 -->
-            <button
-              :class="'px-6 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ' + (isDark ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/25' : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/30')"
-            >
-              <PlusIcon :size="20" class="inline mr-2" />
-              添加账单
-            </button>
+        <div class="header-right">
+          <!-- 添加账单按钮 -->
+          <button class="add-bill-button">
+            <PlusIcon :size="20" class="button-icon" />
+            添加账单
+          </button>
 
-            <!-- 主题切换按钮 -->
-            <button
-              @click="toggleTheme"
-              :class="'p-2 rounded-lg transition-all duration-200 ' + (isDark ? 'bg-gray-700/50 hover:bg-gray-600/50 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700')"
-            >
-              <SunIcon v-if="isDark" :size="20" />
-              <MoonIcon v-else :size="20" />
-            </button>
-          </div>
+          <!-- 主题切换按钮 -->
+          <button @click="toggleTheme" class="theme-toggle">
+            <SunIcon v-if="isDark" :size="20" />
+            <MoonIcon v-else :size="20" />
+          </button>
         </div>
       </div>
     </header>
 
     <!-- Main Content -->
-    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="main-content">
       <!-- Search and Filter Section -->
-      <div :class="`rounded-2xl p-6 mb-6 backdrop-blur-md border transition-all duration-300 ${
-        isDark
-          ? 'bg-gray-800/70 border-gray-700/50'
-          : 'bg-white/70 border-gray-200/50'
-      }`">
-        <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div class="search-filter-container">
+        <div class="search-filter-content">
           <!-- Search Bar -->
-          <div class="flex-1 w-full md:w-auto">
-            <div class="relative">
-              <SearchIcon
-                :class="'absolute left-3 top-1/2 transform -translate-y-1/2 ' + (isDark ? 'text-gray-400' : 'text-gray-500')"
-                :size="20"
-              />
+          <div class="search-container">
+            <div class="search-wrapper">
+              <SearchIcon class="search-icon" :size="20" />
               <input
                 v-model="searchQuery"
                 type="text"
                 placeholder="搜索账单名称..."
-                :class="'w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ' + (isDark ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500')"
+                class="search-input"
               />
             </div>
           </div>
 
           <!-- Category Filter -->
-          <div class="flex items-center space-x-2">
-            <span :class="'text-sm font-medium ' + (isDark ? 'text-gray-300' : 'text-gray-700')">
+          <div class="filter-group">
+            <span class="filter-label">
               分类筛选：
             </span>
-            <select
-              v-model="selectedCategory"
-              :class="'px-4 py-2 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ' + (isDark ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900')"
-            >
+            <select v-model="selectedCategory" class="filter-select">
               <option value="">全部分类</option>
               <option value="交通">交通</option>
               <option value="餐饮">餐饮</option>
@@ -98,14 +75,11 @@
           </div>
 
           <!-- Status Filter -->
-          <div class="flex items-center space-x-2">
-            <span :class="'text-sm font-medium ' + (isDark ? 'text-gray-300' : 'text-gray-700')">
+          <div class="filter-group">
+            <span class="filter-label">
               状态筛选：
             </span>
-            <select
-              v-model="selectedStatus"
-              :class="'px-4 py-2 rounded-lg border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 ' + (isDark ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900')"
-            >
+            <select v-model="selectedStatus" class="filter-select">
               <option value="">全部状态</option>
               <option value="已报销">已报销</option>
               <option value="未报销">未报销</option>
@@ -115,102 +89,76 @@
       </div>
 
       <!-- Bills Table -->
-      <div :class="'rounded-2xl overflow-hidden backdrop-blur-md border transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
+      <div class="bills-table-container">
         <!-- Desktop Table -->
-        <div class="hidden overflow-x-auto md:block">
-          <table class="w-full">
+        <div class="desktop-table">
+          <table class="bills-table">
             <thead>
-              <tr :class="'border-b transition-colors duration-300 ' + (isDark ? 'border-gray-700' : 'border-gray-200')">
-                <th :class="'text-left py-4 px-6 font-semibold transition-colors duration-300 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">
-                  账单名称
-                </th>
-                <th :class="'text-left py-4 px-6 font-semibold transition-colors duration-300 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">
-                  分类
-                </th>
-                <th :class="'text-left py-4 px-6 font-semibold transition-colors duration-300 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">
-                  金额
-                </th>
-                <th :class="'text-left py-4 px-6 font-semibold transition-colors duration-300 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">
-                  日期
-                </th>
-                <th :class="'text-left py-4 px-6 font-semibold transition-colors duration-300 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">
-                  来源
-                </th>
-                <th :class="'text-left py-4 px-6 font-semibold transition-colors duration-300 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">
-                  状态
-                </th>
-                <th :class="'text-center py-4 px-6 font-semibold transition-colors duration-300 ' + (isDark ? 'text-gray-300' : 'text-gray-700')">
-                  操作
-                </th>
+              <tr class="table-header">
+                <th class="table-header-cell">账单名称</th>
+                <th class="table-header-cell">分类</th>
+                <th class="table-header-cell">金额</th>
+                <th class="table-header-cell">日期</th>
+                <th class="table-header-cell">来源</th>
+                <th class="table-header-cell">状态</th>
+                <th class="table-header-cell">操作</th>
               </tr>
             </thead>
             <tbody>
               <tr
                 v-for="bill in paginatedBills"
                 :key="bill.id"
-                :class="'border-b transition-all duration-300 hover:bg-opacity-50 ' + (isDark ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-200 hover:bg-gray-50')"
+                class="table-row"
               >
-                <td class="py-4 px-6">
+                <td class="table-cell">
                   <div>
-                    <p :class="'font-medium transition-colors duration-300 ' + (isDark ? 'text-white' : 'text-gray-900')">
+                    <p class="bill-name">
                       {{ bill.name }}
                     </p>
-                    <p :class="'text-sm mt-1 transition-colors duration-300 ' + (isDark ? 'text-gray-400' : 'text-gray-500')">
+                    <p class="bill-description">
                       {{ bill.description }}
                     </p>
                   </div>
                 </td>
-                <td class="py-4 px-6">
-                  <span :class="`px-3 py-1 rounded-full text-xs font-medium transition-colors duration-300 ${
-                    getCategoryStyle(bill.category)
-                  }`">
+                <td class="table-cell">
+                  <span class="category-tag" :class="getCategoryClass(bill.category)">
                     {{ bill.category }}
                   </span>
                 </td>
-                <td class="py-4 px-6">
-                  <p :class="'font-semibold transition-colors duration-300 ' + (isDark ? 'text-white' : 'text-gray-900')">
+                <td class="table-cell">
+                  <p class="bill-amount">
                     ¥{{ bill.amount.toFixed(2) }}
                   </p>
                 </td>
-                <td class="py-4 px-6">
-                  <p :class="'text-sm transition-colors duration-300 ' + (isDark ? 'text-gray-300' : 'text-gray-600')">
+                <td class="table-cell">
+                  <p class="bill-date">
                     {{ bill.date }}
                   </p>
                 </td>
-                <td class="py-4 px-6">
-                  <div class="flex items-center space-x-2">
+                <td class="table-cell">
+                  <div class="source-container">
                     <component
                       :is="getSourceIcon(bill.source)"
                       :size="16"
-                      :class="getSourceIconColor(bill.source)"
+                      class="source-icon"
+                      :class="getSourceIconClass(bill.source)"
                     />
-                    <span :class="'text-sm transition-colors duration-300 ' + (isDark ? 'text-gray-300' : 'text-gray-600')">
+                    <span class="source-text">
                       {{ bill.source }}
                     </span>
                   </div>
                 </td>
-                <td class="py-4 px-6">
-                  <span :class="`px-3 py-1 rounded-full text-xs font-medium transition-colors duration-300 ${
-                    bill.status === '已报销'
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
-                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'
-                  }`">
+                <td class="table-cell">
+                  <span class="status-tag" :class="getStatusClass(bill.status)">
                     {{ bill.status }}
                   </span>
                 </td>
-                <td class="py-4 px-6">
-                  <div class="flex items-center justify-center space-x-2">
-                    <button
-                      :class="'p-2 rounded-lg transition-all duration-200 ' + (isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600')"
-                      title="编辑"
-                    >
+                <td class="table-cell">
+                  <div class="action-buttons">
+                    <button class="action-button" title="编辑">
                       <EditIcon :size="16" />
                     </button>
-                    <button
-                      :class="'p-2 rounded-lg transition-all duration-200 ' + (isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600')"
-                      title="删除"
-                      @click="confirmDeleteBill(bill)"
-                    >
+                    <button class="action-button" title="删除" @click="confirmDeleteBill(bill)">
                       <Trash2Icon :size="16" />
                     </button>
                   </div>
@@ -221,76 +169,58 @@
         </div>
 
         <!-- Mobile Card View -->
-        <div class="md:hidden space-y-4">
+        <div class="mobile-cards">
           <div
             v-for="bill in paginatedBills"
             :key="bill.id"
-            :class="'rounded-xl p-4 border transition-all duration-300 ' + (isDark ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white/50 border-gray-200/50')"
+            class="bill-card"
           >
-            <div class="flex justify-between items-start mb-3">
+            <div class="card-header">
               <div>
-                <h3 :class="'font-semibold transition-colors duration-300 ' + (isDark ? 'text-white' : 'text-gray-900')">
+                <h3 class="card-title">
                   {{ bill.name }}
                 </h3>
-                <p :class="'text-sm mt-1 transition-colors duration-300 ' + (isDark ? 'text-gray-400' : 'text-gray-500')">
+                <p class="card-description">
                   {{ bill.description }}
                 </p>
               </div>
-              <span :class="'px-2 py-1 rounded-full text-xs font-medium transition-colors duration-300 ' + (bill.status === '已报销' ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300')">
+              <span class="status-tag" :class="getStatusClass(bill.status)">
                 {{ bill.status }}
               </span>
             </div>
-            <div class="grid grid-cols-2 gap-2 text-sm">
+            <div class="card-grid">
               <div>
-                <p class="text-gray-500 dark:text-gray-400">分类</p>
-                <p :class="'font-medium transition-colors duration-300 ' + (isDark ? 'text-white' : 'text-gray-900')">
-                  {{ bill.category }}
-                </p>
+                <p class="card-label">分类</p>
+                <p class="card-value">{{ bill.category }}</p>
               </div>
               <div>
-                <p class="text-gray-500 dark:text-gray-400">金额</p>
-                <p :class="'font-semibold transition-colors duration-300 ' + (isDark ? 'text-white' : 'text-gray-900')">
-                  ¥{{ bill.amount.toFixed(2) }}
-                </p>
+                <p class="card-label">金额</p>
+                <p class="card-value">{{ bill.amount.toFixed(2) }}</p>
               </div>
               <div>
-                <p class="text-gray-500 dark:text-gray-400">日期</p>
-                <p :class="'transition-colors duration-300 ' + (isDark ? 'text-gray-300' : 'text-gray-600')">
-                  {{ bill.date }}
-                </p>
+                <p class="card-label">日期</p>
+                <p class="card-value">{{ bill.date }}</p>
               </div>
               <div>
-                <p class="text-gray-500 dark:text-gray-400">来源</p>
-                <div class="flex items-center space-x-1">
+                <p class="card-label">来源</p>
+                <div class="source-container">
                   <component
                     :is="getSourceIcon(bill.source)"
                     :size="14"
-                    :class="getSourceIconColor(bill.source)"
+                    class="source-icon"
+                    :class="getSourceIconClass(bill.source)"
                   />
-                  <span :class="'text-xs transition-colors duration-300 ' + (isDark ? 'text-gray-300' : 'text-gray-600')">
+                  <span class="source-text">
                     {{ bill.source }}
                   </span>
                 </div>
               </div>
             </div>
-            <div class="flex justify-end space-x-2 mt-3">
-              <button
-                :class="`p-2 rounded-lg transition-all duration-200 ${
-                  isDark
-                    ? 'hover:bg-gray-700 text-gray-300'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`"
-              >
+            <div class="card-actions">
+              <button class="action-button">
                 <EditIcon :size="16" />
               </button>
-              <button
-                :class="`p-2 rounded-lg transition-all duration-200 ${
-                  isDark
-                    ? 'hover:bg-gray-700 text-gray-300'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`"
-                @click="confirmDeleteBill(bill)"
-              >
+              <button class="action-button" @click="confirmDeleteBill(bill)">
                 <Trash2Icon :size="16" />
               </button>
             </div>
@@ -299,29 +229,25 @@
       </div>
 
       <!-- Pagination -->
-      <div :class="'flex justify-center items-center space-x-4 mt-6 ' + (isDark ? 'text-gray-300' : 'text-gray-600')">
+      <div class="pagination-container">
         <button
           @click="goToPage(currentPage - 1)"
           :disabled="currentPage === 1"
-          :class="'px-3 py-2 rounded-lg border transition-all duration-200 ' + (currentPage === 1 ? 'opacity-50 cursor-not-allowed' : isDark ? 'hover:bg-gray-700 border-gray-600 text-gray-300' : 'hover:bg-white border-gray-300 text-gray-700')"
+          class="pagination-button"
+          :class="{ 'disabled': currentPage === 1 }"
         >
           <ChevronLeft :size="20" />
         </button>
 
-        <span :class="text-sm">
+        <span class="pagination-info">
           第 {{ currentPage }} 页，共 {{ totalPages }} 页
         </span>
 
         <button
           @click="goToPage(currentPage + 1)"
           :disabled="currentPage === totalPages"
-          :class="`px-3 py-2 rounded-lg border transition-all duration-200 ${
-            currentPage === totalPages
-              ? 'opacity-50 cursor-not-allowed'
-              : isDark
-                ? 'hover:bg-gray-700 border-gray-600 text-gray-300'
-                : 'hover:bg-white border-gray-300 text-gray-700'
-          }`"
+          class="pagination-button"
+          :class="{ 'disabled': currentPage === totalPages }"
         >
           <ChevronRight :size="20" />
         </button>
@@ -329,9 +255,9 @@
     </main>
 
     <!-- Footer -->
-    <footer :class="'relative z-10 backdrop-blur-md border-t mt-12 transition-all duration-300 ' + (isDark ? 'bg-gray-800/70 border-gray-700/50' : 'bg-white/70 border-gray-200/50')">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <p :class="'text-center text-sm transition-colors duration-300 ' + (isDark ? 'text-gray-400' : 'text-gray-600')">
+    <footer class="app-footer">
+      <div class="footer-container">
+        <p class="footer-text">
           © 2025 AstraFlow · Smart Expense Made Simple
         </p>
       </div>
@@ -589,6 +515,33 @@ const confirmDeleteBill = (bill) => {
   }
 }
 
+// Helper methods for dynamic classes
+const getCategoryClass = (category) => {
+  const classes = {
+    '交通': 'category-transport',
+    '餐饮': 'category-food',
+    '住宿': 'category-lodging',
+    '办公': 'category-office',
+    '其他': 'category-other'
+  }
+  return classes[category] || 'category-other'
+}
+
+const getSourceIconClass = (source) => {
+  const classes = {
+    '微信支付': 'source-wechat',
+    '支付宝': 'source-alipay',
+    '银行卡': 'source-bank',
+    '手动添加': 'source-manual',
+    '现金': 'source-cash'
+  }
+  return classes[source] || 'source-manual'
+}
+
+const getStatusClass = (status) => {
+  return status === '已报销' ? 'status-approved' : 'status-pending'
+}
+
 onMounted(() => {
   // 初始化时如果有查询参数，应用过滤条件
   // 这里可以添加从路由参数读取的过滤条件
@@ -596,40 +549,953 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Smooth transitions */
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+/* Main Container */
+.app-container {
+  min-height: 100vh;
+  transition: color 0.3s ease, background-color 0.3s ease;
 }
 
-/* Particle background optimization */
-.dark .animate-pulse {
-  opacity: 0.3;
+.app-container[data-theme="dark"] {
+  background-color: #111827;
 }
 
-/* Table hover effects */
-tr:hover td {
-  transform: translateY(-1px);
+.app-container[data-theme="light"] {
+  background: linear-gradient(135deg, #eff6ff, #ecfeff, #e0f2fe);
 }
 
-/* Mobile card hover effects */
-.rounded-xl:hover {
-  transform: translateY(-2px);
+/* Particle Background */
+.particle-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
-/* Button group spacing */
-.flex.space-x-2 > * + * {
-  margin-left: 0.5rem;
+.particle {
+  position: absolute;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  filter: blur(5rem);
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Focus states */
-.focus\:ring-2:focus {
+.particle-cyan {
+  top: -10rem;
+  right: -10rem;
+}
+
+.app-container[data-theme="dark"] .particle-cyan {
+  background-color: rgba(34, 211, 238, 0.3);
+}
+
+.app-container[data-theme="light"] .particle-cyan {
+  background-color: #06b6d4;
+}
+
+.particle-blue {
+  bottom: -10rem;
+  left: -10rem;
+}
+
+.app-container[data-theme="dark"] .particle-blue {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+.app-container[data-theme="light"] .particle-blue {
+  background-color: #3b82f6;
+}
+
+.particle-purple {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.app-container[data-theme="dark"] .particle-purple {
+  background-color: rgba(147, 51, 234, 0.3);
+}
+
+.app-container[data-theme="light"] .particle-purple {
+  background-color: #a855f7;
+}
+
+/* Header */
+.app-header {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .app-header {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.app-container[data-theme="light"] .app-header {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.header-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 4rem;
+  flex-wrap: nowrap;
+}
+
+@media (min-width: 640px) {
+  .header-container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .header-container {
+    padding: 0 2rem;
+  }
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0; /* Allow flex item to shrink */
+  overflow: hidden;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  color: inherit;
+}
+
+.app-container[data-theme="dark"] .back-button {
+  color: #d1d5db;
+}
+
+.app-container[data-theme="dark"] .back-button:hover {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: white;
+}
+
+.app-container[data-theme="light"] .back-button {
+  color: #4b5563;
+}
+
+.app-container[data-theme="light"] .back-button:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.back-text {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .back-text {
+    display: inline;
+  }
+}
+
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #22d3ee, #3b82f6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.app-container[data-theme="dark"] .page-title {
+  color: white;
+}
+
+.app-container[data-theme="light"] .page-title {
+  color: #1f2937;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 0.2; /* Don't grow */
+}
+
+.add-bill-button {
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.add-bill-button:hover {
+  transform: scale(1.05);
+}
+
+.app-container[data-theme="dark"] .add-bill-button {
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25);
+}
+
+.app-container[data-theme="dark"] .add-bill-button:hover {
+  background: linear-gradient(135deg, #3b82f6, #22d3ee);
+  box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.3);
+}
+
+.app-container[data-theme="light"] .add-bill-button {
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+}
+
+.app-container[data-theme="light"] .add-bill-button:hover {
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.4);
+}
+
+.button-icon {
+  margin-right: 0.5rem;
+}
+
+.theme-toggle {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.app-container[data-theme="dark"] .theme-toggle {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: #d1d5db;
+}
+
+.app-container[data-theme="dark"] .theme-toggle:hover {
+  background-color: rgba(75, 85, 99, 0.5);
+}
+
+.app-container[data-theme="light"] .theme-toggle {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.app-container[data-theme="light"] .theme-toggle:hover {
+  background-color: #e5e7eb;
+}
+
+/* Main Content */
+.main-content {
+  position: relative;
+  z-index: 10;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .main-content {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    padding: 2rem 2rem;
+  }
+}
+
+/* Search and Filter Section */
+.search-filter-container {
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(12px);
+  border: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .search-filter-container {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.app-container[data-theme="light"] .search-filter-container {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.search-filter-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .search-filter-content {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* Search Container */
+.search-container {
+  flex: 1;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .search-container {
+    width: auto;
+  }
+}
+
+.search-wrapper {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .search-icon {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .search-icon {
+  color: #6b7280;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
   outline: none;
 }
 
-/* Disabled states */
-.opacity-50 {
+.app-container[data-theme="dark"] .search-input {
+  background-color: rgba(55, 65, 81, 0.5);
+  border-color: #4b5563;
+  color: white;
+  placeholder-color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .search-input {
+  background-color: white;
+  border-color: #d1d5db;
+  color: #111827;
+  placeholder-color: #6b7280;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Filter Group */
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .filter-label {
+  color: #d1d5db;
+}
+
+.app-container[data-theme="light"] .filter-label {
+  color: #374151;
+}
+
+.filter-select {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+  outline: none;
+  cursor: pointer;
+}
+
+.app-container[data-theme="dark"] .filter-select {
+  background-color: rgba(55, 65, 81, 0.5);
+  border-color: #4b5563;
+  color: white;
+}
+
+.app-container[data-theme="light"] .filter-select {
+  background-color: white;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.filter-select:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Bills Table Container */
+.bills-table-container {
+  border-radius: 1rem;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  border: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .bills-table-container {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.app-container[data-theme="light"] .bills-table-container {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+/* Desktop Table */
+.desktop-table {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .desktop-table {
+    display: block;
+  }
+}
+
+.bills-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-header {
+  border-bottom: 1px solid;
+  transition: border-color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .table-header {
+  border-color: #374151;
+}
+
+.app-container[data-theme="light"] .table-header {
+  border-color: #e5e7eb;
+}
+
+.table-header-cell {
+  text-align: left;
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .table-header-cell {
+  color: #d1d5db;
+}
+
+.app-container[data-theme="light"] .table-header-cell {
+  color: #374151;
+}
+
+.table-row {
+  border-bottom: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .table-row {
+  border-color: #374151;
+}
+
+.app-container[data-theme="light"] .table-row {
+  border-color: #e5e7eb;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.table-row:hover {
+  background-color: rgba(55, 65, 81, 0.15);
+}
+
+.app-container[data-theme="light"] .table-row:hover {
+  background-color: rgba(249, 250, 251, 0.5);
+}
+
+.table-cell {
+  padding: 1rem 1.5rem;
+}
+
+.bill-name {
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .bill-name {
+  color: white;
+}
+
+.app-container[data-theme="light"] .bill-name {
+  color: #111827;
+}
+
+.bill-description {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .bill-description {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .bill-description {
+  color: #6b7280;
+}
+
+.category-tag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.category-transport {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.app-container[data-theme="dark"] .category-transport {
+  background-color: #1e3a8a;
+  color: #bfdbfe;
+}
+
+.category-food {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.app-container[data-theme="dark"] .category-food {
+  background-color: #14532d;
+  color: #bbf7d0;
+}
+
+.category-lodging {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+}
+
+.app-container[data-theme="dark"] .category-lodging {
+  background-color: #4c1d95;
+  color: #e9d5ff;
+}
+
+.category-office {
+  background-color: #ffedd5;
+  color: #9a3412;
+}
+
+.app-container[data-theme="dark"] .category-office {
+  background-color: #7c2d12;
+  color: #fed7aa;
+}
+
+.category-other {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.app-container[data-theme="dark"] .category-other {
+  background-color: #374151;
+  color: #d1d5db;
+}
+
+.bill-amount {
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .bill-amount {
+  color: white;
+}
+
+.app-container[data-theme="light"] .bill-amount {
+  color: #111827;
+}
+
+.bill-date {
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .bill-date {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .bill-date {
+  color: #4b5563;
+}
+
+.source-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.source-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.source-wechat {
+  color: #10b981;
+}
+
+.source-alipay {
+  color: #3b82f6;
+}
+
+.source-bank {
+  color: #f59e0b;
+}
+
+.source-manual {
+  color: #8b5cf6;
+}
+
+.source-cash {
+  color: #6b7280;
+}
+
+.status-tag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-approved {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.app-container[data-theme="dark"] .status-approved {
+  background-color: #15803d;
+  color: #bbf7d0;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.app-container[data-theme="dark"] .status-pending {
+  background-color: #a16207;
+  color: #fde68a;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.action-button {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-container[data-theme="dark"] .action-button {
+  color: #d1d5db;
+}
+
+.app-container[data-theme="dark"] .action-button:hover {
+  background-color: #374151;
+}
+
+.app-container[data-theme="light"] .action-button {
+  color: #4b5563;
+}
+
+.app-container[data-theme="light"] .action-button:hover {
+  background-color: #f3f4f6;
+}
+
+/* Mobile Card View */
+.mobile-cards {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .mobile-cards {
+    display: none;
+  }
+}
+
+.bill-card {
+  border-radius: 0.75rem;
+  padding: 1rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .bill-card {
+  background-color: rgba(31, 41, 55, 0.5);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.app-container[data-theme="light"] .bill-card {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.bill-card:hover {
+  transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.card-title {
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .card-title {
+  color: white;
+}
+
+.app-container[data-theme="light"] .card-title {
+  color: #111827;
+}
+
+.card-description {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .card-description {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .card-description {
+  color: #6b7280;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.card-label {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="dark"] .card-label {
+  color: #6b7280;
+}
+
+.card-value {
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .card-value {
+  color: white;
+}
+
+.app-container[data-theme="light"] .card-value {
+  color: #111827;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+/* Pagination */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .pagination-container {
+  color: #d1d5db;
+}
+
+.app-container[data-theme="light"] .pagination-container {
+  color: #4b5563;
+}
+
+.pagination-button {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-container[data-theme="dark"] .pagination-button {
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+.app-container[data-theme="dark"] .pagination-button:hover:not(.disabled) {
+  background-color: #374151;
+}
+
+.app-container[data-theme="light"] .pagination-button {
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.app-container[data-theme="light"] .pagination-button:hover:not(.disabled) {
+  background-color: #f9fafb;
+}
+
+.pagination-button.disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+}
+
+/* Footer */
+.app-footer {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-top: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .app-footer {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.app-container[data-theme="light"] .app-footer {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.footer-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .footer-container {
+    padding: 1.5rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer-container {
+    padding: 1.5rem 2rem;
+  }
+}
+
+.footer-text {
+  text-align: center;
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .footer-text {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .footer-text {
+  color: #6b7280;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+  .header-left,
+  .header-right {
+    flex: 1;
+  }
+
+  .add-bill-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
 }
 </style>

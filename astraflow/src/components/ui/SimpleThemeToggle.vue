@@ -7,7 +7,7 @@
     <!-- Sun icon for dark mode (shows when in dark) -->
     <svg
       v-if="isDark"
-      class="w-5 h-5 text-yellow-400"
+      class="sun-icon"
       fill="currentColor"
       viewBox="0 0 20 20"
     >
@@ -21,7 +21,7 @@
     <!-- Moon icon for light mode (shows when in light) -->
     <svg
       v-else
-      class="w-5 h-5 text-gray-700"
+      class="moon-icon"
       fill="currentColor"
       viewBox="0 0 20 20"
     >
@@ -38,13 +38,52 @@ const { toggleTheme, isDark } = useTheme()
 
 <style scoped>
 .theme-toggle-btn {
-  @apply p-2 rounded-lg transition-all duration-300;
-  @apply bg-gray-200 dark:bg-gray-700;
-  @apply hover:bg-gray-300 dark:hover:bg-gray-600;
-  @apply hover:scale-110 active:scale-95;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  background-color: #e5e7eb;
+  border: none;
+  cursor: pointer;
+  transform: scale(1);
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.1);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.95);
 }
 
 .theme-toggle-btn:focus {
-  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6, 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* 深色主题 */
+[data-theme="dark"] .theme-toggle-btn {
+  background-color: #374151;
+}
+
+[data-theme="dark"] .theme-toggle-btn:hover {
+  background-color: #4b5563;
+}
+
+/* 图标样式 */
+.sun-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #facc15;
+}
+
+.moon-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #374151;
+}
+
+/* 亮色主题下的月亮图标 */
+[data-theme="light"] .moon-icon {
+  color: #374151;
 }
 </style>

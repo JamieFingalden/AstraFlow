@@ -22,7 +22,8 @@
       "Bash(mysql:*)",
       "Bash(curl:*)",
       "Bash(go test:*)",
-      "Bash(del \"astraflow\\src\\stores\\themeStore.js\")"
+      "Bash(del \"astraflow\\src\\stores\\themeStore.js\")",
+      "Bash(del \"G:\\Code\\AstraFlow\\AstraFlow\\astraflow\\postcss.config.js\")"
     ],
     "deny": [],
     "ask": []

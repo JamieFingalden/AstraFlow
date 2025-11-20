@@ -1,65 +1,42 @@
 <template>
-  <div :class="`flex flex-col min-h-screen transition-colors duration-300 ${isDark ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-50'}`">
+  <div class="app-container" :data-theme="isDark ? 'dark' : 'light'">
     <!-- Particle background effect -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-      <div :class="`absolute -top-40 -right-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ${isDark ? 'bg-cyan-900/30' : 'bg-cyan-500'}`"></div>
-      <div :class="`absolute -bottom-40 -left-40 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ${isDark ? 'bg-blue-900/30' : 'bg-blue-500'}`"></div>
-      <div :class="`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full mix-blend-multiply filter blur-xl animate-pulse ${isDark ? 'bg-purple-900/30' : 'bg-purple-500'}`"></div>
+    <div class="particle-background">
+      <div class="particle particle-cyan"></div>
+      <div class="particle particle-blue"></div>
+      <div class="particle particle-purple"></div>
     </div>
 
     <!-- Header -->
-    <header :class="`relative z-10 backdrop-blur-md border-b transition-all duration-300 ${
-      isDark
-        ? 'bg-gray-800/70 border-gray-700/50'
-        : 'bg-white/70 border-gray-200/50'
-    }`">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4">
-            <!-- 返回主页按钮 -->
-            <router-link
-              to="/"
-              :class="`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                isDark
-                  ? 'hover:bg-gray-700/50 text-gray-300 hover:text-white'
-                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-              }`"
-              title="返回主页"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m15 18-6-6 6-6"/>
-              </svg>
-              <span class="hidden sm:inline">返回</span>
-            </router-link>
+    <header class="app-header">
+      <div class="header-content">
+        <div class="header-left">
+          <!-- 返回主页按钮 -->
+          <router-link to="/" class="back-button" title="返回主页">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m15 18-6-6 6-6"/>
+            </svg>
+            <span class="back-text">返回</span>
+          </router-link>
 
-            <div class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-              AstraFlow
-            </div>
-            <h1 :class="`text-xl font-semibold transition-colors duration-300 ${isDark ? 'text-white' : 'text-gray-800'}`">
-              发票上传 Upload Invoice
-            </h1>
+          <div class="brand-name">
+            AstraFlow
           </div>
+          <h1 class="page-title">发票上传 Upload Invoice</h1>
+        </div>
 
-          <div class="flex items-center space-x-4">
-            <button
-              @click="toggleTheme"
-              :class="`p-2 rounded-lg transition-all duration-200 ${
-                isDark
-                  ? 'bg-gray-700/50 hover:bg-gray-600/50 text-gray-300'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-              }`"
-            >
-              <SunIcon v-if="isDark" :size="20" />
-              <MoonIcon v-else :size="20" />
-            </button>
-          </div>
+        <div class="header-right">
+          <button @click="toggleTheme" class="theme-toggle">
+            <SunIcon v-if="isDark" :size="20" />
+            <MoonIcon v-else :size="20" />
+          </button>
         </div>
       </div>
     </header>
 
     <!-- Main Content -->
-    <main class="relative z-10 flex-grow flex items-center justify-center  px-4 py-12">
-      <div class="max-w-4xl w-full">
+    <main class="main-content">
+      <div class="content-wrapper">
         <!-- Upload Area -->
         <transition name="upload-fade" mode="out-in">
           <div
@@ -68,114 +45,74 @@
             @dragover.prevent="handleDragOver"
             @dragleave.prevent="handleDragLeave"
             @drop.prevent="handleDrop"
-            :class="`relative rounded-2xl p-12 border-2 border-dashed backdrop-blur-md transition-all duration-300 cursor-pointer ${
-              isDragging
-                ? 'border-cyan-400 bg-cyan-50/20 dark:bg-cyan-900/20 shadow-2xl shadow-cyan-400/20'
-                : isDark
-                  ? 'border-gray-600 bg-gray-800/50 hover:border-cyan-500 hover:shadow-cyan-500/10'
-                  : 'border-gray-300 bg-white/50 hover:border-cyan-400 hover:shadow-cyan-400/10'
-            }`"
+            class="upload-area"
+            :class="{ 'dragging': isDragging }"
           >
             <input
               ref="fileInput"
               type="file"
               accept="image/*,.pdf"
               @change="handleFileSelect"
-              class="hidden"
+              class="file-input"
             />
 
             <!-- Upload Icon -->
-            <div class="flex justify-center mb-6">
-              <div :class="`p-6 rounded-full transition-all duration-300 ${
-                isDragging
-                  ? 'bg-cyan-500 scale-110'
-                  : isDark
-                    ? 'bg-blue-600 hover:bg-blue-500'
-                    : 'bg-blue-500 hover:bg-blue-600'
-              }`">
-                <UploadIcon :size="48" class="text-white" />
+            <div class="upload-icon-container">
+              <div class="upload-icon" :class="{ 'dragging': isDragging }">
+                <UploadIcon :size="48" class="upload-icon-svg" />
               </div>
             </div>
 
             <!-- Upload Text -->
-            <div class="text-center">
-              <h2 :class="`text-2xl font-bold mb-3 transition-colors duration-300 ${
-                isDark ? 'text-white' : 'text-gray-800'
-              }`">
+            <div class="upload-text">
+              <h2 class="upload-title">
                 上传你的发票或账单图片
               </h2>
-              <p :class="`text-lg mb-6 transition-colors duration-300 ${
-                isDark ? 'text-gray-300' : 'text-gray-600'
-              }`">
+              <p class="upload-subtitle">
                 AstraFlow 将自动识别并分类
               </p>
 
               <!-- Upload Button -->
-              <button
-                :class="`px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
-                  isDark
-                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30'
-                    : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40'
-                }`"
-              >
+              <button class="upload-button">
                 选择文件上传
               </button>
 
               <!-- File Info -->
-              <p :class="`text-sm mt-4 transition-colors duration-300 ${
-                isDark ? 'text-gray-400' : 'text-gray-500'
-              }`">
+              <p class="upload-info">
                 支持 JPG、PNG、PDF 格式，包括发票、微信支付、支付宝账单等，最大 10MB
               </p>
             </div>
           </div>
 
           <!-- Upload Progress -->
-          <div
-            v-else-if="isUploading"
-            :class="`rounded-2xl p-12 backdrop-blur-md transition-all duration-300 ${
-              isDark
-                ? 'bg-gray-800/70 border border-gray-700/50'
-                : 'bg-white/70 border border-gray-200/50'
-            }`"
-          >
-            <div class="text-center">
+          <div v-else-if="isUploading" class="upload-progress">
+            <div class="progress-content">
               <!-- Loading Animation -->
-              <div class="flex justify-center mb-6">
-                <div class="relative">
-                  <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-200"></div>
-                  <div :class="`absolute top-0 left-0 animate-spin rounded-full h-16 w-16 border-4 border-transparent border-t-blue-500`"></div>
+              <div class="loading-container">
+                <div class="loading-spinner">
+                  <div class="spinner-bg"></div>
+                  <div class="spinner-active"></div>
                 </div>
               </div>
 
               <!-- Progress Text -->
-              <h3 :class="`text-xl font-semibold mb-2 transition-colors duration-300 ${
-                isDark ? 'text-white' : 'text-gray-800'
-              }`">
+              <h3 class="progress-title">
                 AI 正在识别发票信息，请稍候...
               </h3>
 
-              <p :class="`text-sm mb-6 transition-colors duration-300 ${
-                isDark ? 'text-gray-400' : 'text-gray-600'
-              }`">
+              <p class="progress-description">
                 {{ progressText }}
               </p>
 
               <!-- Progress Bar -->
-              <div class="max-w-md mx-auto">
-                <div :class="`h-2 rounded-full overflow-hidden ${
-                  isDark ? 'bg-gray-700' : 'bg-gray-200'
-                }`">
+              <div class="progress-bar-container">
+                <div class="progress-bar-bg">
                   <div
-                    :class="`h-full transition-all duration-500 ${
-                      isDark ? 'bg-gradient-to-r from-blue-500 to-cyan-500' : 'bg-gradient-to-r from-blue-500 to-cyan-500'
-                    }`"
+                    class="progress-bar-fill"
                     :style="{ width: `${uploadProgress}%` }"
                   ></div>
                 </div>
-                <p :class="`text-sm mt-2 transition-colors duration-300 ${
-                  isDark ? 'text-gray-400' : 'text-gray-600'
-                }`">
+                <p class="progress-percentage">
                   {{ uploadProgress }}%
                 </p>
               </div>
@@ -183,135 +120,66 @@
           </div>
 
           <!-- Upload Result -->
-          <div
-            v-else-if="uploadResult"
-            :class="`rounded-2xl p-12 backdrop-blur-md transition-all duration-300 ${
-              isDark
-                ? 'bg-gray-800/70 border border-gray-700/50'
-                : 'bg-white/70 border border-gray-200/50'
-            }`"
-          >
-            <div class="text-center">
+          <div v-else-if="uploadResult" class="upload-result">
+            <div class="result-content">
               <!-- Success Icon -->
-              <div class="flex justify-center mb-6">
-                <div class="p-6 rounded-full bg-green-500">
-                  <CheckCircleIcon :size="48" class="text-white" />
+              <div class="success-icon-container">
+                <div class="success-icon">
+                  <CheckCircleIcon :size="48" class="success-icon-svg" />
                 </div>
               </div>
 
               <!-- Success Message -->
-              <h3 :class="`text-2xl font-bold mb-6 transition-colors duration-300 ${
-                isDark ? 'text-white' : 'text-gray-800'
-              }`">
+              <h3 class="result-title">
                 识别完成！
               </h3>
 
               <!-- Recognition Results -->
-              <div :class="`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8`">
-                <div :class="`p-4 rounded-lg ${
-                  isDark ? 'bg-gray-700/50' : 'bg-gray-100'
-                }`">
-                  <p :class="`text-sm mb-1 transition-colors duration-300 ${
-                    isDark ? 'text-gray-400' : 'text-gray-600'
-                  }`">发票金额</p>
-                  <p :class="`text-xl font-bold transition-colors duration-300 ${
-                    isDark ? 'text-white' : 'text-gray-800'
-                  }`">{{ uploadResult.amount }}</p>
+              <div class="result-grid">
+                <div class="result-item">
+                  <p class="result-label">发票金额</p>
+                  <p class="result-value">{{ uploadResult.amount }}</p>
                 </div>
-                <div :class="`p-4 rounded-lg ${
-                  isDark ? 'bg-gray-700/50' : 'bg-gray-100'
-                }`">
-                  <p :class="`text-sm mb-1 transition-colors duration-300 ${
-                    isDark ? 'text-gray-400' : 'text-gray-600'
-                  }`">发票日期</p>
-                  <p :class="`text-xl font-bold transition-colors duration-300 ${
-                    isDark ? 'text-white' : 'text-gray-800'
-                  }`">{{ uploadResult.date }}</p>
+                <div class="result-item">
+                  <p class="result-label">发票日期</p>
+                  <p class="result-value">{{ uploadResult.date }}</p>
                 </div>
-                <div :class="`p-4 rounded-lg ${
-                  isDark ? 'bg-gray-700/50' : 'bg-gray-100'
-                }`">
-                  <p :class="`text-sm mb-1 transition-colors duration-300 ${
-                    isDark ? 'text-gray-400' : 'text-gray-600'
-                  }`">发票类别</p>
-                  <p :class="`text-xl font-bold transition-colors duration-300 ${
-                    isDark ? 'text-white' : 'text-gray-800'
-                  }`">{{ uploadResult.category }}</p>
+                <div class="result-item">
+                  <p class="result-label">发票类别</p>
+                  <p class="result-value">{{ uploadResult.category }}</p>
                 </div>
-                <div :class="`p-4 rounded-lg ${
-                  isDark ? 'bg-gray-700/50' : 'bg-gray-100'
-                }`">
-                  <p :class="`text-sm mb-1 transition-colors duration-300 ${
-                    isDark ? 'text-gray-400' : 'text-gray-600'
-                  }`">支付来源</p>
-                  <p :class="`text-xl font-bold transition-colors duration-300 ${
-                    isDark ? 'text-white' : 'text-gray-800'
-                  }`">{{ uploadResult.source }}</p>
+                <div class="result-item">
+                  <p class="result-label">支付来源</p>
+                  <p class="result-value">{{ uploadResult.source }}</p>
                 </div>
               </div>
 
               <!-- Confidence Score -->
-              <div class="mb-8">
-                <p :class="`text-sm mb-2 transition-colors duration-300 ${
-                  isDark ? 'text-gray-400' : 'text-gray-600'
-                }`">AI 识别置信度</p>
-                <div class="flex items-center justify-center space-x-2">
-                  <div :class="`h-3 rounded-full overflow-hidden max-w-xs ${
-                    isDark ? 'bg-gray-700' : 'bg-gray-200'
-                  }`">
+              <div class="confidence-section">
+                <p class="confidence-label">AI 识别置信度</p>
+                <div class="confidence-bar-container">
+                  <div class="confidence-bar-bg">
                     <div
-                      :class="`h-full transition-all duration-1000 ${
-                        uploadResult.confidence >= 90
-                          ? 'bg-green-500'
-                          : uploadResult.confidence >= 70
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                      }`"
+                      class="confidence-bar-fill"
+                      :class="getConfidenceClass(uploadResult.confidence)"
                       :style="{ width: `${uploadResult.confidence}%` }"
                     ></div>
                   </div>
-                  <span :class="`font-bold ${
-                    uploadResult.confidence >= 90
-                      ? 'text-green-500'
-                      : uploadResult.confidence >= 70
-                      ? 'text-yellow-500'
-                      : 'text-red-500'
-                  }`">
+                  <span class="confidence-text" :class="getConfidenceClass(uploadResult.confidence)">
                     {{ uploadResult.confidence }}%
                   </span>
                 </div>
               </div>
 
               <!-- Action Buttons -->
-              <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  @click="viewAnalysis"
-                  :class="`px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
-                    isDark
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-lg shadow-purple-500/25'
-                      : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/30'
-                  }`"
-                >
+              <div class="action-buttons">
+                <button @click="viewAnalysis" class="btn btn-primary">
                   查看分析结果
                 </button>
-                <button
-                  @click="resetUpload"
-                  :class="`px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
-                    isDark
-                      ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/25'
-                      : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/30'
-                  }`"
-                >
+                <button @click="resetUpload" class="btn btn-secondary">
                   继续上传
                 </button>
-                <button
-                  @click="viewDashboard"
-                  :class="`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
-                    isDark
-                      ? 'border border-gray-600 hover:bg-gray-700 text-gray-300'
-                      : 'border border-gray-300 hover:bg-gray-100 text-gray-700'
-                  }`"
-                >
+                <button @click="viewDashboard" class="btn btn-outline">
                   查看账单
                 </button>
               </div>
@@ -320,49 +188,31 @@
         </transition>
 
         <!-- Upload History -->
-        <div v-if="uploadHistory.length > 0" class="mt-12">
-          <h3 :class="`text-lg font-semibold mb-6 transition-colors duration-300 ${
-            isDark ? 'text-white' : 'text-gray-800'
-          }`">
+        <div v-if="uploadHistory.length > 0" class="upload-history">
+          <h3 class="history-title">
             最近上传记录
           </h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="history-grid">
             <div
               v-for="record in uploadHistory"
               :key="record.id"
-              :class="`p-6 rounded-xl border backdrop-blur-md transition-all duration-300 hover:shadow-lg ${
-                isDark
-                  ? 'bg-gray-800/50 border-gray-700/50 hover:border-cyan-500/30'
-                  : 'bg-white/50 border-gray-200/50 hover:border-cyan-400/30'
-              }`"
+              class="history-item"
             >
-              <div class="flex items-start justify-between mb-4">
-                <div :class="`p-2 rounded-lg ${
-                  record.status === 'success'
-                    ? 'bg-green-100 text-green-600'
-                    : record.status === 'processing'
-                    ? 'bg-yellow-100 text-yellow-600'
-                    : 'bg-red-100 text-red-600'
-                }`">
+              <div class="history-item-header">
+                <div class="status-icon" :class="getStatusClass(record.status)">
                   <component
-                    :is="record.status === 'success' ? CheckCircleIcon : record.status === 'processing' ? ClockIcon : XCircleIcon"
+                    :is="getStatusIcon(record.status)"
                     :size="20"
                   />
                 </div>
-                <span :class="`text-xs transition-colors duration-300 ${
-                  isDark ? 'text-gray-400' : 'text-gray-500'
-                }`">
+                <span class="history-time">
                   {{ record.time }}
                 </span>
               </div>
-              <h4 :class="`font-medium mb-2 transition-colors duration-300 ${
-                isDark ? 'text-white' : 'text-gray-800'
-              }`">
+              <h4 class="history-item-title">
                 {{ record.name }}
               </h4>
-              <p :class="`text-sm transition-colors duration-300 ${
-                isDark ? 'text-gray-400' : 'text-gray-600'
-              }`">
+              <p class="history-item-description">
                 {{ record.category }} · {{ record.amount }} · {{ record.source }}
               </p>
             </div>
@@ -372,13 +222,9 @@
     </main>
 
     <!-- Footer -->
-    <footer :class="`relative z-10 backdrop-blur-md border-t transition-all duration-300 ${
-      isDark
-        ? 'bg-gray-800/70 border-gray-700/50'
-        : 'bg-white/70 border-gray-200/50'
-    }`">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <p :class="`text-center text-sm transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`">
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p class="footer-text">
           © 2025 AstraFlow · Smart Expense Made Simple
         </p>
       </div>
@@ -662,9 +508,995 @@ const viewDashboard = () => {
 const viewAnalysis = () => {
   router.push('/analysis')
 }
+
+// Helper methods for dynamic classes
+const getConfidenceClass = (confidence) => {
+  if (confidence >= 90) return 'confidence-high'
+  if (confidence >= 70) return 'confidence-medium'
+  return 'confidence-low'
+}
+
+const getStatusClass = (status) => {
+  if (status === 'success') return 'status-success'
+  if (status === 'processing') return 'status-processing'
+  return 'status-error'
+}
+
+const getStatusIcon = (status) => {
+  if (status === 'success') return CheckCircleIcon
+  if (status === 'processing') return ClockIcon
+  return XCircleIcon
+}
 </script>
 
 <style scoped>
+/* Main Container */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] {
+  background-color: #111827;
+}
+
+.app-container[data-theme="light"] {
+  background: linear-gradient(135deg, #eff6ff, #ecfeff, #e0f2fe);
+}
+
+/* Particle Background */
+.particle-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  filter: blur(5rem);
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.particle-cyan {
+  top: -10rem;
+  right: -10rem;
+}
+
+.app-container[data-theme="dark"] .particle-cyan {
+  background-color: rgba(34, 211, 238, 0.3);
+}
+
+.app-container[data-theme="light"] .particle-cyan {
+  background-color: #06b6d4;
+}
+
+.particle-blue {
+  bottom: -10rem;
+  left: -10rem;
+}
+
+.app-container[data-theme="dark"] .particle-blue {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+.app-container[data-theme="light"] .particle-blue {
+  background-color: #3b82f6;
+}
+
+.particle-purple {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.app-container[data-theme="dark"] .particle-purple {
+  background-color: rgba(147, 51, 234, 0.3);
+}
+
+.app-container[data-theme="light"] .particle-purple {
+  background-color: #a855f7;
+}
+
+/* Header */
+.app-header {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .app-header {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.app-container[data-theme="light"] .app-header {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.header-content {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 4rem;
+  flex-wrap: nowrap;
+}
+
+@media (min-width: 640px) {
+  .header-content {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .header-content {
+    padding: 0 2rem;
+  }
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0; /* Allow flex item to shrink */
+  overflow: hidden;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.app-container[data-theme="dark"] .back-button {
+  color: #d1d5db;
+}
+
+.app-container[data-theme="dark"] .back-button:hover {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: white;
+}
+
+.app-container[data-theme="light"] .back-button {
+  color: #4b5563;
+}
+
+.app-container[data-theme="light"] .back-button:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.back-text {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .back-text {
+    display: inline;
+  }
+}
+
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #22d3ee, #3b82f6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  transition: color 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.app-container[data-theme="dark"] .page-title {
+  color: white;
+}
+
+.app-container[data-theme="light"] .page-title {
+  color: #1f2937;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 0; /* Don't grow */
+}
+
+.theme-toggle {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.app-container[data-theme="dark"] .theme-toggle {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: #d1d5db;
+}
+
+.app-container[data-theme="dark"] .theme-toggle:hover {
+  background-color: rgba(75, 85, 99, 0.5);
+}
+
+.app-container[data-theme="light"] .theme-toggle {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.app-container[data-theme="light"] .theme-toggle:hover {
+  background-color: #e5e7eb;
+}
+
+/* Main Content */
+.main-content {
+  position: relative;
+  z-index: 10;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+}
+
+.content-wrapper {
+  max-width: 56rem;
+  width: 100%;
+}
+
+/* Upload Area */
+.upload-area {
+  position: relative;
+  border-radius: 1rem;
+  padding: 3rem;
+  border: 2px dashed;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.app-container[data-theme="dark"] .upload-area {
+  border-color: #4b5563;
+  background-color: rgba(31, 41, 55, 0.5);
+}
+
+.app-container[data-theme="dark"] .upload-area:hover {
+  border-color: #06b6d4;
+  box-shadow: 0 20px 25px -5px rgba(6, 189, 212, 0.1), 0 10px 10px -5px rgba(6, 189, 212, 0.04);
+}
+
+.app-container[data-theme="light"] .upload-area {
+  border-color: #d1d5db;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.app-container[data-theme="light"] .upload-area:hover {
+  border-color: #22d3ee;
+  box-shadow: 0 20px 25px -5px rgba(34, 211, 238, 0.15), 0 10px 10px -5px rgba(34, 211, 238, 0.08);
+}
+
+.upload-area.dragging {
+  border-color: #22d3ee;
+  background-color: rgba(34, 211, 238, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(34, 211, 238, 0.25);
+}
+
+.file-input {
+  display: none;
+}
+
+/* Upload Icon */
+.upload-icon-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.upload-icon {
+  padding: 1.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .upload-icon {
+  background-color: #2563eb;
+}
+
+.app-container[data-theme="dark"] .upload-icon:hover {
+  background-color: #3b82f6;
+}
+
+.app-container[data-theme="light"] .upload-icon {
+  background-color: #3b82f6;
+}
+
+.app-container[data-theme="light"] .upload-icon:hover {
+  background-color: #2563eb;
+}
+
+.upload-icon.dragging {
+  background-color: #06b6d4;
+  transform: scale(1.1);
+}
+
+.upload-icon-svg {
+  color: white;
+}
+
+/* Upload Text */
+.upload-text {
+  text-align: center;
+}
+
+.upload-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .upload-title {
+  color: white;
+}
+
+.app-container[data-theme="light"] .upload-title {
+  color: #1f2937;
+}
+
+.upload-subtitle {
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .upload-subtitle {
+  color: #d1d5db;
+}
+
+.app-container[data-theme="light"] .upload-subtitle {
+  color: #4b5563;
+}
+
+.upload-button {
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.upload-button:hover {
+  transform: scale(1.05);
+}
+
+.app-container[data-theme="dark"] .upload-button {
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25);
+}
+
+.app-container[data-theme="dark"] .upload-button:hover {
+  background: linear-gradient(135deg, #3b82f6, #22d3ee);
+  box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.3);
+}
+
+.app-container[data-theme="light"] .upload-button {
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+}
+
+.app-container[data-theme="light"] .upload-button:hover {
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.4);
+}
+
+.upload-info {
+  font-size: 0.875rem;
+  margin-top: 1rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .upload-info {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .upload-info {
+  color: #6b7280;
+}
+
+/* Upload Progress */
+.upload-progress {
+  border-radius: 1rem;
+  padding: 3rem;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .upload-progress {
+  background-color: rgba(31, 41, 55, 0.7);
+  border: 1px solid rgba(55, 65, 81, 0.5);
+}
+
+.app-container[data-theme="light"] .upload-progress {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.progress-content {
+  text-align: center;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.loading-spinner {
+  position: relative;
+}
+
+.spinner-bg {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  border: 4px solid #dbeafe;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-active {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  border: 4px solid transparent;
+  border-top-color: #3b82f6;
+  animation: spin 1s linear infinite;
+}
+
+.progress-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .progress-title {
+  color: white;
+}
+
+.app-container[data-theme="light"] .progress-title {
+  color: #1f2937;
+}
+
+.progress-description {
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .progress-description {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .progress-description {
+  color: #4b5563;
+}
+
+.progress-bar-container {
+  max-width: 16rem;
+  margin: 0 auto;
+}
+
+.progress-bar-bg {
+  height: 0.5rem;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.app-container[data-theme="dark"] .progress-bar-bg {
+  background-color: #374151;
+}
+
+.app-container[data-theme="light"] .progress-bar-bg {
+  background-color: #e5e7eb;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  transition: width 0.5s ease;
+}
+
+.progress-percentage {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .progress-percentage {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .progress-percentage {
+  color: #4b5563;
+}
+
+/* Upload Result */
+.upload-result {
+  border-radius: 1rem;
+  padding: 3rem;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .upload-result {
+  background-color: rgba(31, 41, 55, 0.7);
+  border: 1px solid rgba(55, 65, 81, 0.5);
+}
+
+.app-container[data-theme="light"] .upload-result {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.result-content {
+  text-align: center;
+}
+
+.success-icon-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.success-icon {
+  padding: 1.5rem;
+  border-radius: 50%;
+  background-color: #10b981;
+}
+
+.success-icon-svg {
+  color: white;
+}
+
+.result-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .result-title {
+  color: white;
+}
+
+.app-container[data-theme="light"] .result-title {
+  color: #1f2937;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .result-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .result-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.result-item {
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.app-container[data-theme="dark"] .result-item {
+  background-color: rgba(55, 65, 81, 0.5);
+}
+
+.app-container[data-theme="light"] .result-item {
+  background-color: #f3f4f6;
+}
+
+.result-label {
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .result-label {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .result-label {
+  color: #4b5563;
+}
+
+.result-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .result-value {
+  color: white;
+}
+
+.app-container[data-theme="light"] .result-value {
+  color: #1f2937;
+}
+
+/* Confidence Section */
+.confidence-section {
+  margin-bottom: 2rem;
+}
+
+.confidence-label {
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .confidence-label {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .confidence-label {
+  color: #4b5563;
+}
+
+.confidence-bar-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.confidence-bar-bg {
+  height: 0.75rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  max-width: 12rem;
+}
+
+.app-container[data-theme="dark"] .confidence-bar-bg {
+  background-color: #374151;
+}
+
+.app-container[data-theme="light"] .confidence-bar-bg {
+  background-color: #e5e7eb;
+}
+
+.confidence-bar-fill {
+  height: 100%;
+  transition: width 1s ease;
+}
+
+.confidence-high {
+  background-color: #10b981;
+}
+
+.confidence-medium {
+  background-color: #eab308;
+}
+
+.confidence-low {
+  background-color: #ef4444;
+}
+
+.confidence-text {
+  font-weight: 700;
+}
+
+.confidence-high {
+  color: #10b981;
+}
+
+.confidence-medium {
+  color: #eab308;
+}
+
+.confidence-low {
+  color: #ef4444;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .action-buttons {
+    flex-direction: row;
+  }
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.btn:hover {
+  transform: scale(1.05);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #9333ea, #ec4899);
+  color: white;
+}
+
+.app-container[data-theme="dark"] .btn-primary {
+  box-shadow: 0 10px 15px -3px rgba(147, 51, 234, 0.25);
+}
+
+.app-container[data-theme="light"] .btn-primary {
+  box-shadow: 0 10px 15px -3px rgba(147, 51, 234, 0.3);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  color: white;
+}
+
+.app-container[data-theme="dark"] .btn-secondary {
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25);
+}
+
+.app-container[data-theme="light"] .btn-secondary {
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+}
+
+.btn-outline {
+  border: 1px solid;
+  background: transparent;
+}
+
+.app-container[data-theme="dark"] .btn-outline {
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+.app-container[data-theme="dark"] .btn-outline:hover {
+  background-color: #374151;
+}
+
+.app-container[data-theme="light"] .btn-outline {
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.app-container[data-theme="light"] .btn-outline:hover {
+  background-color: #f3f4f6;
+}
+
+/* Upload History */
+.upload-history {
+  margin-top: 3rem;
+}
+
+.history-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .history-title {
+  color: white;
+}
+
+.app-container[data-theme="light"] .history-title {
+  color: #1f2937;
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .history-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.history-item {
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .history-item {
+  background-color: rgba(31, 41, 55, 0.5);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.app-container[data-theme="dark"] .history-item:hover {
+  border-color: rgba(6, 189, 212, 0.3);
+  box-shadow: 0 10px 15px -3px rgba(6, 189, 212, 0.1);
+}
+
+.app-container[data-theme="light"] .history-item {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.app-container[data-theme="light"] .history-item:hover {
+  border-color: rgba(34, 211, 238, 0.3);
+  box-shadow: 0 10px 15px -3px rgba(34, 211, 238, 0.1);
+}
+
+.history-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.status-icon {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.status-success {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.status-processing {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.status-error {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.history-time {
+  font-size: 0.75rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .history-time {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .history-time {
+  color: #6b7280;
+}
+
+.history-item-title {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .history-item-title {
+  color: white;
+}
+
+.app-container[data-theme="light"] .history-item-title {
+  color: #1f2937;
+}
+
+.history-item-description {
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .history-item-description {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .history-item-description {
+  color: #4b5563;
+}
+
+/* Footer */
+.app-footer {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  border-top: 1px solid;
+  transition: all 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .app-footer {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.app-container[data-theme="light"] .app-footer {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+.footer-content {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .footer-content {
+    padding: 1.5rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer-content {
+    padding: 1.5rem 2rem;
+  }
+}
+
+.footer-text {
+  text-align: center;
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.app-container[data-theme="dark"] .footer-text {
+  color: #9ca3af;
+}
+
+.app-container[data-theme="light"] .footer-text {
+  color: #4b5563;
+}
+
 /* Upload area transitions */
 .upload-fade-enter-active,
 .upload-fade-leave-active {
@@ -681,27 +1513,22 @@ const viewAnalysis = () => {
   transform: translateY(-20px);
 }
 
-/* Particle background optimization */
-.dark .animate-pulse {
-  opacity: 0.3;
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
-/* Glow effects */
-.hover\:shadow-cyan-500\/10:hover {
-  box-shadow: 0 20px 25px -5px rgba(56, 189, 248, 0.15), 0 10px 10px -5px rgba(56, 189, 248, 0.08);
-}
-
-.hover\:shadow-cyan-400\/10:hover {
-  box-shadow: 0 20px 25px -5px rgba(56, 189, 248, 0.25), 0 10px 10px -5px rgba(56, 189, 248, 0.15);
-}
-
-.shadow-cyan-400\/20 {
-  box-shadow: 0 25px 50px -12px rgba(56, 189, 248, 0.25);
-}
-
-/* Smooth transitions */
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
