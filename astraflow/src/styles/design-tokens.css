@@ -80,6 +80,14 @@
   --color-border-light: rgba(37, 99, 235, 0.3);
   --color-bg-card: rgba(255, 255, 255, 0.9);
   --color-bg-hover: rgba(37, 99, 235, 0.08);
+
+  /* Additional light theme colors for form elements */
+  --color-form-bg: rgba(0, 0, 0, 0.05);
+  --color-form-border: rgba(0, 0, 0, 0.2);
+  --color-form-focus-border: var(--color-stellar-blue);
+  --color-form-focus-shadow: rgba(37, 99, 235, 0.1);
+  --color-form-error-border: var(--color-aurora-pink);
+  --color-form-error-shadow: rgba(219, 39, 119, 0.1);
 }
 
 /* Stellar Gradient Definitions */

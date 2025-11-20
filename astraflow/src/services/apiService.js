@@ -1,8 +1,9 @@
 import axios from 'axios'
+import { useUserStore } from '@/stores/userStore'
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -12,10 +13,21 @@ const api = axios.create({
 // 请求拦截器
 api.interceptors.request.use(
   (config) => {
-    // 可以在这里添加token等认证信息
+    // 添加JWT token到请求头
+    const userStore = useUserStore()
+    const token = userStore.accessToken
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+
+    // 添加请求ID用于追踪
+    config.headers['X-Request-ID'] = generateRequestId()
+
     return config
   },
   (error) => {
+    console.error('Request interceptor error:', error)
     return Promise.reject(error)
   }
 )
@@ -23,73 +35,269 @@ api.interceptors.request.use(
 // 响应拦截器
 api.interceptors.response.use(
   (response) => {
+    // AstraFlow API统一响应格式处理
+    const { data, code, message } = response.data
+
+    // 如果后端返回的标准格式包含code和message
+    if (code !== undefined && message !== undefined) {
+      if (code === 200) {
+        return { data, message }
+      } else {
+        // 后端返回错误状态
+        const error = new Error(message || '请求失败')
+        error.response = {
+          ...response,
+          data: { code, message }
+        }
+        return Promise.reject(error)
+      }
+    }
+
+    // 如果返回的是直接数据，直接返回
     return response.data
   },
-  (error) => {
+  async (error) => {
+    const userStore = useUserStore()
+
     console.error('API请求错误:', error)
 
-    // 如果是开发环境，使用mock数据
-    if (import.meta.env.DEV && error.code === 'ECONNREFUSED') {
-      console.log('后端服务未启动，使用mock数据')
-      return Promise.reject({ useMock: true })
+    // 处理401未授权错误
+    if (error.response?.status === 401) {
+      // 尝试刷新token
+      if (userStore.refreshToken) {
+        try {
+          await userStore.refreshTokens()
+          // 重试原请求
+          const originalRequest = error.config
+          originalRequest.headers.Authorization = `Bearer ${userStore.accessToken}`
+          return api(originalRequest)
+        } catch (refreshError) {
+          // 刷新失败，清除认证状态并跳转到登录页
+          userStore.clearAuthState()
+          window.location.href = '/login'
+          return Promise.reject(refreshError)
+        }
+      } else {
+        // 没有refresh token，直接清除状态
+        userStore.clearAuthState()
+        window.location.href = '/login'
+      }
+    }
+
+    // 处理403禁止访问错误
+    if (error.response?.status === 403) {
+      const forbiddenError = new Error('权限不足，无法访问该资源')
+      forbiddenError.response = error.response
+      return Promise.reject(forbiddenError)
+    }
+
+    // 处理404资源不存在错误
+    if (error.response?.status === 404) {
+      const notFoundError = new Error('请求的资源不存在')
+      notFoundError.response = error.response
+      return Promise.reject(notFoundError)
+    }
+
+    // 处理429请求频率限制错误
+    if (error.response?.status === 429) {
+      const rateLimitError = new Error('请求过于频繁，请稍后重试')
+      rateLimitError.response = error.response
+      return Promise.reject(rateLimitError)
+    }
+
+    // 处理500服务器错误
+    if (error.response?.status >= 500) {
+      const serverError = new Error('服务器内部错误，请稍后重试')
+      serverError.response = error.response
+      return Promise.reject(serverError)
+    }
+
+    // 网络错误处理
+    if (error.code === 'ECONNREFUSED' || error.code === 'NETWORK_ERROR') {
+      // 如果是开发环境且后端未启动，允许使用mock数据
+      if (import.meta.env.DEV) {
+        console.log('后端服务未启动，某些功能将使用mock数据')
+        error.useMock = true
+      } else {
+        const networkError = new Error('网络连接失败，请检查您的网络设置')
+        return Promise.reject(networkError)
+      }
+    }
+
+    // 超时错误处理
+    if (error.code === 'ECONNABORTED') {
+      const timeoutError = new Error('请求超时，请稍后重试')
+      return Promise.reject(timeoutError)
     }
 
     return Promise.reject(error)
   }
 )
 
-// 简历相关API
-export const resumeAPI = {
-  // 生成简历
-  generateResume: (data) => api.post('/resume/generate', data),
-
-  // 获取简历建议
-  getResumeSuggestions: (data) => api.post('/resume/suggestions', data),
-
-  // 下载简历
-  downloadResume: (format = 'pdf') => api.get(`/resume/download?format=${format}`, { responseType: 'blob' })
+// 生成请求ID的工具函数
+function generateRequestId() {
+  return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 }
 
-// 岗位分析相关API
-export const jobAPI = {
-  // 分析岗位匹配度
-  analyzeJob: (data) => api.post('/job/analyze', data),
+// Authentication related APIs
+export const authAPI = {
+  // Login
+  login: (credentials) => api.post('/auth/login', credentials),
 
-  // 获取岗位推荐
-  getJobRecommendations: (data) => api.post('/job/recommendations', data),
+  // Register
+  register: (userData) => api.post('/auth/register', userData),
 
-  // 获取市场薪资分析
-  getSalaryAnalysis: (jobTitle, location) => api.get(`/job/salary?title=${jobTitle}&location=${location}`)
+  // Logout
+  logout: () => api.post('/auth/logout'),
+
+  // Refresh token
+  refresh: (refreshToken) => api.post('/auth/refresh', { refresh_token: refreshToken }),
+
+  // Get current user
+  getCurrentUser: () => api.get('/auth/me'),
+
+  // Update user profile
+  updateProfile: (userData) => api.put('/auth/profile', userData),
+
+  // Change password
+  changePassword: (passwordData) => api.put('/auth/password', passwordData),
+
+  // Forgot password
+  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+
+  // Reset password
+  resetPassword: (resetData) => api.post('/auth/reset-password', resetData)
 }
 
-// 用户画像相关API
-export const profileAPI = {
-  // 获取用户画像
-  getProfile: (userId) => api.get(`/profile/${userId}`),
+// Tenant related APIs
+export const tenantAPI = {
+  // Get current tenant
+  getCurrentTenant: () => api.get('/tenants/current'),
 
-  // 更新用户画像
-  updateProfile: (data) => api.put('/profile', data),
+  // Get tenant by ID
+  getTenant: (id) => api.get(`/tenants/${id}`),
 
-  // 获取技能评估
-  getSkillAssessment: (data) => api.post('/profile/skills/assessment', data),
+  // Create tenant
+  createTenant: (tenantData) => api.post('/tenants', tenantData),
 
-  // 获取职业发展建议
-  getCareerAdvice: (data) => api.post('/profile/career/advice', data)
+  // Update tenant
+  updateTenant: (id, tenantData) => api.put(`/tenants/${id}`, tenantData),
+
+  // Get tenant users
+  getTenantUsers: (id) => api.get(`/tenants/${id}/users`),
+
+  // Add user to tenant
+  addUserToTenant: (id, userData) => api.post(`/tenants/${id}/users`, userData),
+
+  // Remove user from tenant
+  removeUserFromTenant: (tenantId, userId) => api.delete(`/tenants/${tenantId}/users/${userId}`)
 }
 
-// AI相关API（连接心流平台）
-export const aiAPI = {
-  // AI文本生成
-  generateText: (prompt, type) => api.post('/ai/generate', { prompt, type }),
+// Invoice related APIs
+export const invoiceAPI = {
+  // Get invoices
+  getInvoices: (params = {}) => api.get('/invoices', { params }),
 
-  // AI简历优化
-  optimizeResume: (resumeData, targetJob) => api.post('/ai/resume/optimize', { resume: resumeData, job: targetJob }),
+  // Get invoice by ID
+  getInvoice: (id) => api.get(`/invoices/${id}`),
 
-  // AI面试准备
-  prepareInterview: (jobData, resumeData) => api.post('/ai/interview/prepare', { job: jobData, resume: resumeData }),
+  // Create invoice
+  createInvoice: (invoiceData) => api.post('/invoices', invoiceData),
 
-  // AI职业规划
-  careerPlanning: (profileData) => api.post('/ai/career/planning', profileData)
+  // Update invoice
+  updateInvoice: (id, invoiceData) => api.put(`/invoices/${id}`, invoiceData),
+
+  // Delete invoice
+  deleteInvoice: (id) => api.delete(`/invoices/${id}`),
+
+  // Upload invoice attachment
+  uploadInvoice: (formData) => api.post('/invoices/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  }),
+
+  // Get OCR results
+  getOcrResults: (invoiceId) => api.get(`/invoices/${invoiceId}/ocr`)
+}
+
+// OCR related APIs
+export const ocrAPI = {
+  // Process document
+  processDocument: (formData) => api.post('/ocr/process', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  }),
+
+  // Get OCR result
+  getOcrResult: (id) => api.get(`/ocr/${id}`),
+
+  // Get OCR results history
+  getOcrHistory: (params = {}) => api.get('/ocr/history', { params })
+}
+
+// Reimbursement related APIs
+export const reimbursementAPI = {
+  // Get reimbursements
+  getReimbursements: (params = {}) => api.get('/reimbursements', { params }),
+
+  // Get reimbursement by ID
+  getReimbursement: (id) => api.get(`/reimbursements/${id}`),
+
+  // Create reimbursement
+  createReimbursement: (reimbursementData) => api.post('/reimbursements', reimbursementData),
+
+  // Update reimbursement
+  updateReimbursement: (id, reimbursementData) => api.put(`/reimbursements/${id}`, reimbursementData),
+
+  // Delete reimbursement
+  deleteReimbursement: (id) => api.delete(`/reimbursements/${id}`),
+
+  // Submit reimbursement
+  submitReimbursement: (id) => api.post(`/reimbursements/${id}/submit`),
+
+  // Approve reimbursement
+  approveReimbursement: (id) => api.post(`/reimbursements/${id}/approve`),
+
+  // Reject reimbursement
+  rejectReimbursement: (id) => api.post(`/reimbursements/${id}/reject`)
+}
+
+// Analytics and reporting APIs
+export const analyticsAPI = {
+  // Get dashboard data
+  getDashboardData: () => api.get('/analytics/dashboard'),
+
+  // Get financial reports
+  getFinancialReports: (params) => api.get('/analytics/reports', { params }),
+
+  // Get billing trends
+  getBillingTrends: (params) => api.get('/analytics/trends', { params }),
+
+  // Export data
+  exportData: (type, params) => api.get(`/analytics/export/${type}`, {
+    params,
+    responseType: 'blob'
+  })
+}
+
+// Configuration and settings APIs
+export const configAPI = {
+  // Get user settings
+  getUserSettings: () => api.get('/settings'),
+
+  // Update user settings
+  updateUserSettings: (settings) => api.put('/settings', settings),
+
+  // Get system configuration
+  getSystemConfig: () => api.get('/config'),
+
+  // Get notification preferences
+  getNotificationPreferences: () => api.get('/notifications/preferences'),
+
+  // Update notification preferences
+  updateNotificationPreferences: (preferences) => api.put('/notifications/preferences', preferences)
 }
 
 export default api

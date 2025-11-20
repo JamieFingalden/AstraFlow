@@ -9,7 +9,14 @@
 </template>
 
 <script setup>
-// Simple entry point
+import { onMounted } from 'vue'
+import { useUserStore } from './stores/userStore'
+
+// Initialize authentication on app startup
+onMounted(async () => {
+  const userStore = useUserStore()
+  await userStore.initializeAuth()
+})
 </script>
 
 <style>

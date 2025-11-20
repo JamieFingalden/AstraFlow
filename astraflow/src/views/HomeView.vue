@@ -265,6 +265,7 @@ import MainLayout from '../layouts/MainLayout.vue'
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-bottom: 15rem;
 }
 
 @media (min-width: 640px) {
