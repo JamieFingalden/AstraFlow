@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="handleSubmit" class="login-form">
+  <div class="login-form">
     <div class="form-header">
       <h2 class="form-title">欢迎回来</h2>
       <p class="form-subtitle">登录到您的 AstraFlow 账户</p>
@@ -71,9 +71,10 @@
       </button>
     </div>
 
-    <!-- Submit Button -->
+    <!-- Login Button -->
     <button
-      type="submit"
+      type="button"
+      @click="handleLogin"
       :disabled="loading || !isFormValid"
       class="submit-btn gradient-stellar"
     >
@@ -109,7 +110,7 @@
         </button>
       </div>
     </div>
-  </form>
+  </div>
 </template>
 
 <script setup>
@@ -117,6 +118,7 @@ import { ref, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import PasswordInput from './PasswordInput.vue'
+import { login as loginApi } from '@/services/api/authApi'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -151,7 +153,6 @@ const validateUsername = () => {
     errors.username = '请输入用户名或邮箱'
     return false
   }
-
   return true
 }
 
@@ -167,7 +168,6 @@ const validatePassword = () => {
     errors.password = '密码长度至少为6位'
     return false
   }
-
   return true
 }
 
@@ -178,17 +178,19 @@ const validateForm = () => {
   return isUsernameValid && isPasswordValid
 }
 
-const handleSubmit = async () => {
+const handleLogin = async () => {
   if (!validateForm()) {
     return
   }
-
   loading.value = true
   generalError.value = ''
   successMessage.value = ''
 
   try {
-    await userStore.login(form.username, form.password, form.rememberMe)
+    const response = await loginApi(form.username, form.password)
+
+    // 成功后更新 store 状态
+    await userStore.loginWithResponse(response, form.rememberMe)
 
     successMessage.value = '登录成功！正在跳转...'
 
@@ -198,7 +200,6 @@ const handleSubmit = async () => {
     }, 1500)
 
   } catch (error) {
-    console.error('Login error:', error)
 
     // Handle different error scenarios
     if (error.response?.status === 401) {
@@ -212,6 +213,7 @@ const handleSubmit = async () => {
     }
   } finally {
     loading.value = false
+    console.log('=== LoginForm: handleLogin END ===')
   }
 }
 

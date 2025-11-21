@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/auth/LoginView.vue'
+import LogoutView from '../views/auth/LogoutView.vue'
 import Dashboard from '../views/dashboard/Dashboard.vue'
 import InvoiceUpload from '../views/InvoiceUpload.vue'
 import AnalysisPage from '../views/AnalysisPage.vue'
@@ -17,6 +18,14 @@ const routes = [
     meta: {
       requiresAuth: false,
       hideForAuth: true // Redirect authenticated users away from login
+    }
+  },
+  {
+    path: '/logout',
+    name: 'Logout',
+    component: LogoutView,
+    meta: {
+      requiresAuth: true // Only authenticated users can logout
     }
   },
   {

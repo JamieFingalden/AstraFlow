@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import api from '@/services/api'
-import { API_URLS } from '@/services/apiUrls'
+import { login as loginApi, register as registerApi, logout as logoutApi, me as fetchCurrentUserApi, refreshToken as refreshTokenApi } from '@/services/api/authApi'
 
 export const useUserStore = defineStore('user', () => {
   // State
@@ -61,17 +60,10 @@ export const useUserStore = defineStore('user', () => {
     error.value = null
 
     try {
-      // Try to login with real API first
-      if (username === 'demo@astraflow.com' && password === 'Demo@123') {
-        // Demo login - use mock data
-        handleSuccessfulLogin(demoUser, null, null, rememberMe)
-        return { success: true, user: demoUser }
-      }
+      console.log('User Store: Starting login process for', username)
 
-      const response = await api.post(API_URLS.AUTH.LOGIN, {
-        username,
-        password
-      })
+      console.log('User Store: Calling API login')
+      const response = await loginApi(username, password)
 
       const { user: userData, token: access_token, refresh_token } = response.data
 
@@ -113,12 +105,52 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // 专门用于处理API响应的登录方法，用于外部调用
+  const loginWithResponse = async (loginResponse, rememberMe = false) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { user: userData, token: access_token, refresh_token } = loginResponse.data
+
+      // 转换后端用户数据格式到前端格式
+      const frontendUserData = {
+        id: userData.id,
+        name: userData.username, // 后端使用username作为显示名
+        email: userData.email,
+        avatar: '', // 后端暂无avatar字段
+        permissions: [], // 后端暂无permissions字段，根据role生成
+        role: userData.role,
+        roleId: userData.role_id || null, // 后端现在提供roleId
+        roleName: getRoleDisplayName(userData.role),
+        tenantId: userData.tenant_id,
+        tenantName: null, // 需要额外获取
+        tenantRole: userData.tenant_id ? getTenantRoleFromRole(userData.role) : 'personal',
+        isAuthenticated: true
+      }
+
+      handleSuccessfulLogin(frontendUserData, access_token, refresh_token, rememberMe)
+
+      return { success: true, user: frontendUserData }
+
+    } catch (err) {
+      console.error('Login with response error:', err)
+
+      const errorMessage = err.response?.data?.message || '登录失败，请稍后重试'
+      error.value = errorMessage
+      throw new Error(errorMessage)
+
+    } finally {
+      loading.value = false
+    }
+  }
+
   const register = async (userData) => {
     loading.value = true
     error.value = null
 
     try {
-      const response = await api.post(API_URLS.AUTH.REGISTER, userData)
+      const response = await registerApi(userData)
       const { user: backendUser, token: access_token, refresh_token } = response.data
 
       // 转换后端用户数据格式到前端格式
@@ -157,7 +189,7 @@ export const useUserStore = defineStore('user', () => {
     try {
       // Call logout API to invalidate tokens
       if (accessToken.value) {
-        await api.post(API_URLS.AUTH.LOGOUT)
+        await logoutApi()
       }
     } catch (err) {
       console.error('Logout error:', err)
@@ -170,12 +202,7 @@ export const useUserStore = defineStore('user', () => {
 
   const refreshTokens = async () => {
     try {
-      const response = await api.post(API_URLS.AUTH.REFRESH, {}, {
-        headers: {
-          'Authorization': `Bearer ${refreshToken.value}`
-        }
-      })
-
+      const response = await refreshTokenApi()
       const { token: access_token } = response.data
 
       accessToken.value = access_token
@@ -199,7 +226,7 @@ export const useUserStore = defineStore('user', () => {
     error.value = null
 
     try {
-      const response = await api.get(API_URLS.AUTH.ME)
+      const response = await fetchCurrentUserApi()
       const backendUser = response.data
 
       user.value = {
@@ -391,6 +418,7 @@ export const useUserStore = defineStore('user', () => {
 
     // Actions
     login,
+    loginWithResponse,
     register,
     logout,
     refreshTokens,

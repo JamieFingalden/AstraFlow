@@ -35,8 +35,11 @@
             <div class="user-avatar">
               <UserCircle :size="20" class="user-icon" />
             </div>
-            <span class="user-name">用户</span>
+            <span class="user-name">{{ userStore.user.name || '用户' }}</span>
           </div>
+          <button @click="logout" class="logout-btn" title="退出登录">
+            <LogOut :size="20" />
+          </button>
         </div>
       </div>
     </header>
@@ -228,6 +231,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
 import {
   CreditCard,
@@ -236,11 +240,29 @@ import {
   CheckCircle,
   SunIcon,
   MoonIcon,
-  UserCircle
+  UserCircle,
+  LogOut
 } from 'lucide-vue-next'
 import { useTheme } from '../../composables/useTheme'
+import { useUserStore } from '../../stores/userStore'
 
+const router = useRouter()
 const { theme, toggleTheme, isDark } = useTheme()
+const userStore = useUserStore()
+
+const logout = async () => {
+  try {
+    // Call the logout action which handles API call and clearing state
+    await userStore.logout()
+
+    // Redirect to login page after successful logout
+    router.push('/login')
+  } catch (error) {
+    console.error('Logout failed:', error)
+    // Even if API logout fails, redirect to login and clear local state
+    router.push('/login')
+  }
+}
 
 // Refs for animation elements
 const cardRefs = ref([])
@@ -652,6 +674,35 @@ const getInsightClass = (type) => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.logout-btn {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-container[data-theme="dark"] .logout-btn {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: #d1d5db;
+}
+
+.dashboard-container[data-theme="dark"] .logout-btn:hover {
+  background-color: rgba(75, 85, 99, 0.5);
+}
+
+.dashboard-container[data-theme="light"] .logout-btn {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.dashboard-container[data-theme="light"] .logout-btn:hover {
+  background-color: #e5e7eb;
 }
 
 .user-avatar {
