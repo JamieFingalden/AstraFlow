@@ -108,6 +108,7 @@ import { useUserStore } from '@/stores/userStore'
 import PasswordInput from './PasswordInput.vue'
 import { login as loginApi } from '@/services/api/authApi'
 import { ElMessage } from 'element-plus'
+import { getRoleDisplayName, getTenantRoleFromRole } from '@/utils/userUtils'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -172,13 +173,34 @@ const handleLogin = async () => {
   loading.value = true
 
   try {
+    // 直接调用API - authApi会根据输入格式自动选择传递email或username字段
     const response = await loginApi(form.username, form.password)
-    if (!response?.status === 200) {
-      throw new Error(response)
+    if (!response?.data) {
+      throw new Error('Login failed')
     }
+
     // 成功后更新 store 状态
-    await userStore.loginWithResponse(response, form.rememberMe)
-    
+    const { user: backendUser, token: access_token, refresh_token } = response.data
+
+    // 转换后端用户数据格式到前端格式
+    const frontendUserData = {
+      id: backendUser.id,
+      name: backendUser.username,
+      email: backendUser.email,
+      avatar: '',
+      permissions: [],
+      role: backendUser.role,
+      roleId: backendUser.role_id || null,
+      roleName: getRoleDisplayName(backendUser.role),
+      tenantId: backendUser.tenant_id,
+      tenantName: null,
+      tenantRole: backendUser.tenant_id ? getTenantRoleFromRole(backendUser.role) : 'personal',
+      isAuthenticated: true
+    }
+
+    userStore.setUser(frontendUserData)
+    userStore.setTokens(access_token, refresh_token, form.rememberMe)
+
     ElMessage.success('登录成功！正在跳转...')
 
     // Redirect to dashboard after successful login

@@ -93,7 +93,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 // LoginRequest 用户登录请求体
 type LoginRequest struct {
-	Username string `json:"username" binding:"required"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -110,7 +111,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// 调用服务层登录
-	user, err := h.authService.Login(req.Username, req.Password)
+	user, err := h.authService.Login(req.Username, req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, RegisterResponse{
 			Code:    401,

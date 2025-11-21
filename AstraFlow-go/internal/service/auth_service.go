@@ -70,15 +70,20 @@ func (s *AuthService) Register(username, password, email, phone string, tenantID
 
 // Login 用户登录
 // 验证用户名和密码，返回用户信息
-func (s *AuthService) Login(username, password string) (*model.User, error) {
-	user, err := s.userRepo.FindByUsername(username)
+func (s *AuthService) Login(username, email, password string) (*model.User, error) {
+	var user *model.User
+	var err error
+	if username != "" {
+		user, err = s.userRepo.FindByUsername(username)
+	} else {
+		user, err = s.userRepo.FindByEmail(email)
+	}
 	if err != nil {
 		return nil, err
 	}
 	if user == nil {
 		return nil, errors.New("用户不存在")
 	}
-
 	// 验证密码
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {

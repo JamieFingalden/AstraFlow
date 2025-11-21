@@ -66,6 +66,21 @@ func (r *UserRepository) FindByUsername(username string) (*model.User, error) {
 	return &user, nil
 }
 
+func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
+	var user model.User
+	err := r.db.Where("email = ?", email).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	user.RoleName = user.Role
+
+	return &user, nil
+}
+
 // FindByID 根据ID查找用户
 // 返回匹配的用户对象，如果未找到则返回nil
 func (r *UserRepository) FindByID(id int64) (*model.User, error) {
