@@ -447,8 +447,6 @@ const handleSubmit = async () => {
     }, 2000)
 
   } catch (error) {
-    console.error('Registration error:', error)
-
     // Handle different error scenarios
     if (error.response?.status === 409) {
       generalError.value = '该用户名或邮箱已被注册，请使用其他用户名或邮箱'

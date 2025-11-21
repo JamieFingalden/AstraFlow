@@ -82,18 +82,6 @@
       <span v-else>登录</span>
     </button>
 
-    <!-- Success Message -->
-    <div v-if="successMessage" class="success-message">
-      <div class="success-icon">✨</div>
-      <span>{{ successMessage }}</span>
-    </div>
-
-    <!-- General Error -->
-    <div v-if="generalError" class="general-error">
-      <div class="error-icon">⚠️</div>
-      <span>{{ generalError }}</span>
-    </div>
-
     <!-- Demo Account Notice -->
     <div class="demo-notice">
       <div class="notice-title">演示账户</div>
@@ -119,13 +107,14 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
 import PasswordInput from './PasswordInput.vue'
 import { login as loginApi } from '@/services/api/authApi'
+import { ElMessage } from 'element-plus'
+
+// Remove successMessage and generalError from reactive state since we're using ElMessage
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const loading = ref(false)
-const successMessage = ref('')
-const generalError = ref('')
 
 const form = reactive({
   username: '',
@@ -183,37 +172,35 @@ const handleLogin = async () => {
     return
   }
   loading.value = true
-  generalError.value = ''
-  successMessage.value = ''
 
   try {
     const response = await loginApi(form.username, form.password)
-
+    if (!response?.status === 200) {
+      throw new Error(response)
+    }
     // 成功后更新 store 状态
     await userStore.loginWithResponse(response, form.rememberMe)
-
-    successMessage.value = '登录成功！正在跳转...'
+    
+    ElMessage.success('登录成功！正在跳转...')
 
     // Redirect to dashboard after successful login
     setTimeout(() => {
       router.push('/visualization')
-    }, 1500)
+    }, 500)
 
   } catch (error) {
-
-    // Handle different error scenarios
+    // Handle different error scenarios with ElMessage
     if (error.response?.status === 401) {
-      generalError.value = '用户名或密码错误，请重试'
+      ElMessage.error('用户名或密码错误，请重试')
     } else if (error.response?.status === 429) {
-      generalError.value = '登录尝试次数过多，请稍后再试'
+      ElMessage.error('登录尝试次数过多，请稍后再试')
     } else if (error.message.includes('Network')) {
-      generalError.value = '网络连接失败，请检查您的网络连接'
+      ElMessage.error('网络连接失败，请检查您的网络连接')
     } else {
-      generalError.value = '登录失败，请稍后重试'
+      ElMessage.error('登录失败，请稍后重试')
     }
   } finally {
     loading.value = false
-    console.log('=== LoginForm: handleLogin END ===')
   }
 }
 
@@ -231,7 +218,6 @@ const fillDemoCredentials = () => {
   // Clear any existing errors
   errors.username = ''
   errors.password = ''
-  generalError.value = ''
 }
 </script>
 
