@@ -35,6 +35,20 @@
       </footer>
     </div>
 
+    <!-- Back to Home button -->
+    <div class="back-home-wrapper">
+      <button
+        @click="handleBackToHome"
+        class="back-home-btn"
+        title="返回首页"
+      >
+        <svg class="back-home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        <span class="back-home-text">首页</span>
+      </button>
+    </div>
+
     <!-- Theme toggle -->
     <div class="theme-toggle-wrapper">
       <button
@@ -53,11 +67,17 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
 
+const router = useRouter()
 const { theme, toggleTheme } = useTheme()
 
 const isDark = computed(() => theme.value === 'dark')
+
+const handleBackToHome = () => {
+  router.push('/')
+}
 
 // Initialize stellar background animations
 onMounted(() => {
@@ -317,6 +337,53 @@ const createStellarBackground = () => {
   text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
 }
 
+/* Back to Home Button */
+.back-home-wrapper {
+  position: fixed;
+  top: var(--space-lg);
+  left: var(--space-lg);
+  z-index: 1000;
+}
+
+.back-home-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-lg);
+  color: var(--color-starlight);
+  cursor: pointer;
+  transition: all var(--duration-normal) ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.back-home-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.back-home-btn:active {
+  transform: translateY(0);
+}
+
+.back-home-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.back-home-text {
+  white-space: nowrap;
+}
+
 /* Theme Toggle */
 .theme-toggle-wrapper {
   position: fixed;
@@ -429,6 +496,20 @@ const createStellarBackground = () => {
   color: white;
 }
 
+/* Light theme back home button adjustments */
+[data-theme="light"] .back-home-btn {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: var(--color-text-primary);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .back-home-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .auth-container {
@@ -445,6 +526,20 @@ const createStellarBackground = () => {
 
   .footer-links {
     gap: var(--space-md);
+  }
+
+  .back-home-wrapper {
+    top: var(--space-md);
+    left: var(--space-md);
+  }
+
+  .back-home-text {
+    display: none; /* Hide text on smaller screens */
+  }
+
+  .back-home-btn {
+    padding: var(--space-sm);
+    border-radius: 50%; /* Make it circular on mobile */
   }
 
   .theme-toggle-wrapper {

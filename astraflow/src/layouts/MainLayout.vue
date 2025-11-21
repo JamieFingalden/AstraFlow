@@ -82,9 +82,22 @@
 
       <!-- 右侧操作区 -->
       <div class="nav-actions desktop-nav">
-        <button class="register-button">
+        <!-- 未登录状态显示登录按钮 -->
+        <button v-if="!isAuthenticated" class="register-button" @click="toLogin">
           登录/注册
         </button>
+
+        <!-- 已登录状态显示用户信息和退出按钮 -->
+        <div v-else class="user-info">
+          <div class="user-avatar">
+            <span class="user-icon">👤</span>
+          </div>
+          <span class="user-name">{{ userStore.user.name || '用户' }}</span>
+          <button class="logout-btn" @click="logout" title="退出登录">
+            <LogOut :size="20" />
+          </button>
+        </div>
+
         <!-- 主题切换按钮 -->
         <ThemeToggle />
       </div>
@@ -154,12 +167,29 @@
           设置中心
         </router-link>
         <div class="mobile-actions">
-          <button class="mobile-login-button">
-            登录
-          </button>
-          <button class="mobile-register-button">
-            注册
-          </button>
+          <!-- 未登录状态显示登录注册按钮 -->
+          <template v-if="!isAuthenticated">
+            <button class="mobile-login-button" @click="toLogin; closeMobileMenu()">
+              登录
+            </button>
+            <button class="mobile-register-button" @click="toLogin; closeMobileMenu()">
+              注册
+            </button>
+          </template>
+
+          <!-- 已登录状态显示用户信息和退出按钮 -->
+          <template v-else>
+            <div class="mobile-user-info">
+              <div class="mobile-user-avatar">
+                <span class="mobile-user-icon">👤</span>
+              </div>
+              <span class="mobile-user-name">{{ userStore.user.name || '用户' }}</span>
+            </div>
+            <button class="mobile-logout-btn" @click="logout; closeMobileMenu()">
+              <LogOut :size="20" />
+            </button>
+          </template>
+
           <!-- 移动端主题切换按钮 -->
           <ThemeToggle />
         </div>
@@ -196,11 +226,40 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import ThemeToggle from '../components/ui/ThemeToggle.vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '../stores/userStore'
+import { LogOut } from 'lucide-vue-next'
+
+const router = useRouter()
+const userStore = useUserStore()
 
 // 移动端菜单状态
 const mobileMenuOpen = ref(false)
+
+// 检查用户是否已登录
+const isAuthenticated = computed(() => userStore.isAuthenticated)
+
+function toLogin() {
+  router.push('/login')
+}
+
+// 退出登录
+const logout = async () => {
+  try {
+    // 清除认证状态
+    userStore.clearAuthState()
+
+    // 跳转到登录页面
+    router.push('/login')
+  } catch (error) {
+    console.error('退出登录失败:', error)
+    // 即使失败也清除状态并跳转
+    userStore.clearAuthState()
+    router.push('/login')
+  }
+}
 
 // 切换移动端菜单
 const toggleMobileMenu = () => {
@@ -211,6 +270,8 @@ const toggleMobileMenu = () => {
 const closeMobileMenu = () => {
   mobileMenuOpen.value = false
 }
+
+
 </script>
 
 <style scoped>
@@ -428,6 +489,50 @@ const closeMobileMenu = () => {
   box-shadow: 0 0 50px -12px rgba(59, 130, 246, 0.25);
 }
 
+/* 用户信息样式 */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 2rem;
+  height: 2rem;
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-icon {
+  font-size: 1rem;
+}
+
+.user-name {
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.logout-btn {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #f87171;
+}
+
 /* 移动端导航菜单 */
 .mobile-menu-overlay {
   display: block;
@@ -508,6 +613,52 @@ const closeMobileMenu = () => {
   background: linear-gradient(to right, #2563eb, #7c3aed);
   transform: scale(1.05);
   box-shadow: 0 0 50px -12px rgba(59, 130, 246, 0.25);
+}
+
+/* 移动端用户信息样式 */
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.mobile-user-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-user-icon {
+  font-size: 1.25rem;
+}
+
+.mobile-user-name {
+  color: #ffffff;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.mobile-logout-btn {
+  padding: 0.75rem 1.5rem;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  font-weight: 500;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.mobile-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #f87171;
 }
 
 /* 主容器 */
@@ -661,6 +812,39 @@ const closeMobileMenu = () => {
 
 [data-theme="light"] .footer-brand-text {
   background-image: linear-gradient(135deg, var(--color-stellar-blue), var(--color-nebula-purple));
+}
+
+/* 用户信息亮色主题适配 */
+[data-theme="light"] .user-name {
+  color: #374151;
+}
+
+[data-theme="light"] .mobile-user-name {
+  color: #374151;
+}
+
+[data-theme="light"] .logout-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+[data-theme="light"] .logout-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #b91c1c;
+}
+
+[data-theme="light"] .mobile-logout-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+[data-theme="light"] .mobile-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #b91c1c;
 }
 
 /* 脉冲动画 */

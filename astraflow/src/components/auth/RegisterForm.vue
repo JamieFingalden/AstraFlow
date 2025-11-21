@@ -870,6 +870,22 @@ const showPrivacy = () => {
   opacity: 0.8;
 }
 
+/* 修复浅色主题下复选框勾选标记颜色 */
+[data-theme="light"] .checkbox-check {
+  color: white;
+}
+
+[data-theme="light"] .checkbox-input:checked + .checkbox-custom {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  border-color: #3b82f6;
+}
+
+/* 确保浅色主题下复选框勾选标记始终可见 */
+[data-theme="light"] .checkbox-input:checked + .checkbox-custom .checkbox-check {
+  color: white !important;
+  opacity: 1 !important;
+}
+
 [data-theme="light"] .terms-link {
   color: var(--color-stellar-blue);
 }

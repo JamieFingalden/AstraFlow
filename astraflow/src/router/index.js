@@ -78,8 +78,15 @@ const router = createRouter({
 })
 
 // Navigation guards for authentication
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
+
+  // Ensure authentication state is initialized before checking
+  // Only initialize if we have an access token but the user isn't authenticated yet
+  if (userStore.accessToken && !userStore.user.isAuthenticated) {
+    await userStore.initializeAuth()
+  }
+
   const isAuthenticated = userStore.isAuthenticated
 
   // Handle routes that require authentication
@@ -99,11 +106,8 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  // Handle redirect query after successful login
-  if (to.name === 'Login' && isAuthenticated && to.query.redirect) {
-    next(to.query.redirect)
-    return
-  }
+  // Note: Redirect query is handled by LoginForm component after successful login
+  // We don't automatically redirect here to allow users to see the login page
 
   next()
 })

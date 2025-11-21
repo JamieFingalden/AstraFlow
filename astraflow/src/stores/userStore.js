@@ -145,13 +145,75 @@ export const useUserStore = defineStore('user', () => {
 
   
   // 初始化认证状态（从localStorage恢复）
+  // 辅助函数：获取角色显示名称
+  const getRoleDisplayName = (role) => {
+    const roleMap = {
+      'admin': '系统管理员',
+      'normal': '普通用户',
+      'personal': '个人用户',
+      'tenant_admin': '企业管理员',
+      'tenant_user': '企业用户'
+    }
+    return roleMap[role] || role
+  }
+
+  // 根据角色获取租户角色
+  const getTenantRoleFromRole = (role) => {
+    if (role === 'admin' || role === 'tenant_admin') return 'admin'
+    if (role === 'normal' || role === 'tenant_user') return 'normal'
+    if (role === 'personal') return 'personal'
+    return 'normal'
+  }
+
   const initializeAuth = async () => {
     const token = localStorage.getItem('accessToken')
+    const refreshTokenValue = localStorage.getItem('refreshToken')
+
     if (token) {
       // 如果有token，设置为已认证状态
       accessToken.value = token
-      // 注意：我们不设置isAuthenticated为true，因为没有验证token是否有效
-      // 这个状态应该在获取用户信息后设置
+      refreshToken.value = refreshTokenValue
+
+      // 检查用户信息是否为空，如果为空则调用API获取用户信息
+      if (!user.value.id || !user.value.name) {
+        try {
+          // 尝试获取用户信息以恢复完整的用户状态
+          const { me } = await import('@/services/api/authApi') // 动态导入避免循环依赖
+          const response = await me()
+
+          if (response?.data) {
+            const backendUser = response.data
+
+            // 转换后端用户数据格式到前端格式
+            const frontendUserData = {
+              id: backendUser.id,
+              name: backendUser.username,
+              email: backendUser.email,
+              avatar: backendUser.avatar || '',
+              permissions: backendUser.permissions || [],
+              role: backendUser.role,
+              roleId: backendUser.role_id || null,
+              roleName: getRoleDisplayName(backendUser.role),
+              tenantId: backendUser.tenant_id,
+              tenantName: backendUser.tenant_name || null,
+              tenantRole: backendUser.tenant_id ? getTenantRoleFromRole(backendUser.role) : 'personal',
+              isAuthenticated: true
+            }
+
+            setUser(frontendUserData)
+          } else {
+            // 如果获取用户信息失败，至少设置基本的认证状态
+            user.value.isAuthenticated = true
+          }
+        } catch (error) {
+          console.error('Failed to fetch user info during initialization:', error) // 这变为error级别
+          // 即使获取用户信息失败，也要设置基本的认证状态，因为token存在
+          user.value.isAuthenticated = true
+        }
+      } else {
+        // 用户信息已经存在，不需要重新获取
+        user.value.isAuthenticated = true
+      }
     }
   }
 

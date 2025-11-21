@@ -203,9 +203,12 @@ const handleLogin = async () => {
 
     ElMessage.success('登录成功！正在跳转...')
 
-    // Redirect to dashboard after successful login
+    // Get redirect path from query params, fallback to dashboard
+    const redirectPath = router.currentRoute.value.query.redirect || '/'
+
+    // Redirect to the original page after successful login
     setTimeout(() => {
-      router.push('/visualization')
+      router.push(redirectPath)
     }, 500)
 
   } catch (error) {
@@ -568,8 +571,29 @@ const fillDemoCredentials = () => {
   border-color: rgba(0, 0, 0, 0.2);
 }
 
+[data-theme="light"] .checkbox-custom {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
 [data-theme="light"] .checkbox-label {
   color: var(--color-text-secondary);
+}
+
+/* 修复浅色主题下复选框勾选标记颜色 */
+[data-theme="light"] .checkbox-check {
+  color: white;
+}
+
+[data-theme="light"] .checkbox-input:checked + .checkbox-custom {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  border-color: #3b82f6;
+}
+
+/* 确保浅色主题下复选框勾选标记始终可见 */
+[data-theme="light"] .checkbox-input:checked + .checkbox-custom .checkbox-check {
+  color: white !important;
+  opacity: 1 !important;
 }
 
 [data-theme="light"] .forgot-password-btn {
