@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { login as loginApi, register as registerApi, logout as logoutApi, me as fetchCurrentUserApi, refreshToken as refreshTokenApi } from '@/services/api/authApi'
 
 export const useUserStore = defineStore('user', () => {
   // State
@@ -26,22 +25,7 @@ export const useUserStore = defineStore('user', () => {
   const accessToken = ref(localStorage.getItem('accessToken') || null)
   const refreshToken = ref(localStorage.getItem('refreshToken') || null)
 
-  // Demo user data for fallback
-  const demoUser = {
-    id: 1,
-    name: '演示用户',
-    email: 'demo@astraflow.com',
-    avatar: '/default-avatar.png',
-    isAuthenticated: true,
-    permissions: ['view_bills', 'upload_invoices', 'view_reports', 'manage_users'],
-    role: 'admin',
-    roleId: 1,
-    roleName: '系统管理员',
-    tenantId: null,
-    tenantName: null,
-    tenantRole: 'admin'
-  }
-
+  
   // Getters
   const isAuthenticated = computed(() => user.value.isAuthenticated && !!accessToken.value)
   const isLoggedIn = computed(() => isAuthenticated.value)
@@ -54,205 +38,37 @@ export const useUserStore = defineStore('user', () => {
   const getIsTenantUserSimple = computed(() => !!user.value.tenantId)
   const getIsPersonalUserSimple = computed(() => user.value.role === 'personal')
 
-  // Actions
-  const login = async (username, password, rememberMe = false) => {
-    loading.value = true
-    error.value = null
-
-    try {
-      console.log('User Store: Starting login process for', username)
-
-      console.log('User Store: Calling API login')
-      const response = await loginApi(username, password)
-
-      const { user: userData, token: access_token, refresh_token } = response.data
-
-      // 转换后端用户数据格式到前端格式
-      const frontendUserData = {
-        id: userData.id,
-        name: userData.username, // 后端使用username作为显示名
-        email: userData.email,
-        avatar: '', // 后端暂无avatar字段
-        permissions: [], // 后端暂无permissions字段，根据role生成
-        role: userData.role,
-        roleId: userData.role_id || null, // 后端现在提供roleId
-        roleName: getRoleDisplayName(userData.role),
-        tenantId: userData.tenant_id,
-        tenantName: null, // 需要额外获取
-        tenantRole: userData.tenant_id ? getTenantRoleFromRole(userData.role) : 'personal',
-        isAuthenticated: true
-      }
-
-      handleSuccessfulLogin(frontendUserData, access_token, refresh_token, rememberMe)
-
-      return { success: true, user: frontendUserData }
-
-    } catch (err) {
-      console.error('Login error:', err)
-
-      // Fallback to demo account if API fails and it's demo credentials
-      if (username === 'demo@astraflow.com' && password === 'Demo@123') {
-        handleSuccessfulLogin(demoUser, null, null, rememberMe)
-        return { success: true, user: demoUser }
-      }
-
-      const errorMessage = err.response?.data?.message || '登录失败，请稍后重试'
-      error.value = errorMessage
-      throw new Error(errorMessage)
-
-    } finally {
-      loading.value = false
+  
+  // 纯状态管理方法
+  const setUser = (userData) => {
+    user.value = {
+      id: userData.id || null,
+      name: userData.name || '',
+      email: userData.email || '',
+      avatar: userData.avatar || '',
+      permissions: userData.permissions || [],
+      role: userData.role || '',
+      roleId: userData.roleId || null,
+      roleName: userData.roleName || '',
+      tenantId: userData.tenantId || null,
+      tenantName: userData.tenantName || null,
+      tenantRole: userData.tenantRole || null,
+      isAuthenticated: userData.isAuthenticated || false
     }
   }
 
-  // 专门用于处理API响应的登录方法，用于外部调用
-  const loginWithResponse = async (loginResponse, rememberMe = false) => {
-    loading.value = true
-    error.value = null
+  const setTokens = (accessTokenValue, refreshTokenValue, rememberMe = false) => {
+    if (accessTokenValue) {
+      accessToken.value = accessTokenValue
+      localStorage.setItem('accessToken', accessTokenValue)
 
-    try {
-      const { user: userData, token: access_token, refresh_token } = loginResponse.data
-
-      // 转换后端用户数据格式到前端格式
-      const frontendUserData = {
-        id: userData.id,
-        name: userData.username, // 后端使用username作为显示名
-        email: userData.email,
-        avatar: '', // 后端暂无avatar字段
-        permissions: [], // 后端暂无permissions字段，根据role生成
-        role: userData.role,
-        roleId: userData.role_id || null, // 后端现在提供roleId
-        roleName: getRoleDisplayName(userData.role),
-        tenantId: userData.tenant_id,
-        tenantName: null, // 需要额外获取
-        tenantRole: userData.tenant_id ? getTenantRoleFromRole(userData.role) : 'personal',
-        isAuthenticated: true
+      if (rememberMe && refreshTokenValue) {
+        refreshToken.value = refreshTokenValue
+        localStorage.setItem('refreshToken', refreshTokenValue)
+      } else {
+        localStorage.removeItem('refreshToken')
+        refreshToken.value = null
       }
-
-      handleSuccessfulLogin(frontendUserData, access_token, refresh_token, rememberMe)
-
-      return { success: true, user: frontendUserData }
-
-    } catch (err) {
-      console.error('Login with response error:', err)
-
-      const errorMessage = err.response?.data?.message || '登录失败，请稍后重试'
-      error.value = errorMessage
-      throw new Error(errorMessage)
-
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const register = async (userData) => {
-    loading.value = true
-    error.value = null
-
-    try {
-      const response = await registerApi(userData)
-      const { user: backendUser, token: access_token, refresh_token } = response.data
-
-      // 转换后端用户数据格式到前端格式
-      const frontendUserData = {
-        id: backendUser.id,
-        name: backendUser.username, // 后端使用username作为显示名
-        email: backendUser.email,
-        avatar: '', // 后端暂无avatar字段
-        permissions: [], // 后端暂无permissions字段，根据role生成
-        role: backendUser.role,
-        roleId: backendUser.role_id || null, // 后端现在提供roleId
-        roleName: getRoleDisplayName(backendUser.role),
-        tenantId: backendUser.tenant_id,
-        tenantName: null, // 需要额外获取
-        tenantRole: backendUser.tenant_id ? getTenantRoleFromRole(backendUser.role) : 'personal',
-        isAuthenticated: true
-      }
-
-      handleSuccessfulLogin(frontendUserData, access_token, refresh_token, false)
-
-      return { success: true, user: frontendUserData }
-
-    } catch (err) {
-      console.error('Registration error:', err)
-
-      const errorMessage = err.response?.data?.message || '注册失败，请稍后重试'
-      error.value = errorMessage
-      throw new Error(errorMessage)
-
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const logout = async () => {
-    try {
-      // Call logout API to invalidate tokens
-      if (accessToken.value) {
-        await logoutApi()
-      }
-    } catch (err) {
-      console.error('Logout error:', err)
-      // Continue with local logout even if API call fails
-    } finally {
-      // Clear local state
-      clearAuthState()
-    }
-  }
-
-  const refreshTokens = async () => {
-    try {
-      const response = await refreshTokenApi()
-      const { token: access_token } = response.data
-
-      accessToken.value = access_token
-      localStorage.setItem('accessToken', access_token)
-
-      return access_token
-
-    } catch (err) {
-      console.error('Token refresh error:', err)
-      clearAuthState()
-      throw err
-    }
-  }
-
-  const fetchCurrentUser = async () => {
-    if (!accessToken.value) {
-      throw new Error('No access token available')
-    }
-
-    loading.value = true
-    error.value = null
-
-    try {
-      const response = await fetchCurrentUserApi()
-      const backendUser = response.data
-
-      user.value = {
-        id: backendUser.id || null,
-        name: backendUser.username || '',
-        email: backendUser.email || '',
-        avatar: '', // 后端暂无avatar字段
-        permissions: [], // 后端暂无permissions字段，根据role生成
-        role: backendUser.role || '',
-        roleId: null, // 后端暂无roleId
-        roleName: getRoleDisplayName(backendUser.role),
-        tenantId: backendUser.tenant_id || null,
-        tenantName: null, // 需要额外获取
-        tenantRole: backendUser.tenant_id ? getTenantRoleFromRole(backendUser.role) : 'personal',
-        isAuthenticated: true
-      }
-
-      return user.value
-
-    } catch (err) {
-      console.error('Fetch current user error:', err)
-      error.value = '获取用户信息失败'
-      throw err
-
-    } finally {
-      loading.value = false
     }
   }
 
@@ -302,59 +118,7 @@ export const useUserStore = defineStore('user', () => {
     return user.value.permissions.includes(permission)
   }
 
-  // Helper functions
-  const handleSuccessfulLogin = (userData, accessTokenValue, refreshTokenValue, rememberMe) => {
-    user.value = {
-      id: userData.id || null,
-      name: userData.name || '',
-      email: userData.email || '',
-      avatar: userData.avatar || '',
-      permissions: userData.permissions || [],
-      role: userData.role || '',
-      roleId: userData.roleId || null,
-      roleName: userData.roleName || getRoleDisplayName(userData.role),
-      tenantId: userData.tenantId || null,
-      tenantName: userData.tenantName || null,
-      tenantRole: userData.tenantRole || getTenantRoleFromRole(userData.role),
-      isAuthenticated: true
-    }
-
-    // Store tokens
-    if (accessTokenValue) {
-      accessToken.value = accessTokenValue
-      localStorage.setItem('accessToken', accessTokenValue)
-
-      if (rememberMe && refreshTokenValue) {
-        refreshToken.value = refreshTokenValue
-        localStorage.setItem('refreshToken', refreshTokenValue)
-      } else if (!rememberMe) {
-        // Remove refresh token if not remembering
-        localStorage.removeItem('refreshToken')
-        refreshToken.value = null
-      }
-    }
-  }
-
-  // 辅助函数：获取角色显示名称
-  const getRoleDisplayName = (role) => {
-    const roleMap = {
-      'admin': '系统管理员',
-      'normal': '普通用户',
-      'personal': '个人用户',
-      'tenant_admin': '企业管理员',
-      'tenant_user': '企业用户'
-    }
-    return roleMap[role] || role
-  }
-
-  // 根据角色获取租户角色
-  const getTenantRoleFromRole = (role) => {
-    if (role === 'admin' || role === 'tenant_admin') return 'admin'
-    if (role === 'normal' || role === 'tenant_user') return 'normal'
-    if (role === 'personal') return 'personal'
-    return 'normal'
-  }
-
+  
   const clearAuthState = () => {
     user.value = {
       id: null,
@@ -379,24 +143,15 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('refreshToken')
   }
 
-  // Initialize auth state on store creation
+  
+  // 初始化认证状态（从localStorage恢复）
   const initializeAuth = async () => {
-    if (accessToken.value) {
-      try {
-        await fetchCurrentUser()
-      } catch (err) {
-        // Token might be expired, try to refresh
-        if (refreshToken.value) {
-          try {
-            await refreshTokens()
-            await fetchCurrentUser()
-          } catch (refreshErr) {
-            clearAuthState()
-          }
-        } else {
-          clearAuthState()
-        }
-      }
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      // 如果有token，设置为已认证状态
+      accessToken.value = token
+      // 注意：我们不设置isAuthenticated为true，因为没有验证token是否有效
+      // 这个状态应该在获取用户信息后设置
     }
   }
 
@@ -417,12 +172,6 @@ export const useUserStore = defineStore('user', () => {
     hasPermission,
 
     // Actions
-    login,
-    loginWithResponse,
-    register,
-    logout,
-    refreshTokens,
-    fetchCurrentUser,
     updateUser,
     hasRole,
     hasRoleId,
@@ -433,7 +182,9 @@ export const useUserStore = defineStore('user', () => {
     isPersonalUser,
     canAccess,
     canAccessTenantFeature,
-    initializeAuth,
-    clearAuthState
+    clearAuthState,
+    setUser,
+    setTokens,
+    initializeAuth
   }
 })

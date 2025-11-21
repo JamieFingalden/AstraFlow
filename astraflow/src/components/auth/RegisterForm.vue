@@ -178,18 +178,6 @@
       <span v-else>创建账户</span>
     </button>
 
-    <!-- Success Message -->
-    <div v-if="successMessage" class="success-message">
-      <div class="success-icon">✨</div>
-      <span>{{ successMessage }}</span>
-    </div>
-
-    <!-- General Error -->
-    <div v-if="generalError" class="general-error">
-      <div class="error-icon">⚠️</div>
-      <span>{{ generalError }}</span>
-    </div>
-
     <!-- Login Link -->
     <div class="login-link">
       <span>已有账户？</span>
@@ -209,7 +197,10 @@
 import { ref, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
+import { register as registerApi } from '@/services/api/authApi'
+import { getRoleDisplayName, getTenantRoleFromRole } from '@/utils/userUtils' // 假设我们创建一个工具函数
 import PasswordInput from './PasswordInput.vue'
+import { ElMessage } from 'element-plus'
 
 const emit = defineEmits(['switchToLogin'])
 
@@ -218,7 +209,6 @@ const userStore = useUserStore()
 
 const loading = ref(false)
 const successMessage = ref('')
-const generalError = ref('')
 
 const userTypes = [
   {
@@ -415,7 +405,6 @@ const handleSubmit = async () => {
   }
 
   loading.value = true
-  generalError.value = ''
   successMessage.value = ''
 
   try {
@@ -437,7 +426,29 @@ const handleSubmit = async () => {
       userData.tenant_id = null
     }
 
-    await userStore.register(userData)
+    // 直接调用API
+    const response = await registerApi(userData)
+    const { user: backendUser, token: access_token, refresh_token } = response.data
+
+    // 转换后端用户数据格式到前端格式
+    const frontendUserData = {
+      id: backendUser.id,
+      name: backendUser.username,
+      email: backendUser.email,
+      avatar: '',
+      permissions: [],
+      role: backendUser.role,
+      roleId: backendUser.role_id || null,
+      roleName: getRoleDisplayName(backendUser.role),
+      tenantId: backendUser.tenant_id,
+      tenantName: null,
+      tenantRole: backendUser.tenant_id ? getTenantRoleFromRole(backendUser.role) : 'personal',
+      isAuthenticated: true
+    }
+
+    // 使用userStore管理状态
+    userStore.setUser(frontendUserData)
+    userStore.setTokens(access_token, refresh_token, false)
 
     successMessage.value = '账户创建成功！正在跳转到登录页面...'
 
@@ -449,13 +460,13 @@ const handleSubmit = async () => {
   } catch (error) {
     // Handle different error scenarios
     if (error.response?.status === 409) {
-      generalError.value = '该用户名或邮箱已被注册，请使用其他用户名或邮箱'
+      ElMessage.error('该用户名或邮箱已被注册，请使用其他用户名或邮箱')
     } else if (error.response?.status === 400) {
-      generalError.value = '注册信息有误，请检查后重试'
+      ElMessage.error('注册信息有误，请检查后重试')
     } else if (error.message.includes('Network')) {
-      generalError.value = '网络连接失败，请检查您的网络连接'
+      ElMessage.error('网络连接失败，请检查您的网络连接')
     } else {
-      generalError.value = '注册失败，请稍后重试'
+      ElMessage.error('注册失败，请稍后重试')
     }
   } finally {
     loading.value = false

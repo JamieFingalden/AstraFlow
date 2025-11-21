@@ -109,8 +109,6 @@ import PasswordInput from './PasswordInput.vue'
 import { login as loginApi } from '@/services/api/authApi'
 import { ElMessage } from 'element-plus'
 
-// Remove successMessage and generalError from reactive state since we're using ElMessage
-
 const router = useRouter()
 const userStore = useUserStore()
 
