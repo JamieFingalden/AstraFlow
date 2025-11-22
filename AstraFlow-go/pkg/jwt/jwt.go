@@ -14,6 +14,7 @@ type Claims struct {
 	UserID               int64  `json:"user_id"`  // 用户ID
 	Username             string `json:"username"` // 用户名
 	Role                 string `json:"role"`     // 用户角色
+	TenantID             *int64 `json:"tenant_id,omitempty"`
 	jwt.RegisteredClaims        // JWT标准声明
 }
 
@@ -27,6 +28,7 @@ func GenerateToken(user *model.User) (string, error) {
 		UserID:   user.ID,
 		Username: user.Username,
 		Role:     user.RoleName,
+		TenantID: user.TenantID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -67,6 +69,7 @@ func GenerateRefreshToken(user *model.User) (string, error) {
 		UserID:   user.ID,
 		Username: user.Username,
 		Role:     user.RoleName,
+		TenantID: user.TenantID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

@@ -40,6 +40,10 @@ func InitRouter() *gin.Engine {
 			protected.GET("/tenants/:id", tenantHandler.GetTenant)       // 获取租户详情
 			protected.PUT("/tenants/:id", tenantHandler.UpdateTenant)    // 更新租户
 			protected.DELETE("/tenants/:id", tenantHandler.DeleteTenant) // 删除租户
+
+			invoiceHandler := handler.NewInvoiceHandler()
+			protected.POST("/invoices", invoiceHandler.CreateInvoice)    // 创建发票
+			protected.GET("/invoices", invoiceHandler.GetAllInvoicePage) // 分页获取发票列表
 		}
 	}
 

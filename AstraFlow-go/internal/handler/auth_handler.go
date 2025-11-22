@@ -125,7 +125,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, RegisterResponse{
 			Code:    500,
-			Message: "Token生成失败",
+			Message: err.Error(),
 		})
 		return
 	}

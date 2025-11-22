@@ -3,6 +3,7 @@ package repository
 import (
 	"AstraFlow-go/internal/database"
 	"AstraFlow-go/internal/model"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -67,7 +68,7 @@ func (r *TenantRepository) FindByName(name string) (*model.Tenant, error) {
 	var tenant model.Tenant
 	err := r.db.Where("name = ?", name).First(&tenant).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
