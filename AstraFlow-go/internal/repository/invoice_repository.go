@@ -42,3 +42,17 @@ func (r *InvoiceRepository) FindAllPage(limit, offset int) ([]*model.Invoice, er
 	err := r.db.Limit(limit).Offset(offset).Find(&invoices).Error
 	return invoices, err
 }
+
+// FindAllPageByUserId 根据用户id分页查询所有发票
+func (r *InvoiceRepository) FindAllPageByUserId(limit, offset int, userId int64) ([]*model.Invoice, error) {
+	var invoices []*model.Invoice
+	err := r.db.Where("user_id = ?", userId).Limit(limit).Offset(offset).Find(&invoices).Error
+	return invoices, err
+}
+
+// FindAllPageByTenantId 根据租户id分页查询所有发票
+func (r *InvoiceRepository) FindAllPageByTenantId(limit, offset int, tenantId int64) ([]*model.Invoice, error) {
+	var invoices []*model.Invoice
+	err := r.db.Where("tenant_id = ?", tenantId).Limit(limit).Offset(offset).Find(&invoices).Error
+	return invoices, err
+}

@@ -67,3 +67,43 @@ func (s *InvoiceService) GetAllInvoicePage(page, pageSize int) ([]*model.Invoice
 
 	return invoices, nil
 }
+
+// GetAllInvoicePageByUserId 通过用户id分页获取所有发票
+func (s *InvoiceService) GetAllInvoicePageByUserId(page, pageSize int, userId int64) ([]*model.Invoice, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+
+	offset := (page - 1) * pageSize
+	limit := pageSize
+
+	invoices, err := s.invoiceRepo.FindAllPageByUserId(limit, offset, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return invoices, nil
+}
+
+// GetAllInvoicePageByTenantId 通过租户id分页获取所有发票
+func (s *InvoiceService) GetAllInvoicePageByTenantId(page, pageSize int, tenantId int64) ([]*model.Invoice, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+
+	offset := (page - 1) * pageSize
+	limit := pageSize
+
+	invoices, err := s.invoiceRepo.FindAllPageByUserId(limit, offset, tenantId)
+	if err != nil {
+		return nil, err
+	}
+
+	return invoices, nil
+}

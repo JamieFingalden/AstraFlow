@@ -174,3 +174,105 @@ func (h InvoiceHandler) GetAllInvoicePage(c *gin.Context) {
 		},
 	})
 }
+
+func (h InvoiceHandler) GetAllInvoicePageByUserId(c *gin.Context) {
+	pageStr := c.DefaultQuery("page", "1")
+	pageSizeStr := c.DefaultQuery("page_size", "10")
+
+	userId, exists := c.Get("user_id")
+	if (!exists) || userId.(*int64) == nil {
+		c.JSON(http.StatusUnauthorized, InvoiceResponse{
+			Code:    401,
+			Message: "登录过期, 请重新登录",
+		})
+		return
+	}
+
+	UserIdInt, ok := typeUtils.AnyToInt64(userId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "user_id类型转换错误",
+		})
+		return
+	}
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		page = 1
+	}
+
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil {
+		pageSize = 10
+	}
+	invoices, err := h.invoiceService.GetAllInvoicePageByUserId(page, pageSize, UserIdInt)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "获取发票列表失败: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, InvoiceResponse{
+		Code:    200,
+		Message: "获取发票列表成功",
+		Data: map[string]interface{}{
+			"tenants": invoices,
+			"page":    page,
+			"size":    len(invoices),
+		},
+	})
+}
+
+func (h InvoiceHandler) GetAllInvoicePageByTenantId(c *gin.Context) {
+	pageStr := c.DefaultQuery("page", "1")
+	pageSizeStr := c.DefaultQuery("page_size", "10")
+
+	tenantId, exists := c.Get("tenant_id")
+	if !exists || tenantId.(*int64) == nil {
+		c.JSON(http.StatusConflict, InvoiceResponse{
+			Code:    409,
+			Message: "找不到该租户",
+		})
+		return
+	}
+
+	TenantIdInt, ok := typeUtils.AnyToInt64(tenantId)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "tenant_id类型转换错误",
+		})
+		return
+	}
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		page = 1
+	}
+
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil {
+		pageSize = 10
+	}
+	invoices, err := h.invoiceService.GetAllInvoicePageByTenantId(page, pageSize, TenantIdInt)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "获取发票列表失败: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, InvoiceResponse{
+		Code:    200,
+		Message: "获取发票列表成功",
+		Data: map[string]interface{}{
+			"tenants": invoices,
+			"page":    page,
+			"size":    len(invoices),
+		},
+	})
+}
