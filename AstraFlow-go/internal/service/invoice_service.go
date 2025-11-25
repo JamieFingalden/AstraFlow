@@ -107,3 +107,33 @@ func (s *InvoiceService) GetAllInvoicePageByTenantId(page, pageSize int, tenantI
 
 	return invoices, nil
 }
+
+func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, taxId, category, paymentSource, status string) (*model.Invoice, error) {
+	existingInvoice, err := s.invoiceRepo.FindById(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if invoiceNumber != *existingInvoice.InvoiceNumber {
+		_, err := s.invoiceRepo.FindByInvoiceNumber(invoiceNumber)
+		if err != nil {
+			return nil, errors.New("该发票号已存在")
+		}
+	}
+
+	existingInvoice.InvoiceNumber = &invoiceNumber
+	existingInvoice.InvoiceDate = &invoiceDate
+	existingInvoice.Amount = &amount
+	existingInvoice.Vendor = &vendor
+	existingInvoice.TaxID = &taxId
+	existingInvoice.Category = &category
+	existingInvoice.PaymentSource = &paymentSource
+	existingInvoice.Status = status
+
+	err = s.invoiceRepo.Update(existingInvoice)
+	if err != nil {
+		return nil, err
+	}
+
+	return existingInvoice, nil
+}

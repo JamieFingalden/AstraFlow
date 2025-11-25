@@ -3,6 +3,7 @@ package handler
 import (
 	"AstraFlow-go/internal/service"
 	typeUtils "AstraFlow-go/pkg/utils"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -71,19 +72,21 @@ func (h InvoiceHandler) CreateInvoice(c *gin.Context) {
 	}
 
 	tenantId, exists := c.Get("tenant_id")
+	var tenantIdInt int64
 	if !exists {
 		tenantId = int64(0)
+	} else {
+		tmpTenantIdInt, ok := tenantId.(int64)
+		if ok {
+			c.JSON(http.StatusInternalServerError, InvoiceResponse{
+				Code:    500,
+				Message: "tenant_id类型转换错误",
+			})
+			return
+		}
+		tenantIdInt = tmpTenantIdInt
 	}
-
-	tenantIdInt, ok := typeUtils.AnyToInt64(tenantId)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, InvoiceResponse{
-			Code:    500,
-			Message: "tenant_id类型转换错误",
-		})
-		return
-	}
-
+	fmt.Println(tenantIdInt)
 	var invoiceDate time.Time
 	if req.InvoiceDate != nil {
 		invoiceDate = *req.InvoiceDate
@@ -273,6 +276,59 @@ func (h InvoiceHandler) GetAllInvoicePageByTenantId(c *gin.Context) {
 			"tenants": invoices,
 			"page":    page,
 			"size":    len(invoices),
+		},
+	})
+}
+
+func (h InvoiceHandler) UpdateInvoice(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, TenantResponse{
+			Code:    400,
+			Message: "发票ID格式错误",
+		})
+		return
+	}
+
+	var req CreateInvoiceRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "请求参数错误：" + err.Error(),
+		})
+		return
+	}
+
+	var taxId = ""
+	if req.TaxID != nil {
+		taxId = *req.TaxID
+	}
+
+	var paymentSource = ""
+	if req.PaymentSource != nil {
+		paymentSource = *req.PaymentSource
+	}
+
+	var status = ""
+	if req.Status != "" {
+		status = req.Status
+	}
+
+	invoice, err := h.invoiceService.UpdateInvoice(id, *req.InvoiceDate, *req.Amount, *req.InvoiceNumber, *req.Vendor, taxId, *req.PaymentSource, paymentSource, status)
+	if err != nil {
+		c.JSON(http.StatusConflict, InvoiceResponse{
+			Code:    409,
+			Message: "更新时错误：" + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, InvoiceResponse{
+		Code:    200,
+		Message: "发票更新成功",
+		Data: map[string]interface{}{
+			"invoice": invoice,
 		},
 	})
 }

@@ -56,3 +56,23 @@ func (r *InvoiceRepository) FindAllPageByTenantId(limit, offset int, tenantId in
 	err := r.db.Where("tenant_id = ?", tenantId).Limit(limit).Offset(offset).Find(&invoices).Error
 	return invoices, err
 }
+
+func (r *InvoiceRepository) Update(invoice *model.Invoice) error {
+	return r.db.Save(invoice).Error
+}
+
+func (r *InvoiceRepository) Delete(id int64) error {
+	return r.db.Delete(&model.Invoice{}, id).Error
+}
+
+func (r *InvoiceRepository) FindById(id int64) (*model.Invoice, error) {
+	var invoice model.Invoice
+	err := r.db.Where("id = ?", id).Find(&invoice).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &invoice, err
+}
