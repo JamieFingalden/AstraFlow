@@ -137,3 +137,22 @@ func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount f
 
 	return existingInvoice, nil
 }
+
+func (s *InvoiceService) DeleteInvoice(id int64) error {
+	invoice, err := s.invoiceRepo.FindById(id)
+	if err != nil {
+		return err
+	}
+
+	if invoice == nil {
+		return errors.New("发票不存在")
+	}
+
+	err = s.invoiceRepo.Delete(id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

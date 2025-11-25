@@ -183,7 +183,7 @@ func (h InvoiceHandler) GetAllInvoicePageByUserId(c *gin.Context) {
 	pageSizeStr := c.DefaultQuery("page_size", "10")
 
 	userId, exists := c.Get("user_id")
-	if (!exists) || userId.(*int64) == nil {
+	if !exists {
 		c.JSON(http.StatusUnauthorized, InvoiceResponse{
 			Code:    401,
 			Message: "登录过期, 请重新登录",
@@ -330,5 +330,31 @@ func (h InvoiceHandler) UpdateInvoice(c *gin.Context) {
 		Data: map[string]interface{}{
 			"invoice": invoice,
 		},
+	})
+}
+
+func (h InvoiceHandler) DeleteInvoice(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, TenantResponse{
+			Code:    400,
+			Message: "发票ID格式错误",
+		})
+		return
+	}
+
+	err = h.invoiceService.DeleteInvoice(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, InvoiceResponse{
+		Code:    200,
+		Message: "发票删除成功",
 	})
 }

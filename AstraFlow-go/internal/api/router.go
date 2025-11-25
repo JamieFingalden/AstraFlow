@@ -47,7 +47,7 @@ func InitRouter() *gin.Engine {
 			protected.GET("/invoicesByUser", invoiceHandler.GetAllInvoicePageByUserId)     // 根据用户id分页获取发票列表
 			protected.GET("/invoicesByTenant", invoiceHandler.GetAllInvoicePageByTenantId) // 根据租户id分页获取发票列表
 			protected.PUT("/invoices/:id", invoiceHandler.UpdateInvoice)                   // 更新发票信息
-			// 删除发票
+			protected.DELETE("/invoices/:id", invoiceHandler.DeleteInvoice)                // 删除发票
 		}
 	}
 
