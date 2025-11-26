@@ -293,7 +293,7 @@ import {
 } from 'lucide-vue-next'
 import { useTheme } from '../composables/useTheme'
 import InvoiceModal from '../components/InvoiceModal.vue'
-import { ElMessage } from 'element-plus'
+import { useMessage } from 'naive-ui'
 import {
   getInvoicesByUser,
   getInvoicesByTenant,
@@ -306,6 +306,7 @@ import { useUserStore } from '../stores/userStore'
 
 const router = useRouter()
 const { theme, toggleTheme, isDark } = useTheme()
+const message = useMessage()
 
 // Local state instead of store
 const bills = ref([])
@@ -414,10 +415,10 @@ const confirmDeleteBill = async (bill) => {
       // Remove the deleted invoice from local state
       bills.value = bills.value.filter(item => item.id !== bill.id)
       // Show success message
-      ElMessage.success('发票删除成功')
+      message.success('发票删除成功')
     } catch (err) {
       console.error('删除发票失败:', err)
-      ElMessage.error('删除发票失败: ' + (err.message || '未知错误'))
+      message.error('删除发票失败: ' + (err.message || '未知错误'))
     }
   }
 }
@@ -481,7 +482,7 @@ const handleInvoiceSubmit = async (formData) => {
     if (editingInvoice.value) {
       // Update existing invoice
       await updateInvoice(editingInvoice.value.id, formData)
-      ElMessage.success('发票更新成功')
+      message.success('发票更新成功')
 
       // Update the invoice in local state
       const index = bills.value.findIndex(bill => bill.id === editingInvoice.value.id)
@@ -516,14 +517,14 @@ const handleInvoiceSubmit = async (formData) => {
           receiptUrl: newInvoice.receipt_url || newInvoice.receiptUrl || ''
         })
       }
-      ElMessage.success('发票创建成功')
+      message.success('发票创建成功')
     }
     // Close modal and refresh list
     showInvoiceModal.value = false
     editingInvoice.value = null
   } catch (err) {
     console.error('操作发票失败:', err)
-    ElMessage.error('操作发票失败: ' + (err.message || '未知错误'))
+    message.error('操作发票失败: ' + (err.message || '未知错误'))
   } finally {
     modalLoading.value = false
   }
@@ -593,7 +594,7 @@ const loadBills = async () => {
     }
   } catch (err) {
     console.error('加载发票失败:', err)
-    ElMessage.error('加载发票失败: ' + (err.message || '未知错误'))
+    message.error('加载发票失败: ' + (err.message || '未知错误'))
   } finally {
     storeLoading.value = false
   }

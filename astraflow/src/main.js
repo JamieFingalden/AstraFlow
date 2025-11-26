@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import { NButton, NInput, NSelect, NModal, NCard, NForm, NFormItem, NDatePicker, NInputNumber, NRadio, NRadioGroup, NSpace, NLayout, NLayoutHeader, NLayoutSider, NLayoutContent, NLayoutFooter, NMenu, NIcon, NAlert, NMessageProvider, NDialogProvider, NNotificationProvider, NConfigProvider, zhCN, dateZhCN } from 'naive-ui'
 import './style.css'
 import App from './App.vue'
 import router from './router'
@@ -12,6 +13,11 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.use(ElementPlus)
+
+// Naive UI global configuration
+app.use(NMessageProvider)
+app.use(NDialogProvider)
+app.use(NNotificationProvider)
 
 // Global scrollbar behavior
 let scrollTimeout

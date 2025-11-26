@@ -110,10 +110,31 @@ onUnmounted(() => {
 })
 
 // Use VueUse onClickOutside to handle clicks outside the modal content
-onClickOutside(modalRef, () => {
-  if (props.visible) {
+// Exclude Naive UI dropdown/popover elements to prevent closing when selecting values
+onClickOutside(modalRef, (event) => {
+  // Check if the click target is part of a Naive UI dropdown/picker panel
+  // Naive UI dropdown panels have specific class names that we should exclude
+  const target = event.target;
+  const isNaiveUIDropdown = target.closest('.n-base-selection') ||
+                           target.closest('.n-dropdown') ||
+                           target.closest('.n-date-panel') ||
+                           target.closest('.n-picker') ||
+                           target.closest('.n-select-menu') ||
+                           target.closest('.n-base-select-menu') ||
+                           target.closest('.n-virtual-list') ||
+                           target.closest('.n-scrollbar') ||
+                           target.closest('[data-n-ellipsis]') ||
+                           target.classList.contains('n-date-panel') ||
+                           target.classList.contains('n-dropdown-option') ||
+                           target.classList.contains('n-select-option') ||
+                           target.classList.contains('n-base-select-option');
+
+  if (props.visible && !isNaiveUIDropdown) {
     closeModal()
   }
+}, {
+  // Add an exception for Naive UI overlay containers
+  ignore: ['.n-overlay-container', '.n-popover', '.n-dropdown', '.n-date-panel', '.n-select-menu']
 })
 </script>
 

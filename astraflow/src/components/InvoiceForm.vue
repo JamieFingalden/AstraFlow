@@ -1,187 +1,147 @@
 <template>
-  <form @submit.prevent="submitForm" class="invoice-form">
-    <div class="form-grid">
-      <!-- 发票号码 -->
-      <div class="form-group">
-        <label for="invoiceNumber" class="form-label">
-          发票号码 <span class="required">*</span>
-        </label>
-        <input
-          id="invoiceNumber"
-          v-model="formData.invoiceNumber"
-          type="text"
-          class="form-input"
-          placeholder="请输入发票号码"
-          required
-        />
-      </div>
+  <div class="invoice-form">
+    <n-form
+      :model="formData"
+      :rules="rules"
+      ref="formRef"
+      :label-placement="labelPlacement"
+      :label-width="100"
+      @submit.prevent
+    >
+      <n-grid :cols="2" :x-gap="16" :y-gap="16">
+        <!-- 发票号码 -->
+        <n-form-item-gi :span="1" label="发票号码" path="invoiceNumber">
+          <n-input
+            v-model:value="formData.invoiceNumber"
+            placeholder="请输入发票号码"
+            :input-props="{ id: 'invoiceNumber' }"
+          />
+        </n-form-item-gi>
 
-      <!-- 发票日期 -->
-      <div class="form-group">
-        <label for="invoiceDate" class="form-label">
-          发票日期 <span class="required">*</span>
-        </label>
-        <input
-          id="invoiceDate"
-          v-model="formData.date"
-          type="date"
-          class="form-input"
-          required
-        />
-      </div>
+        <!-- 发票日期 -->
+        <n-form-item-gi :span="1" label="发票日期" path="date">
+          <n-date-picker
+            v-model:value="formData.date"
+            type="date"
+            placeholder="请选择发票日期"
+            :input-props="{ id: 'invoiceDate' }"
+            style="width: 100%"
+          />
+        </n-form-item-gi>
 
-      <!-- 金额 -->
-      <div class="form-group">
-        <label for="amount" class="form-label">
-          金额 <span class="required">*</span>
-        </label>
-        <input
-          id="amount"
-          v-model="formData.amount"
-          type="number"
-          step="0.01"
-          class="form-input"
-          placeholder="0.00"
-          required
-        />
-      </div>
+        <!-- 金额 -->
+        <n-form-item-gi :span="1" label="金额" path="amount">
+          <n-input-number
+            v-model:value="formData.amount"
+            placeholder="0.00"
+            :precision="2"
+            :min="0"
+            :max="999999999"
+            :input-props="{ id: 'amount' }"
+            style="width: 100%"
+          />
+        </n-form-item-gi>
 
-      <!-- 供应商 -->
-      <div class="form-group">
-        <label for="vendor" class="form-label">
-          供应商/商户 <span class="required">*</span>
-        </label>
-        <input
-          id="vendor"
-          v-model="formData.vendor"
-          type="text"
-          class="form-input"
-          placeholder="请输入供应商名称"
-          required
-        />
-      </div>
+        <!-- 供应商 -->
+        <n-form-item-gi :span="1" label="供应商/商户" path="vendor">
+          <n-input
+            v-model:value="formData.vendor"
+            placeholder="请输入供应商名称"
+            :input-props="{ id: 'vendor' }"
+          />
+        </n-form-item-gi>
 
-      <!-- 分类 -->
-      <div class="form-group">
-        <label for="category" class="form-label">
-          分类 <span class="required">*</span>
-        </label>
-        <select
-          id="category"
-          v-model="formData.category"
-          class="form-select"
-          required
+        <!-- 分类 -->
+        <n-form-item-gi :span="1" label="分类" path="category">
+          <n-select
+            v-model:value="formData.category"
+            :options="categoryOptions"
+            placeholder="请选择分类"
+            :input-props="{ id: 'category' }"
+          />
+        </n-form-item-gi>
+
+        <!-- 税号 -->
+        <n-form-item-gi :span="1" label="税号" path="taxId">
+          <n-input
+            v-model:value="formData.taxId"
+            placeholder="请输入税号"
+            :input-props="{ id: 'taxId' }"
+          />
+        </n-form-item-gi>
+
+        <!-- 支付来源 -->
+        <n-form-item-gi :span="1" label="支付来源" path="paymentSource">
+          <n-select
+            v-model:value="formData.paymentSource"
+            :options="paymentSourceOptions"
+            placeholder="请选择支付来源"
+            :input-props="{ id: 'paymentSource' }"
+          />
+        </n-form-item-gi>
+
+        <!-- 状态 -->
+        <n-form-item-gi :span="1" label="状态" path="status">
+          <n-select
+            v-model:value="formData.status"
+            :options="statusOptions"
+            placeholder="请选择状态"
+            :input-props="{ id: 'status' }"
+          />
+        </n-form-item-gi>
+
+        <!-- 图片URL -->
+        <n-form-item-gi :span="1" label="发票图片URL" path="imageUrl">
+          <n-input
+            v-model:value="formData.imageUrl"
+            placeholder="请输入发票图片链接"
+            type="textarea"
+            :input-props="{ id: 'imageUrl' }"
+          />
+        </n-form-item-gi>
+      </n-grid>
+
+      <!-- 描述 -->
+      <n-form-item label="描述" path="description">
+        <n-input
+          v-model:value="formData.description"
+          placeholder="请输入发票描述或备注"
+          type="textarea"
+          :autosize="{ minRows: 3, maxRows: 5 }"
+          :input-props="{ id: 'description' }"
+        />
+      </n-form-item>
+
+      <!-- 表单操作按钮 -->
+      <n-space justify="end" class="form-actions">
+        <n-button @click="onCancel" :disabled="loading" @keydown.enter.prevent>
+          取消
+        </n-button>
+        <n-button
+          type="primary"
+          @click="submitForm"
+          :loading="loading"
+          @keydown.enter.prevent
         >
-          <option value="">请选择分类</option>
-          <option value="餐饮">餐饮</option>
-          <option value="交通">交通</option>
-          <option value="住宿">住宿</option>
-          <option value="办公">办公</option>
-          <option value="其他">其他</option>
-        </select>
-      </div>
-
-      <!-- 税号 -->
-      <div class="form-group">
-        <label for="taxId" class="form-label">税号</label>
-        <input
-          id="taxId"
-          v-model="formData.taxId"
-          type="text"
-          class="form-input"
-          placeholder="请输入税号"
-        />
-      </div>
-
-      <!-- 支付来源 -->
-      <div class="form-group">
-        <label for="paymentSource" class="form-label">支付来源</label>
-        <select
-          id="paymentSource"
-          v-model="formData.paymentSource"
-          class="form-select"
-        >
-          <option value="">请选择支付来源</option>
-          <option value="微信支付">微信支付</option>
-          <option value="支付宝">支付宝</option>
-          <option value="银行卡">银行卡</option>
-          <option value="手动添加">手动添加</option>
-          <option value="现金">现金</option>
-        </select>
-      </div>
-
-      <!-- 状态 -->
-      <div class="form-group">
-        <label for="status" class="form-label">状态</label>
-        <select
-          id="status"
-          v-model="formData.status"
-          class="form-select"
-        >
-          <option value="pending">待处理</option>
-          <option value="confirmed">已确认</option>
-          <option value="rejected">已拒绝</option>
-        </select>
-      </div>
-
-      <!-- 图片URL -->
-      <div class="form-group">
-        <label for="imageUrl" class="form-label">发票图片URL</label>
-        <input
-          id="imageUrl"
-          v-model="formData.imageUrl"
-          type="url"
-          class="form-input"
-          placeholder="请输入发票图片链接"
-        />
-      </div>
-    </div>
-
-    <!-- 描述 -->
-    <div class="form-group">
-      <label for="description" class="form-label">描述</label>
-      <textarea
-        id="description"
-        v-model="formData.description"
-        class="form-textarea"
-        placeholder="请输入发票描述或备注"
-        rows="3"
-      ></textarea>
-    </div>
-
-    <!-- 表单操作按钮 -->
-    <div class="form-actions">
-      <button
-        type="button"
-        class="btn btn-secondary"
-        @click="onCancel"
-      >
-        取消
-      </button>
-      <button
-        type="submit"
-        class="btn btn-primary"
-        :disabled="loading"
-      >
-        <span v-if="loading" class="btn-loading">处理中...</span>
-        <span v-else>{{ isEditMode ? '更新发票' : '创建发票' }}</span>
-      </button>
-    </div>
+          {{ isEditMode ? '更新发票' : '创建发票' }}
+        </n-button>
+      </n-space>
+    </n-form>
 
     <!-- 错误提示 -->
-    <div
+    <n-alert
       v-if="error"
-      class="error-message"
-      :data-theme="isDark ? 'dark' : 'light'"
-    >
-      {{ error }}
-    </div>
-  </form>
+      :content="error"
+      type="error"
+      :style="{ marginTop: '16px' }"
+    />
+  </div>
 </template>
 
 <script setup>
 import { ref, watch, defineProps, defineEmits, computed } from 'vue'
 import { useTheme } from '../composables/useTheme'
+import { NForm, NFormItemGi, NGrid, NInput, NDatePicker, NInputNumber, NSelect, NButton, NSpace, NAlert } from 'naive-ui'
 
 // Props
 const props = defineProps({
@@ -204,8 +164,8 @@ const { isDark } = useTheme()
 // Form data
 const formData = ref({
   invoiceNumber: '',
-  date: '',
-  amount: '',
+  date: null,
+  amount: null,
   vendor: '',
   category: '',
   taxId: '',
@@ -215,21 +175,89 @@ const formData = ref({
   description: ''
 })
 
-// Error state
-const error = ref('')
+// Form reference for validation
+const formRef = ref()
 
 // Check if in edit mode
 const isEditMode = computed(() => !!props.invoice)
+
+// Form rules for validation
+const rules = {
+  invoiceNumber: {
+    required: true,
+    message: '请输入发票号码',
+    trigger: 'blur'
+  },
+  date: {
+    type: 'number',
+    required: true,
+    message: '请选择发票日期',
+    trigger: 'change'
+  },
+  amount: {
+    type: 'number',
+    required: true,
+    message: '请输入金额',
+    trigger: 'blur'
+  },
+  vendor: {
+    required: true,
+    message: '请输入供应商/商户名称',
+    trigger: 'blur'
+  },
+  category: {
+    required: true,
+    message: '请选择分类',
+    trigger: 'change'
+  }
+}
+
+// Options for selects
+const categoryOptions = [
+  { label: '餐饮', value: '餐饮' },
+  { label: '交通', value: '交通' },
+  { label: '住宿', value: '住宿' },
+  { label: '办公', value: '办公' },
+  { label: '其他', value: '其他' }
+]
+
+const paymentSourceOptions = [
+  { label: '微信支付', value: '微信支付' },
+  { label: '支付宝', value: '支付宝' },
+  { label: '银行卡', value: '银行卡' },
+  { label: '手动添加', value: '手动添加' },
+  { label: '现金', value: '现金' }
+]
+
+const statusOptions = [
+  { label: '待处理', value: 'pending' },
+  { label: '已确认', value: 'confirmed' },
+  { label: '已拒绝', value: 'rejected' }
+]
+
+// Label placement
+const labelPlacement = ref('top')
+
+// Error state
+const error = ref('')
 
 // Initialize form data when invoice prop changes
 watch(
   () => props.invoice,
   (newInvoice) => {
     if (newInvoice) {
+      // Format date from ISO string to timestamp for Naive UI date picker
+      let dateValue = null
+      if (newInvoice.date) {
+        dateValue = new Date(newInvoice.date).getTime()
+      } else if (newInvoice.invoice_date) {
+        dateValue = new Date(newInvoice.invoice_date).getTime()
+      }
+
       formData.value = {
         invoiceNumber: newInvoice.invoiceNumber || newInvoice.invoice_number || newInvoice.title || '',
-        date: newInvoice.date || newInvoice.invoice_date || '',
-        amount: newInvoice.amount || '',
+        date: dateValue,
+        amount: newInvoice.amount || null,
         vendor: newInvoice.vendor || '',
         category: newInvoice.category || '',
         taxId: newInvoice.taxId || newInvoice.tax_id || '',
@@ -242,8 +270,8 @@ watch(
       // Reset form for new invoice
       formData.value = {
         invoiceNumber: '',
-        date: '',
-        amount: '',
+        date: null,
+        amount: null,
         vendor: '',
         category: '',
         taxId: '',
@@ -257,59 +285,31 @@ watch(
   { immediate: true }
 )
 
-// Validate form
-const validateForm = () => {
-  error.value = ''
-
-  if (!formData.value.invoiceNumber.trim()) {
-    error.value = '请输入发票号码'
-    return false
-  }
-
-  if (!formData.value.date) {
-    error.value = '请选择发票日期'
-    return false
-  }
-
-  if (!formData.value.amount || parseFloat(formData.value.amount) <= 0) {
-    error.value = '请输入有效的金额'
-    return false
-  }
-
-  if (!formData.value.vendor.trim()) {
-    error.value = '请输入供应商/商户名称'
-    return false
-  }
-
-  if (!formData.value.category) {
-    error.value = '请选择分类'
-    return false
-  }
-
-  return true
-}
-
 // Handle form submission
-const submitForm = () => {
-  if (!validateForm()) {
-    return
-  }
+const submitForm = async () => {
+  try {
+    await formRef.value.validate()
+    error.value = ''
 
-  // Format data for submission with field names that match backend JSON tags
-  const submitData = {
-    invoice_number: formData.value.invoiceNumber,
-    invoice_date: formData.value.date ? new Date(formData.value.date).toISOString() : '',
-    amount: parseFloat(formData.value.amount),
-    vendor: formData.value.vendor,
-    category: formData.value.category,
-    taxId: formData.value.taxId,
-    payment_source: formData.value.paymentSource,
-    status: formData.value.status || 'pending',
-    image_url: formData.value.imageUrl || '',
-    description: formData.value.description || ''
-  }
+    // Format data for submission with backend-compatible field names
+    const submitData = {
+      invoice_number: formData.value.invoiceNumber,
+      invoice_date: formData.value.date ? new Date(formData.value.date).toISOString() : null,
+      amount: formData.value.amount,
+      vendor: formData.value.vendor,
+      category: formData.value.category,
+      taxId: formData.value.taxId,
+      payment_source: formData.value.paymentSource,
+      status: formData.value.status,
+      image_url: formData.value.imageUrl || null,
+      description: formData.value.description || null
+    }
 
-  emit('submit', submitData)
+    emit('submit', submitData)
+  } catch (error) {
+    console.error('Form validation failed:', error)
+    error.value = '请检查表单信息并重新提交'
+  }
 }
 
 // Handle cancel
@@ -320,190 +320,11 @@ const onCancel = () => {
 
 <style scoped>
 .invoice-form {
-  width: 100%;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-label {
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-[data-theme="dark"] .form-label {
-  color: #d1d5db;
-}
-
-[data-theme="light"] .form-label {
-  color: #374151;
-}
-
-.required {
-  color: #ef4444;
-  margin-left: 0.125rem;
-}
-
-.form-input,
-.form-select,
-.form-textarea {
-  padding: 0.75rem;
-  border: 1px solid;
-  border-radius: 0.5rem;
-  transition: all 0.3s ease;
-  outline: none;
-}
-
-[data-theme="dark"] .form-input,
-[data-theme="dark"] .form-select,
-[data-theme="dark"] .form-textarea {
-  background-color: rgba(55, 65, 81, 0.5);
-  border-color: #4b5563;
-  color: white;
-}
-
-[data-theme="light"] .form-input,
-[data-theme="light"] .form-select,
-[data-theme="light"] .form-textarea {
-  background-color: white;
-  border-color: #d1d5db;
-  color: #111827;
-}
-
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
+  padding: 20px;
 }
 
 .form-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 1.5rem;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background: transparent;
-  border: 1px solid;
-}
-
-[data-theme="dark"] .btn-secondary {
-  border-color: #4b5563;
-  color: #d1d5db;
-}
-
-[data-theme="light"] .btn-secondary {
-  border-color: #d1d5db;
-  color: #4b5563;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-
-[data-theme="dark"] .btn-secondary:hover:not(:disabled) {
-  background-color: #374151;
-}
-
-[data-theme="light"] .btn-secondary:hover:not(:disabled) {
-  background-color: #f3f4f6;
-}
-
-.btn-primary {
-  color: white;
-}
-
-[data-theme="dark"] .btn-primary {
-  background: linear-gradient(135deg, #2563eb, #06b6d4);
-}
-
-[data-theme="light"] .btn-primary {
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
-}
-
-[data-theme="dark"] .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #3b82f6, #22d3ee);
-}
-
-[data-theme="light"] .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb, #0891b2);
-}
-
-.btn-loading {
-  display: inline-flex;
-  align-items: center;
-}
-
-.error-message {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  border: 1px solid;
-}
-
-[data-theme="dark"] .error-message {
-  background-color: rgba(153, 27, 27, 0.2);
-  border-color: #7f1d1d;
-  color: #fca5a5;
-}
-
-[data-theme="light"] .error-message {
-  background-color: #fef2f2;
-  border-color: #fecaca;
-  color: #dc2626;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
-  }
+  margin-top: 24px;
+  width: 100%;
 }
 </style>
