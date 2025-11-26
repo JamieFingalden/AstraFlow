@@ -4,10 +4,11 @@ import (
 	"AstraFlow-go/internal/service"
 	typeUtils "AstraFlow-go/pkg/utils"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // InvoiceHandler 发票处理器
@@ -292,7 +293,7 @@ func (h InvoiceHandler) UpdateInvoice(c *gin.Context) {
 	}
 
 	var req CreateInvoiceRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err = c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, InvoiceResponse{
 			Code:    400,
 			Message: "请求参数错误：" + err.Error(),
@@ -342,6 +343,41 @@ func (h InvoiceHandler) DeleteInvoice(c *gin.Context) {
 			Message: "发票ID格式错误",
 		})
 		return
+	}
+
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, InvoiceResponse{
+			Code:    401,
+			Message: "登录过期, 请重新登录",
+		})
+		return
+	}
+
+	tenantId, exists := c.Get("tenant_id")
+	if !exists || tenantId.(*int64) == nil {
+		tenantId = 0
+	}
+
+	invoice, err := h.invoiceService.FindInvoiceInfoById(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "获取发票信息失败: " + err.Error(),
+		})
+		return
+	}
+
+	fmt.Println(userId, tenantId)
+
+	if !(invoice.UserID == userId.(int64)) {
+		if invoice.TenantID != nil && *invoice.TenantID != tenantId {
+			c.JSON(http.StatusForbidden, InvoiceResponse{
+				Code:    403,
+				Message: "您没有权限删除该发票",
+			})
+			return
+		}
 	}
 
 	err = h.invoiceService.DeleteInvoice(id)

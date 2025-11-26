@@ -156,3 +156,16 @@ func (s *InvoiceService) DeleteInvoice(id int64) error {
 
 	return nil
 }
+
+func (s *InvoiceService) FindInvoiceInfoById(id int64) (*model.Invoice, error) {
+	invoice, err := s.invoiceRepo.FindById(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if invoice == nil {
+		return nil, errors.New("发票不存在")
+	}
+
+	return invoice, nil
+}
