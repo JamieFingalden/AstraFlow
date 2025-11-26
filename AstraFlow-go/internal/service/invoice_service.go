@@ -18,7 +18,7 @@ func NewInvoiceService() *InvoiceService {
 }
 
 // CreateInvoice 创建发票
-func (s *InvoiceService) CreateInvoice(tenantId, userId int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, taxId, category, paymentSource, status string) (*model.Invoice, error) {
+func (s *InvoiceService) CreateInvoice(tenantId, userId int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, taxId, category, paymentSource, status string, imageURL, description *string) (*model.Invoice, error) {
 	existingInvoice, err := s.invoiceRepo.FindByInvoiceNumber(invoiceNumber)
 	if err != nil {
 		return nil, err
@@ -33,11 +33,13 @@ func (s *InvoiceService) CreateInvoice(tenantId, userId int64, invoiceDate time.
 		InvoiceNumber: &invoiceNumber,
 		InvoiceDate:   &invoiceDate,
 		Amount:        &amount,
-		Vendor:        &vendor,
+		Vendor:        vendor,
 		TaxID:         &taxId,
 		Category:      &category,
 		PaymentSource: &paymentSource,
 		Status:        status,
+		ImageURL:      imageURL,
+		Description:   description,
 	}
 
 	err = s.invoiceRepo.Create(invoice)
@@ -108,7 +110,7 @@ func (s *InvoiceService) GetAllInvoicePageByTenantId(page, pageSize int, tenantI
 	return invoices, nil
 }
 
-func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, taxId, category, paymentSource, status string) (*model.Invoice, error) {
+func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, taxId, category, paymentSource, status string, imageURL, description *string) (*model.Invoice, error) {
 	existingInvoice, err := s.invoiceRepo.FindById(id)
 	if err != nil {
 		return nil, err
@@ -116,7 +118,7 @@ func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount f
 
 	if invoiceNumber != *existingInvoice.InvoiceNumber {
 		_, err := s.invoiceRepo.FindByInvoiceNumber(invoiceNumber)
-		if err != nil {
+		if err != nil && err.Error() != "record not found" { // Only error if there's a different issue than record not found
 			return nil, errors.New("该发票号已存在")
 		}
 	}
@@ -124,11 +126,13 @@ func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount f
 	existingInvoice.InvoiceNumber = &invoiceNumber
 	existingInvoice.InvoiceDate = &invoiceDate
 	existingInvoice.Amount = &amount
-	existingInvoice.Vendor = &vendor
+	existingInvoice.Vendor = vendor  // Vendor is now a required string, not a pointer
 	existingInvoice.TaxID = &taxId
 	existingInvoice.Category = &category
 	existingInvoice.PaymentSource = &paymentSource
 	existingInvoice.Status = status
+	existingInvoice.ImageURL = imageURL
+	existingInvoice.Description = description
 
 	err = s.invoiceRepo.Update(existingInvoice)
 	if err != nil {

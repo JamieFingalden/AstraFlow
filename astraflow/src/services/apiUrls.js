@@ -23,6 +23,9 @@ export const API_URLS = {
     DETAIL: (id) => `/v1/invoices/${id}`,
     CREATE: '/v1/invoices',
     UPDATE: (id) => `/v1/invoices/${id}`,
+    DELETE: (id) => `/v1/invoices/${id}`,
+    BY_USER: '/v1/invoicesByUser',
+    BY_TENANT: '/v1/invoicesByTenant',
     UPLOAD: '/v1/invoices/upload',
   },
 

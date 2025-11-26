@@ -30,7 +30,9 @@ type CreateInvoiceRequest struct {
 	InvoiceNumber *string    `json:"invoice_number" binding:"required"`
 	InvoiceDate   *time.Time `json:"invoice_date" binding:"required"`
 	Amount        *float64   `json:"amount" binding:"required"`
-	Vendor        *string    `json:"vendor" binding:"required"`
+	Vendor        string     `json:"vendor" binding:"required"` // 商户名称，必填
+	ImageURL      *string    `json:"image_url,omitempty"`       // 发票图片URL
+	Description   *string    `json:"description,omitempty"`     // 发票描述/备注
 	TaxID         *string    `json:"taxId"`
 	Category      *string    `json:"category" binding:"required"`
 	PaymentSource *string    `json:"payment_source"`
@@ -103,10 +105,7 @@ func (h InvoiceHandler) CreateInvoice(c *gin.Context) {
 		invoiceNumber = *req.InvoiceNumber
 	}
 
-	vendor := ""
-	if req.Vendor != nil {
-		vendor = *req.Vendor
-	}
+	vendor := req.Vendor // vendor is now a required string, not a pointer
 
 	category := ""
 	if req.Category != nil {
@@ -128,7 +127,18 @@ func (h InvoiceHandler) CreateInvoice(c *gin.Context) {
 		status = req.Status
 	}
 
-	invoice, err := h.invoiceService.CreateInvoice(tenantIdInt, UserIdInt, invoiceDate, amount, invoiceNumber, vendor, taxId, category, paymentSource, status)
+	// Handle new fields
+	var imageURL *string
+	if req.ImageURL != nil {
+		imageURL = req.ImageURL
+	}
+
+	var description *string
+	if req.Description != nil {
+		description = req.Description
+	}
+
+	invoice, err := h.invoiceService.CreateInvoice(tenantIdInt, UserIdInt, invoiceDate, amount, invoiceNumber, vendor, taxId, category, paymentSource, status, imageURL, description)
 	if err != nil {
 		c.JSON(http.StatusConflict, InvoiceResponse{
 			Code:    409,
@@ -223,9 +233,9 @@ func (h InvoiceHandler) GetAllInvoicePageByUserId(c *gin.Context) {
 		Code:    200,
 		Message: "获取发票列表成功",
 		Data: map[string]interface{}{
-			"tenants": invoices,
-			"page":    page,
-			"size":    len(invoices),
+			"invoices": invoices,
+			"page":     page,
+			"size":     len(invoices),
 		},
 	})
 }
@@ -285,7 +295,7 @@ func (h InvoiceHandler) UpdateInvoice(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, TenantResponse{
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
 			Code:    400,
 			Message: "发票ID格式错误",
 		})
@@ -294,6 +304,7 @@ func (h InvoiceHandler) UpdateInvoice(c *gin.Context) {
 
 	var req CreateInvoiceRequest
 	if err = c.ShouldBindJSON(&req); err != nil {
+		fmt.Println(req)
 		c.JSON(http.StatusBadRequest, InvoiceResponse{
 			Code:    400,
 			Message: "请求参数错误：" + err.Error(),
@@ -316,7 +327,38 @@ func (h InvoiceHandler) UpdateInvoice(c *gin.Context) {
 		status = req.Status
 	}
 
-	invoice, err := h.invoiceService.UpdateInvoice(id, *req.InvoiceDate, *req.Amount, *req.InvoiceNumber, *req.Vendor, taxId, *req.PaymentSource, paymentSource, status)
+	// Handle new fields
+	var imageURL *string
+	if req.ImageURL != nil {
+		imageURL = req.ImageURL
+	}
+
+	var description *string
+	if req.Description != nil {
+		description = req.Description
+	}
+
+	var invoiceDate time.Time
+	if req.InvoiceDate != nil {
+		invoiceDate = *req.InvoiceDate
+	}
+
+	amount := 0.0
+	if req.Amount != nil {
+		amount = *req.Amount
+	}
+
+	invoiceNumber := ""
+	if req.InvoiceNumber != nil {
+		invoiceNumber = *req.InvoiceNumber
+	}
+
+	category := ""
+	if req.Category != nil {
+		category = *req.Category
+	}
+
+	invoice, err := h.invoiceService.UpdateInvoice(id, invoiceDate, amount, invoiceNumber, req.Vendor, taxId, category, paymentSource, status, imageURL, description)
 	if err != nil {
 		c.JSON(http.StatusConflict, InvoiceResponse{
 			Code:    409,

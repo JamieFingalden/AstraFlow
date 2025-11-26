@@ -15,7 +15,9 @@ type Invoice struct {
 	InvoiceNumber  *string        `gorm:"size:100" json:"invoice_number,omitempty"` // 发票编号
 	InvoiceDate    *time.Time     `json:"invoice_date,omitempty"`                     // 开票日期
 	Amount         *float64       `json:"amount,omitempty"`                           // 金额
-	Vendor         *string        `gorm:"size:255" json:"vendor,omitempty"`           // 商户名称
+	Vendor         string         `gorm:"size:255;not null" json:"vendor"`            // 商户名称，必填
+	ImageURL       *string        `gorm:"size:500" json:"image_url,omitempty"`        // 发票图片URL
+	Description    *string        `gorm:"size:500" json:"description,omitempty"`      // 发票描述/备注
 	TaxID          *string        `gorm:"size:100" json:"tax_id,omitempty"`           // 税号
 	Category       *string        `gorm:"size:100" json:"category,omitempty"`         // 分类：餐饮、交通、购物、住宿、办公用品等
 	PaymentSource  *string        `gorm:"size:50" json:"payment_source,omitempty"`    // 支付方式：微信/支付宝/现金/银行卡 等

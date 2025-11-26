@@ -27,9 +27,9 @@
 
         <div class="header-right">
           <!-- 添加账单按钮 -->
-          <button class="add-bill-button">
+          <button class="add-bill-button" @click="openCreateInvoiceModal">
             <PlusIcon :size="20" class="button-icon" />
-            添加账单
+            添加发票
           </button>
 
           <!-- 主题切换按钮 -->
@@ -155,7 +155,7 @@
                 </td>
                 <td class="table-cell">
                   <div class="action-buttons">
-                    <button class="action-button" title="编辑">
+                    <button class="action-button" title="编辑" @click="openEditInvoiceModal(bill)">
                       <EditIcon :size="16" />
                     </button>
                     <button class="action-button" title="删除" @click="confirmDeleteBill(bill)">
@@ -217,7 +217,7 @@
               </div>
             </div>
             <div class="card-actions">
-              <button class="action-button">
+              <button class="action-button" @click="openEditInvoiceModal(bill)">
                 <EditIcon :size="16" />
               </button>
               <button class="action-button" @click="confirmDeleteBill(bill)">
@@ -262,6 +262,15 @@
         </p>
       </div>
     </footer>
+
+    <!-- Invoice Modal -->
+    <InvoiceModal
+      v-model:visible="showInvoiceModal"
+      :invoice="editingInvoice"
+      :loading="modalLoading"
+      @submit="handleInvoiceSubmit"
+      @close="handleModalClose"
+    />
   </div>
 </template>
 
@@ -283,187 +292,76 @@ import {
   FileTextIcon
 } from 'lucide-vue-next'
 import { useTheme } from '../composables/useTheme'
+import InvoiceModal from '../components/InvoiceModal.vue'
+import { ElMessage } from 'element-plus'
+import {
+  getInvoicesByUser,
+  getInvoicesByTenant,
+  getInvoices,
+  createInvoice,
+  updateInvoice,
+  deleteInvoice
+} from '../services/api/invoiceApi'
+import { useUserStore } from '../stores/userStore'
 
 const router = useRouter()
 const { theme, toggleTheme, isDark } = useTheme()
+
+// Local state instead of store
+const bills = ref([])
+const storeLoading = ref(false)
+const error = ref(null)
+const pagination = ref({
+  page: 1,
+  size: 10,
+  total: 0
+})
+
+// Modal state
+const showInvoiceModal = ref(false)
+const editingInvoice = ref(null)
+const modalLoading = ref(false)
 
 // Search and filter state
 const searchQuery = ref('')
 const selectedCategory = ref('')
 const selectedStatus = ref('')
 
-// Pagination state
+// Pagination state - make it reactive to store
 const currentPage = ref(1)
 const itemsPerPage = 8
 
-// Mock bills data
-const allBills = ref([
-  {
-    id: 1,
-    name: '星巴克咖啡',
-    description: '工作日早晨咖啡',
-    category: '餐饮',
-    amount: 35.50,
-    date: '2025-11-08',
-    source: '微信支付',
-    status: '已报销'
-  },
-  {
-    id: 2,
-    name: '滴滴出行',
-    description: '从公司到客户处',
-    category: '交通',
-    amount: 45.00,
-    date: '2025-11-08',
-    source: '支付宝',
-    status: '已报销'
-  },
-  {
-    id: 3,
-    name: '京东文具',
-    description: '办公用品采购',
-    category: '办公',
-    amount: 128.90,
-    date: '2025-11-07',
-    source: '银行卡',
-    status: '未报销'
-  },
-  {
-    id: 4,
-    name: '如家酒店',
-    description: '出差住宿费用',
-    category: '住宿',
-    amount: 280.00,
-    date: '2025-11-06',
-    source: '手动添加',
-    status: '已报销'
-  },
-  {
-    id: 5,
-    name: '美团外卖',
-    description: '团队午餐',
-    category: '餐饮',
-    amount: 89.60,
-    date: '2025-11-05',
-    source: '支付宝',
-    status: '未报销'
-  },
-  {
-    id: 6,
-    name: '地铁月卡',
-    description: '11月地铁充值',
-    category: '交通',
-    amount: 200.00,
-    date: '2025-11-01',
-    source: '手动添加',
-    status: '已报销'
-  },
-  {
-    id: 7,
-    name: '肯德基',
-    description: '快餐消费',
-    category: '餐饮',
-    amount: 52.00,
-    date: '2025-10-30',
-    source: '微信支付',
-    status: '未报销'
-  },
-  {
-    id: 8,
-    name: '办公用品',
-    description: '打印纸和笔',
-    category: '办公',
-    amount: 67.30,
-    date: '2025-10-28',
-    source: '银行卡',
-    status: '已报销'
-  },
-  {
-    id: 9,
-    name: '出租车',
-    description: '夜间出行',
-    category: '交通',
-    amount: 78.50,
-    date: '2025-10-25',
-    source: '现金',
-    status: '已报销'
-  },
-  {
-    id: 10,
-    name: '便利店',
-    description: '日常用品',
-    category: '其他',
-    amount: 25.80,
-    date: '2025-10-24',
-    source: '手动添加',
-    status: '未报销'
-  },
-  {
-    id: 11,
-    name: '海底捞',
-    description: '团队聚餐',
-    category: '餐饮',
-    amount: 168.00,
-    date: '2025-10-22',
-    source: '支付宝',
-    status: '已报销'
-  },
-  {
-    id: 12,
-    name: '滴滴专车',
-    description: '商务出行',
-    category: '交通',
-    amount: 95.00,
-    date: '2025-10-20',
-    source: '微信支付',
-    status: '已报销'
-  },
-  {
-    id: 13,
-    name: '超市购物',
-    description: '生活用品',
-    category: '其他',
-    amount: 45.60,
-    date: '2025-10-18',
-    source: '银行卡',
-    status: '未报销'
-  },
-  {
-    id: 14,
-    name: '打印服务',
-    category: '办公',
-    amount: 15.00,
-    date: '2025-10-15',
-    source: '手动添加',
-    status: '已报销'
-  },
-  {
-    id: 15,
-    name: '麦当劳',
-    description: '快餐消费',
-    category: '餐饮',
-    amount: 38.00,
-    date: '2025-10-12',
-    source: '微信支付',
-    status: '未报销'
-  }
-])
+// Get user store for multi-tenant logic
+const userStore = useUserStore()
 
 // Computed properties for filtering and pagination
 const filteredBills = computed(() => {
-  return allBills.value.filter(bill => {
-    const matchesSearch = bill.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesCategory = !selectedCategory.value || bill.category === selectedCategory.value
-    const matchesStatus = !selectedStatus.value || bill.status === selectedStatus.value
+  return bills.value.filter(bill => {
+    const name = bill.name || bill.title
+    const category = bill.category
+    const status = bill.status
+
+    const matchesSearch = !searchQuery.value ||
+      (name && name.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+      (bill.description && bill.description.toLowerCase().includes(searchQuery.value.toLowerCase()))
+    const matchesCategory = !selectedCategory.value || category === selectedCategory.value
+    const matchesStatus = !selectedStatus.value || status === selectedStatus.value
     return matchesSearch && matchesCategory && matchesStatus
   })
 })
 
-const totalPages = computed(() => Math.ceil(filteredBills.value.length / itemsPerPage))
+const totalPages = computed(() => {
+  // Use pagination from store if available, otherwise fallback to local calculation
+  if (pagination.value && pagination.value.total > 0) {
+    return Math.ceil(pagination.value.total / itemsPerPage)
+  }
+  return Math.ceil(filteredBills.value.length / itemsPerPage)
+})
+
 const paginatedBills = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  const end = start + itemsPerPage
-  return filteredBills.value.slice(start, end)
+  // When using API pagination, we rely on the store data which is already paginated
+  // But we still apply client-side filtering if needed
+  return filteredBills.value
 })
 
 // Methods
@@ -486,6 +384,7 @@ const getSourceIcon = (source) => {
     '手动添加': FileTextIcon,
     '现金': DollarSignIcon
   }
+  // Check if the source field is paymentSource for invoices
   return icons[source] || FileTextIcon
 }
 
@@ -500,17 +399,25 @@ const getSourceIconColor = (source) => {
   return colors[source] || 'text-gray-500'
 }
 
-const goToPage = (page) => {
+const goToPage = async (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    // Fetch bills for the new page
+    await loadBills()
   }
 }
 
-const confirmDeleteBill = (bill) => {
-  if (confirm(`确定要删除账单 "${bill.name}" 吗？`)) {
-    const index = allBills.value.findIndex(b => b.id === bill.id)
-    if (index > -1) {
-      allBills.value.splice(index, 1)
+const confirmDeleteBill = async (bill) => {
+  if (confirm(`确定要删除发票 "${bill.title || bill.name}" 吗？`)) {
+    try {
+      await deleteInvoice(bill.id)
+      // Remove the deleted invoice from local state
+      bills.value = bills.value.filter(item => item.id !== bill.id)
+      // Show success message
+      ElMessage.success('发票删除成功')
+    } catch (err) {
+      console.error('删除发票失败:', err)
+      ElMessage.error('删除发票失败: ' + (err.message || '未知错误'))
     }
   }
 }
@@ -539,12 +446,162 @@ const getSourceIconClass = (source) => {
 }
 
 const getStatusClass = (status) => {
-  return status === '已报销' ? 'status-approved' : 'status-pending'
+  // Map backend statuses to UI statuses
+  if (status === 'confirmed' || status === '已报销') {
+    return 'status-approved'
+  } else if (status === 'pending' || status === '待审批') {
+    return 'status-pending'
+  } else if (status === 'rejected' || status === '已拒绝') {
+    return 'status-rejected'
+  }
+  return 'status-pending'
 }
 
-onMounted(() => {
-  // 初始化时如果有查询参数，应用过滤条件
-  // 这里可以添加从路由参数读取的过滤条件
+// Computed property for loading state
+const loading = computed(() => {
+  return storeLoading.value || modalLoading.value
+})
+
+// Method to open invoice modal for creating new invoice
+const openCreateInvoiceModal = () => {
+  editingInvoice.value = null
+  showInvoiceModal.value = true
+}
+
+// Method to open invoice modal for editing existing invoice
+const openEditInvoiceModal = (bill) => {
+  editingInvoice.value = bill
+  showInvoiceModal.value = true
+}
+
+// Method to handle invoice form submission
+const handleInvoiceSubmit = async (formData) => {
+  modalLoading.value = true
+  try {
+    if (editingInvoice.value) {
+      // Update existing invoice
+      await updateInvoice(editingInvoice.value.id, formData)
+      ElMessage.success('发票更新成功')
+
+      // Update the invoice in local state
+      const index = bills.value.findIndex(bill => bill.id === editingInvoice.value.id)
+      if (index !== -1) {
+        bills.value[index] = {
+          ...bills.value[index],
+          ...formData,
+          id: editingInvoice.value.id,
+          name: formData.invoiceNumber || formData.title || '未命名发票',
+          invoiceNumber: formData.invoice_number || formData.invoiceNumber
+        }
+      }
+    } else {
+      // Create new invoice
+      const response = await createInvoice(formData)
+      if (response?.data?.invoice) {
+        const newInvoice = response.data.invoice
+        // Add the new invoice to local state
+        bills.value.unshift({
+          id: newInvoice.id,
+          name: newInvoice.invoice_number || newInvoice.title || '未命名发票',
+          amount: newInvoice.amount,
+          date: newInvoice.invoice_date || newInvoice.date,
+          category: newInvoice.category,
+          status: newInvoice.status || 'pending',
+          vendor: newInvoice.vendor,
+          imageUrl: newInvoice.image_url,
+          description: newInvoice.description || '',
+          invoiceNumber: newInvoice.invoice_number,
+          taxId: newInvoice.taxId,
+          paymentSource: newInvoice.payment_source,
+          receiptUrl: newInvoice.receipt_url || newInvoice.receiptUrl || ''
+        })
+      }
+      ElMessage.success('发票创建成功')
+    }
+    // Close modal and refresh list
+    showInvoiceModal.value = false
+    editingInvoice.value = null
+  } catch (err) {
+    console.error('操作发票失败:', err)
+    ElMessage.error('操作发票失败: ' + (err.message || '未知错误'))
+  } finally {
+    modalLoading.value = false
+  }
+}
+
+// Method to handle modal close
+const handleModalClose = () => {
+  showInvoiceModal.value = false
+  editingInvoice.value = null
+}
+
+const loadBills = async () => {
+  storeLoading.value = true
+  error.value = null
+  try {
+    let response
+
+    // Determine which endpoint to use based on user type
+    if (userStore.isPersonalUser()) {
+      // Personal user - get invoices by user
+      response = await getInvoicesByUser({
+        page: currentPage.value,
+        page_size: itemsPerPage
+      })
+    } else if (userStore.user?.tenantId) {
+      // Tenant user - get invoices by tenant
+      response = await getInvoicesByTenant({
+        page: currentPage.value,
+        page_size: itemsPerPage
+      })
+    } else {
+      // Default - get all invoices (for admin users)
+      response = await getInvoices({
+        page: currentPage.value,
+        page_size: itemsPerPage
+      })
+    }
+
+    if (response?.data) {
+      // Map invoice fields to bill fields for compatibility
+      bills.value = response.data.invoices?.map(invoice => ({
+        id: invoice.id,
+        name: invoice.invoice_number || invoice.title || '未命名发票',
+        amount: invoice.amount,
+        date: invoice.invoice_date || invoice.date,
+        category: invoice.category,
+        status: invoice.status || invoice.status,
+        vendor: invoice.vendor,
+        imageUrl: invoice.image_url,
+        description: invoice.description || '',
+        invoiceNumber: invoice.invoice_number,
+        taxId: invoice.taxId,
+        paymentSource: invoice.payment_source,
+        receiptUrl: invoice.receipt_url || invoice.receiptUrl || ''
+      })) || []
+
+      // Update pagination info
+      if (response.data.page !== undefined) {
+        pagination.value.page = response.data.page
+      }
+      if (response.data.size !== undefined) {
+        pagination.value.size = response.data.size
+      }
+      if (response.data.total !== undefined) {
+        pagination.value.total = response.data.total
+      }
+    }
+  } catch (err) {
+    console.error('加载发票失败:', err)
+    ElMessage.error('加载发票失败: ' + (err.message || '未知错误'))
+  } finally {
+    storeLoading.value = false
+  }
+}
+
+onMounted(async () => {
+  // Load bills when component mounts
+  await loadBills()
 })
 </script>
 
@@ -820,6 +877,7 @@ onMounted(() => {
 
 /* Main Content */
 .main-content {
+  /* min-height: 85vh; */
   position: relative;
   z-index: 10;
   max-width: 80rem;
@@ -980,6 +1038,7 @@ onMounted(() => {
 
 /* Bills Table Container */
 .bills-table-container {
+  min-height: 70vh;
   border-radius: 1rem;
   overflow: hidden;
   backdrop-filter: blur(12px);
@@ -1236,6 +1295,16 @@ onMounted(() => {
 .app-container[data-theme="dark"] .status-pending {
   background-color: #a16207;
   color: #fde68a;
+}
+
+.status-rejected {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.app-container[data-theme="dark"] .status-rejected {
+  background-color: #b91c1c;
+  color: #fecaca;
 }
 
 .action-buttons {
