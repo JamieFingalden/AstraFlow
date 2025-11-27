@@ -54,7 +54,7 @@ func InitRouter() *gin.Engine {
 			protected.GET("/analytics/dashboard", analyticsHandler.GetDashboardData)                          // 仪表板数据
 			protected.GET("/analytics/metrics", analyticsHandler.GetMetrics)                                  // 关键指标
 			protected.GET("/analytics/categories", analyticsHandler.GetExpenseCategories)                     // 支出类别
-			protected.GET("/analytics/weekly", analyticsHandler.GetWeeklyExpenses)                            // 每周支出趋势
+			protected.GET("/analytics/monthly", analyticsHandler.GetMonthlyExpenses)                          // 每月支出趋势
 			protected.GET("/analytics/recent-bills", analyticsHandler.GetRecentBills)                         // 近期账单
 			protected.GET("/analytics/reimbursement", analyticsHandler.GetReimbursementStatisticsData)        // 报销统计数据
 			protected.GET("/analytics/reimbursement/statistics", analyticsHandler.GetReimbursementStatistics) // 报销统计详情

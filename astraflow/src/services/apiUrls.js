@@ -53,6 +53,7 @@ export const API_URLS = {
     METRICS: '/v1/analytics/metrics',
     CATEGORIES: '/v1/analytics/categories',
     TRENDS: '/v1/analytics/weekly',
+    MONTHLY: '/v1/analytics/monthly',
     RECENT_BILLS: '/v1/analytics/recent-bills',
     REIMBURSEMENT: {
       LIST: '/v1/analytics/reimbursement',

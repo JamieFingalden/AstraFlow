@@ -19,6 +19,12 @@ type ExpenseCategory struct {
 	Color string  `json:"color"`
 }
 
+// MonthlyExpense represents monthly expense trends for line chart
+type MonthlyExpense struct {
+	Month   string  `json:"month"`
+	Expense float64 `json:"expense"`
+}
+
 // WeeklyExpense represents weekly expense trends for line chart
 type WeeklyExpense struct {
 	Week    string  `json:"week"`
@@ -44,11 +50,11 @@ type AIInsight struct {
 
 // DashboardData represents the complete dashboard response
 type DashboardData struct {
-	Metrics           DashboardMetrics  `json:"metrics"`
-	ExpenseCategories []ExpenseCategory `json:"expense_categories"`
-	WeeklyExpenses    []WeeklyExpense   `json:"weekly_expenses"`
-	RecentBills       []RecentBill      `json:"recent_bills"`
-	AIInsights        []AIInsight       `json:"ai_insights"`
+	Metrics           DashboardMetrics   `json:"metrics"`
+	ExpenseCategories []ExpenseCategory  `json:"expense_categories"`
+	MonthlyExpenses   []MonthlyExpense   `json:"monthly_expenses"`
+	RecentBills       []RecentBill       `json:"recent_bills"`
+	AIInsights        []AIInsight        `json:"ai_insights"`
 }
 
 // AnalyticsRequest represents the request parameters for analytics

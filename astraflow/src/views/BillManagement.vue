@@ -586,25 +586,29 @@ const loadBills = async () => {
     let response
 
     // Determine which endpoint to use based on user type
-    if (userStore.isPersonalUser()) {
-      // Personal user - get invoices by user
       response = await getInvoicesByUser({
         page: currentPage.value,
         page_size: itemsPerPage
       })
-    } else if (userStore.user?.tenantId) {
-      // Tenant user - get invoices by tenant
-      response = await getInvoicesByTenant({
-        page: currentPage.value,
-        page_size: itemsPerPage
-      })
-    } else {
-      // Default - get all invoices (for admin users)
-      response = await getInvoices({
-        page: currentPage.value,
-        page_size: itemsPerPage
-      })
-    }
+    // if (userStore.isPersonalUser()) {
+    //   // Personal user - get invoices by user
+    //   response = await getInvoicesByUser({
+    //     page: currentPage.value,
+    //     page_size: itemsPerPage
+    //   })
+    // } else if (userStore.user?.tenantId) {
+    //   // Tenant user - get invoices by tenan
+    //   response = await getInvoicesByTenant({
+    //     page: currentPage.value,
+    //     page_size: itemsPerPage
+    //   })
+    // } else {
+    //   // Default - get all invoices (for admin users)
+    //   response = await getInvoices({
+    //     page: currentPage.value,
+    //     page_size: itemsPerPage
+    //   })
+    // }
 
     if (response?.data) {
       // Map invoice fields to bill fields for compatibility
@@ -624,7 +628,7 @@ const loadBills = async () => {
         receiptUrl: invoice.receipt_url || invoice.receiptUrl || ''
       })) || []
 
-      // Update pagination info
+      // Update pagination info with new fields from backend
       if (response.data.page !== undefined) {
         pagination.value.page = response.data.page
       }
@@ -633,6 +637,10 @@ const loadBills = async () => {
       }
       if (response.data.total !== undefined) {
         pagination.value.total = response.data.total
+      }
+      if (response.data.totalPages !== undefined) {
+        // Update totalPages using the new field from backend
+        totalPages.value = response.data.totalPages
       }
     }
   } catch (err) {

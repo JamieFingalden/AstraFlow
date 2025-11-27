@@ -37,8 +37,8 @@ func (s *AnalyticsService) GetDashboardData(tenantID *int64, userID int64, start
 		return nil, err
 	}
 
-	// Get weekly expenses
-	weeklyExpenses, err := s.analyticsRepo.GetWeeklyExpenses(tenantID, userID, startDate, endDate)
+	// Get monthly expenses
+	monthlyExpenses, err := s.analyticsRepo.GetMonthlyExpenses(tenantID, userID, startDate, endDate)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (s *AnalyticsService) GetDashboardData(tenantID *int64, userID int64, start
 	dashboardData := &model.DashboardData{
 		Metrics:           *metrics,
 		ExpenseCategories: categories,
-		WeeklyExpenses:    weeklyExpenses,
+		MonthlyExpenses:   monthlyExpenses,
 		RecentBills:       recentBills,
 		AIInsights:        aiInsights,
 	}
@@ -84,12 +84,21 @@ func (s *AnalyticsService) GetExpenseCategories(tenantID *int64, userID int64, s
 }
 
 // GetWeeklyExpenses retrieves weekly expense trends only
-func (s *AnalyticsService) GetWeeklyExpenses(tenantID *int64, userID int64, startDate, endDate *time.Time) ([]model.WeeklyExpense, error) {
+func (s *AnalyticsService) GetWeeklyExpenses(tenantID *int64, userID int64, startDate, endDate *time.Time) ([]model.MonthlyExpense, error) {
 	if userID <= 0 {
 		return nil, errors.New("user ID must be greater than 0")
 	}
 
-	return s.analyticsRepo.GetWeeklyExpenses(tenantID, userID, startDate, endDate)
+	return s.analyticsRepo.GetMonthlyExpenses(tenantID, userID, startDate, endDate)
+}
+
+// GetMonthlyExpenses retrieves monthly expense trends only
+func (s *AnalyticsService) GetMonthlyExpenses(tenantID *int64, userID int64, startDate, endDate *time.Time) ([]model.MonthlyExpense, error) {
+	if userID <= 0 {
+		return nil, errors.New("user ID must be greater than 0")
+	}
+
+	return s.analyticsRepo.GetMonthlyExpenses(tenantID, userID, startDate, endDate)
 }
 
 // GetRecentBills retrieves recent bills only

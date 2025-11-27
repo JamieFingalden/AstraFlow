@@ -36,14 +36,14 @@ func (r *AnalyticsRepository) GetDashboardMetrics(tenantID *int64, userID int64,
 	}
 
 	if startDate != nil && endDate != nil {
-		query = query.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		query = query.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		query = query.Where("created_at >= ?", *startDate)
+		query = query.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		query = query.Where("created_at <= ?", *endDate)
+		query = query.Where("invoice_date <= ?", *endDate)
 	}
 
-	err := query.Where("user_id = ?", userID).Scan(&monthlyExpense).Error
+	err := query.Scan(&monthlyExpense).Error
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (r *AnalyticsRepository) GetDashboardMetrics(tenantID *int64, userID int64,
 
 	// Count auto-processed invoices (assuming those with recognized status)
 	var autoProcessed int64
-	autoQuery := r.db.Model(&model.Invoice{}).Where("user_id = ?", userID)
+	autoQuery := r.db.Model(&model.Invoice{})
 
 	if tenantID != nil && *tenantID != 0 {
 		autoQuery = autoQuery.Where("tenant_id = ?", *tenantID)
@@ -60,11 +60,11 @@ func (r *AnalyticsRepository) GetDashboardMetrics(tenantID *int64, userID int64,
 	}
 
 	if startDate != nil && endDate != nil {
-		autoQuery = autoQuery.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		autoQuery = autoQuery.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		autoQuery = autoQuery.Where("created_at >= ?", *startDate)
+		autoQuery = autoQuery.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		autoQuery = autoQuery.Where("created_at <= ?", *endDate)
+		autoQuery = autoQuery.Where("invoice_date <= ?", *endDate)
 	}
 
 	autoQuery = autoQuery.Where("status IN ?", []string{"recognized", "confirmed"})
@@ -88,11 +88,11 @@ func (r *AnalyticsRepository) GetDashboardMetrics(tenantID *int64, userID int64,
 	}
 
 	if startDate != nil && endDate != nil {
-		pendingQuery = pendingQuery.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		pendingQuery = pendingQuery.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		pendingQuery = pendingQuery.Where("created_at >= ?", *startDate)
+		pendingQuery = pendingQuery.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		pendingQuery = pendingQuery.Where("created_at <= ?", *endDate)
+		pendingQuery = pendingQuery.Where("invoice_date <= ?", *endDate)
 	}
 
 	err = pendingQuery.Count(&pendingReviews).Error
@@ -113,7 +113,7 @@ func (r *AnalyticsRepository) GetExpenseCategories(tenantID *int64, userID int64
 
 	query := r.db.Model(&model.Invoice{}).
 		Select("COALESCE(category, '其他') as category, COALESCE(SUM(amount), 0) as total").
-		Where("user_id = ? AND amount IS NOT NULL", userID)
+		Where("amount IS NOT NULL")
 
 	if tenantID != nil && *tenantID != 0 {
 		query = query.Where("tenant_id = ?", *tenantID)
@@ -122,11 +122,11 @@ func (r *AnalyticsRepository) GetExpenseCategories(tenantID *int64, userID int64
 	}
 
 	if startDate != nil && endDate != nil {
-		query = query.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		query = query.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		query = query.Where("created_at >= ?", *startDate)
+		query = query.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		query = query.Where("created_at <= ?", *endDate)
+		query = query.Where("invoice_date <= ?", *endDate)
 	}
 
 	query = query.Group("COALESCE(category, '其他')").Order("total DESC")
@@ -160,9 +160,9 @@ func (r *AnalyticsRepository) GetWeeklyExpenses(tenantID *int64, userID int64, s
 	}
 
 	query := r.db.Model(&model.Invoice{}).
-		Select("DATE_FORMAT(created_at, '%Y-W%u') as week, COALESCE(SUM(amount), 0) as expense").
-		Where("user_id = ? AND amount IS NOT NULL", userID).
-		Group("DATE_FORMAT(created_at, '%Y-W%u')").
+		Select("DATE_FORMAT(invoice_date, '%Y-W%u') as week, COALESCE(SUM(amount), 0) as expense").
+		Where("amount IS NOT NULL").
+		Group("DATE_FORMAT(invoice_date, '%Y-W%u')").
 		Order("week")
 
 	if tenantID != nil && *tenantID != 0 {
@@ -172,11 +172,11 @@ func (r *AnalyticsRepository) GetWeeklyExpenses(tenantID *int64, userID int64, s
 	}
 
 	if startDate != nil && endDate != nil {
-		query = query.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		query = query.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		query = query.Where("created_at >= ?", *startDate)
+		query = query.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		query = query.Where("created_at <= ?", *endDate)
+		query = query.Where("invoice_date <= ?", *endDate)
 	}
 
 	err := query.Scan(&results).Error
@@ -202,9 +202,8 @@ func (r *AnalyticsRepository) GetRecentBills(tenantID *int64, userID int64, limi
 	var bills []model.RecentBill
 
 	query := r.db.Model(&model.Invoice{}).
-		Select("id, created_at as date, vendor, COALESCE(category, '其他') as category, COALESCE(amount, 0) as amount, status").
-		Where("user_id = ?", userID).
-		Order("created_at DESC").
+		Select("id, invoice_date as date, vendor, COALESCE(category, '其他') as category, COALESCE(amount, 0) as amount, status").
+		Order("invoice_date DESC").
 		Limit(limit)
 
 	if tenantID != nil && *tenantID != 0 {
@@ -214,11 +213,11 @@ func (r *AnalyticsRepository) GetRecentBills(tenantID *int64, userID int64, limi
 	}
 
 	if startDate != nil && endDate != nil {
-		query = query.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		query = query.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		query = query.Where("created_at >= ?", *startDate)
+		query = query.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		query = query.Where("created_at <= ?", *endDate)
+		query = query.Where("invoice_date <= ?", *endDate)
 	}
 
 	err := query.Find(&bills).Error
@@ -234,8 +233,7 @@ func (r *AnalyticsRepository) GetAllInvoicesForAIInsights(tenantID *int64, userI
 	var invoices []model.Invoice
 
 	query := r.db.Model(&model.Invoice{}).
-		Where("user_id = ?", userID).
-		Order("created_at DESC")
+		Order("invoice_date DESC")
 
 	if tenantID != nil && *tenantID != 0 {
 		query = query.Where("tenant_id = ?", *tenantID)
@@ -244,11 +242,11 @@ func (r *AnalyticsRepository) GetAllInvoicesForAIInsights(tenantID *int64, userI
 	}
 
 	if startDate != nil && endDate != nil {
-		query = query.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		query = query.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		query = query.Where("created_at >= ?", *startDate)
+		query = query.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		query = query.Where("created_at <= ?", *endDate)
+		query = query.Where("invoice_date <= ?", *endDate)
 	}
 
 	err := query.Find(&invoices).Error
@@ -274,14 +272,14 @@ func (r *AnalyticsRepository) GetReimbursementStatistics(tenantID *int64, userID
 	}
 
 	if startDate != nil && endDate != nil {
-		totalQuery = totalQuery.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		totalQuery = totalQuery.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		totalQuery = totalQuery.Where("created_at >= ?", *startDate)
+		totalQuery = totalQuery.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		totalQuery = totalQuery.Where("created_at <= ?", *endDate)
+		totalQuery = totalQuery.Where("invoice_date <= ?", *endDate)
 	}
 
-	err := totalQuery.Where("user_id = ?", userID).Scan(&totalAmount).Error
+	err := totalQuery.Scan(&totalAmount).Error
 	if err != nil {
 		return nil, err
 	}
@@ -297,14 +295,14 @@ func (r *AnalyticsRepository) GetReimbursementStatistics(tenantID *int64, userID
 	}
 
 	if startDate != nil && endDate != nil {
-		approvedQuery = approvedQuery.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		approvedQuery = approvedQuery.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		approvedQuery = approvedQuery.Where("created_at >= ?", *startDate)
+		approvedQuery = approvedQuery.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		approvedQuery = approvedQuery.Where("created_at <= ?", *endDate)
+		approvedQuery = approvedQuery.Where("invoice_date <= ?", *endDate)
 	}
 
-	err = approvedQuery.Where("user_id = ? AND status IN ?", userID, []string{"confirmed", "approved"}).Scan(&approvedAmount).Error
+	err = approvedQuery.Where("status IN ?", []string{"confirmed", "approved"}).Scan(&approvedAmount).Error
 	if err != nil {
 		return nil, err
 	}
@@ -320,21 +318,21 @@ func (r *AnalyticsRepository) GetReimbursementStatistics(tenantID *int64, userID
 	}
 
 	if startDate != nil && endDate != nil {
-		pendingQuery = pendingQuery.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		pendingQuery = pendingQuery.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		pendingQuery = pendingQuery.Where("created_at >= ?", *startDate)
+		pendingQuery = pendingQuery.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		pendingQuery = pendingQuery.Where("created_at <= ?", *endDate)
+		pendingQuery = pendingQuery.Where("invoice_date <= ?", *endDate)
 	}
 
-	err = pendingQuery.Where("user_id = ? AND status = ?", userID, "pending").Scan(&pendingAmount).Error
+	err = pendingQuery.Where("status = ?", "pending").Scan(&pendingAmount).Error
 	if err != nil {
 		return nil, err
 	}
 
 	// Count total requests
 	var totalRequests int64
-	totalReqQuery := r.db.Model(&model.Invoice{}).Where("user_id = ?", userID)
+	totalReqQuery := r.db.Model(&model.Invoice{})
 
 	if tenantID != nil && *tenantID != 0 {
 		totalReqQuery = totalReqQuery.Where("tenant_id = ?", *tenantID)
@@ -343,11 +341,11 @@ func (r *AnalyticsRepository) GetReimbursementStatistics(tenantID *int64, userID
 	}
 
 	if startDate != nil && endDate != nil {
-		totalReqQuery = totalReqQuery.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		totalReqQuery = totalReqQuery.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		totalReqQuery = totalReqQuery.Where("created_at >= ?", *startDate)
+		totalReqQuery = totalReqQuery.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		totalReqQuery = totalReqQuery.Where("created_at <= ?", *endDate)
+		totalReqQuery = totalReqQuery.Where("invoice_date <= ?", *endDate)
 	}
 
 	err = totalReqQuery.Count(&totalRequests).Error
@@ -357,7 +355,7 @@ func (r *AnalyticsRepository) GetReimbursementStatistics(tenantID *int64, userID
 
 	// Count approved requests
 	var approvedCount int64
-	approvedReqQuery := r.db.Model(&model.Invoice{}).Where("user_id = ? AND status IN ?", userID, []string{"confirmed", "approved"})
+	approvedReqQuery := r.db.Model(&model.Invoice{}).Where("status IN ?", []string{"confirmed", "approved"})
 
 	if tenantID != nil && *tenantID != 0 {
 		approvedReqQuery = approvedReqQuery.Where("tenant_id = ?", *tenantID)
@@ -366,11 +364,11 @@ func (r *AnalyticsRepository) GetReimbursementStatistics(tenantID *int64, userID
 	}
 
 	if startDate != nil && endDate != nil {
-		approvedReqQuery = approvedReqQuery.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		approvedReqQuery = approvedReqQuery.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		approvedReqQuery = approvedReqQuery.Where("created_at >= ?", *startDate)
+		approvedReqQuery = approvedReqQuery.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		approvedReqQuery = approvedReqQuery.Where("created_at <= ?", *endDate)
+		approvedReqQuery = approvedReqQuery.Where("invoice_date <= ?", *endDate)
 	}
 
 	err = approvedReqQuery.Count(&approvedCount).Error
@@ -380,7 +378,7 @@ func (r *AnalyticsRepository) GetReimbursementStatistics(tenantID *int64, userID
 
 	// Count pending requests
 	var pendingCount int64
-	pendingReqQuery := r.db.Model(&model.Invoice{}).Where("user_id = ? AND status = ?", userID, "pending")
+	pendingReqQuery := r.db.Model(&model.Invoice{}).Where("status = ?", "pending")
 
 	if tenantID != nil && *tenantID != 0 {
 		pendingReqQuery = pendingReqQuery.Where("tenant_id = ?", *tenantID)
@@ -389,11 +387,11 @@ func (r *AnalyticsRepository) GetReimbursementStatistics(tenantID *int64, userID
 	}
 
 	if startDate != nil && endDate != nil {
-		pendingReqQuery = pendingReqQuery.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		pendingReqQuery = pendingReqQuery.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		pendingReqQuery = pendingReqQuery.Where("created_at >= ?", *startDate)
+		pendingReqQuery = pendingReqQuery.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		pendingReqQuery = pendingReqQuery.Where("created_at <= ?", *endDate)
+		pendingReqQuery = pendingReqQuery.Where("invoice_date <= ?", *endDate)
 	}
 
 	err = pendingReqQuery.Count(&pendingCount).Error
@@ -403,7 +401,7 @@ func (r *AnalyticsRepository) GetReimbursementStatistics(tenantID *int64, userID
 
 	// Count rejected requests
 	var rejectedCount int64
-	rejectedReqQuery := r.db.Model(&model.Invoice{}).Where("user_id = ? AND status IN ?", userID, []string{"rejected", "failed"})
+	rejectedReqQuery := r.db.Model(&model.Invoice{}).Where("status IN ?", []string{"rejected", "failed"})
 
 	if tenantID != nil && *tenantID != 0 {
 		rejectedReqQuery = rejectedReqQuery.Where("tenant_id = ?", *tenantID)
@@ -412,11 +410,11 @@ func (r *AnalyticsRepository) GetReimbursementStatistics(tenantID *int64, userID
 	}
 
 	if startDate != nil && endDate != nil {
-		rejectedReqQuery = rejectedReqQuery.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		rejectedReqQuery = rejectedReqQuery.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		rejectedReqQuery = rejectedReqQuery.Where("created_at >= ?", *startDate)
+		rejectedReqQuery = rejectedReqQuery.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		rejectedReqQuery = rejectedReqQuery.Where("created_at <= ?", *endDate)
+		rejectedReqQuery = rejectedReqQuery.Where("invoice_date <= ?", *endDate)
 	}
 
 	err = rejectedReqQuery.Count(&rejectedCount).Error
@@ -455,12 +453,12 @@ func (r *AnalyticsRepository) GetReimbursementMonthlyTrends(tenantID *int64, use
 	}
 
 	query := r.db.Model(&model.Invoice{}).
-		Select(`DATE_FORMAT(created_at, '%Y-%m') as month,
+		Select(`DATE_FORMAT(invoice_date, '%Y-%m') as month,
 				COALESCE(SUM(amount), 0) as total,
 				COALESCE(SUM(CASE WHEN status IN ('confirmed', 'approved') THEN amount ELSE 0 END), 0) as approved,
 				COALESCE(SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END), 0) as pending`).
-		Where("user_id = ? AND amount IS NOT NULL", userID).
-		Group("DATE_FORMAT(created_at, '%Y-%m')").
+		Where("amount IS NOT NULL").
+		Group("DATE_FORMAT(invoice_date, '%Y-%m')").
 		Order("month")
 
 	if tenantID != nil && *tenantID != 0 {
@@ -470,11 +468,11 @@ func (r *AnalyticsRepository) GetReimbursementMonthlyTrends(tenantID *int64, use
 	}
 
 	if startDate != nil && endDate != nil {
-		query = query.Where("created_at BETWEEN ? AND ?", *startDate, *endDate)
+		query = query.Where("invoice_date BETWEEN ? AND ?", *startDate, *endDate)
 	} else if startDate != nil {
-		query = query.Where("created_at >= ?", *startDate)
+		query = query.Where("invoice_date >= ?", *startDate)
 	} else if endDate != nil {
-		query = query.Where("created_at <= ?", *endDate)
+		query = query.Where("invoice_date <= ?", *endDate)
 	}
 
 	err := query.Scan(&results).Error
@@ -501,4 +499,66 @@ func (r *AnalyticsRepository) GetReimbursementMonthlyTrends(tenantID *int64, use
 	}
 
 	return monthlyTrends, nil
+}
+
+// GetMonthlyExpenses retrieves monthly expense trends for the dashboard
+func (r *AnalyticsRepository) GetMonthlyExpenses(tenantID *int64, userID int64, startDate, endDate *time.Time) ([]model.MonthlyExpense, error) {
+	// If custom date range isn't provided, get current month and 3 previous months
+	var months []string
+	if startDate == nil && endDate == nil {
+		// Get current month and 3 previous months
+		now := time.Now()
+		for i := 3; i >= 0; i-- {
+			month := now.AddDate(0, -i, 0)      // Go back i months
+			monthKey := month.Format("2006-01") // Format as "YYYY-MM"
+			months = append(months, monthKey)
+		}
+	}
+
+	var monthlyExpenses []model.MonthlyExpense
+
+	// Query database for expenses for each of the target months
+	for _, month := range months {
+		var expense float64
+
+		// Parse the month to create exact date range for that month
+		yearMonth, err := time.Parse("2006-01", month)
+		if err != nil {
+			return nil, err
+		}
+
+		// Start of the month: YYYY-MM-01 00:00:00
+		startOfMonth := time.Date(yearMonth.Year(), yearMonth.Month(), 1, 0, 0, 0, 0, yearMonth.Location())
+		// Start of next month: YYYY-MM-01 00:00:00 of next month
+		endOfMonth := time.Date(yearMonth.Year(), yearMonth.Month()+1, 1, 0, 0, 0, 0, yearMonth.Location())
+
+		query := r.db.Model(&model.Invoice{}).
+			Select("COALESCE(SUM(amount), 0)").
+			Where("amount IS NOT NULL").
+			Where("invoice_date >= ? AND invoice_date < ?", startOfMonth, endOfMonth)
+
+		if tenantID != nil && *tenantID != 0 {
+			query = query.Where("tenant_id = ?", *tenantID)
+		} else {
+			query = query.Where("tenant_id IS NULL OR tenant_id = 0")
+		}
+
+		err = query.Scan(&expense).Error
+		if err != nil {
+			return nil, err
+		}
+
+		// Format month for display
+		displayMonth := month
+		if len(displayMonth) >= 7 {
+			displayMonth = displayMonth[5:] + "月" // Get MM part and add "月"
+		}
+
+		monthlyExpenses = append(monthlyExpenses, model.MonthlyExpense{
+			Month:   displayMonth,
+			Expense: expense,
+		})
+	}
+
+	return monthlyExpenses, nil
 }

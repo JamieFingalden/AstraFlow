@@ -51,7 +51,7 @@ func (s *InvoiceService) CreateInvoice(tenantId, userId int64, invoiceDate time.
 }
 
 // GetAllInvoicePage 分页获取所有发票
-func (s *InvoiceService) GetAllInvoicePage(page, pageSize int) ([]*model.Invoice, error) {
+func (s *InvoiceService) GetAllInvoicePage(page, pageSize int) ([]*model.Invoice, int64, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -62,16 +62,16 @@ func (s *InvoiceService) GetAllInvoicePage(page, pageSize int) ([]*model.Invoice
 	offset := (page - 1) * pageSize
 	limit := pageSize
 
-	invoices, err := s.invoiceRepo.FindAllPage(limit, offset)
+	invoices, total, err := s.invoiceRepo.FindAllPage(limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return invoices, nil
+	return invoices, total, nil
 }
 
 // GetAllInvoicePageByUserId 通过用户id分页获取所有发票
-func (s *InvoiceService) GetAllInvoicePageByUserId(page, pageSize int, userId int64) ([]*model.Invoice, error) {
+func (s *InvoiceService) GetAllInvoicePageByUserId(page, pageSize int, userId, tenantId int64) ([]*model.Invoice, int64, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -82,16 +82,24 @@ func (s *InvoiceService) GetAllInvoicePageByUserId(page, pageSize int, userId in
 	offset := (page - 1) * pageSize
 	limit := pageSize
 
-	invoices, err := s.invoiceRepo.FindAllPageByUserId(limit, offset, userId)
+	if tenantId != 0 {
+		invoices, total, err := s.invoiceRepo.FindAllPageByTenantId(limit, offset, tenantId)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		return invoices, total, nil
+	}
+	invoices, total, err := s.invoiceRepo.FindAllPageByUserId(limit, offset, userId)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return invoices, nil
+	return invoices, total, nil
 }
 
 // GetAllInvoicePageByTenantId 通过租户id分页获取所有发票
-func (s *InvoiceService) GetAllInvoicePageByTenantId(page, pageSize int, tenantId int64) ([]*model.Invoice, error) {
+func (s *InvoiceService) GetAllInvoicePageByTenantId(page, pageSize int, tenantId int64) ([]*model.Invoice, int64, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -102,12 +110,12 @@ func (s *InvoiceService) GetAllInvoicePageByTenantId(page, pageSize int, tenantI
 	offset := (page - 1) * pageSize
 	limit := pageSize
 
-	invoices, err := s.invoiceRepo.FindAllPageByUserId(limit, offset, tenantId)
+	invoices, total, err := s.invoiceRepo.FindAllPageByTenantId(limit, offset, tenantId)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return invoices, nil
+	return invoices, total, nil
 }
 
 func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, taxId, category, paymentSource, status string, imageURL, description *string) (*model.Invoice, error) {
@@ -126,7 +134,7 @@ func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount f
 	existingInvoice.InvoiceNumber = &invoiceNumber
 	existingInvoice.InvoiceDate = &invoiceDate
 	existingInvoice.Amount = &amount
-	existingInvoice.Vendor = vendor  // Vendor is now a required string, not a pointer
+	existingInvoice.Vendor = vendor // Vendor is now a required string, not a pointer
 	existingInvoice.TaxID = &taxId
 	existingInvoice.Category = &category
 	existingInvoice.PaymentSource = &paymentSource

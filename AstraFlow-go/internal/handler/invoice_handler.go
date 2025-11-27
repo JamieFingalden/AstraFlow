@@ -4,6 +4,7 @@ import (
 	"AstraFlow-go/internal/service"
 	typeUtils "AstraFlow-go/pkg/utils"
 	"fmt"
+	"github.com/spf13/cast"
 	"net/http"
 	"strconv"
 	"time"
@@ -169,7 +170,7 @@ func (h InvoiceHandler) GetAllInvoicePage(c *gin.Context) {
 	if err != nil {
 		pageSize = 10
 	}
-	invoices, err := h.invoiceService.GetAllInvoicePage(page, pageSize)
+	invoices, total, err := h.invoiceService.GetAllInvoicePage(page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, InvoiceResponse{
 			Code:    500,
@@ -178,13 +179,20 @@ func (h InvoiceHandler) GetAllInvoicePage(c *gin.Context) {
 		return
 	}
 
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize > 0 {
+		totalPages++
+	}
+
 	c.JSON(http.StatusOK, InvoiceResponse{
 		Code:    200,
 		Message: "获取发票列表成功",
 		Data: map[string]interface{}{
-			"invoices": invoices,
-			"page":     page,
-			"size":     len(invoices),
+			"invoices":   invoices,
+			"page":       page,
+			"size":       pageSize,
+			"total":      total,
+			"totalPages": totalPages,
 		},
 	})
 }
@@ -202,14 +210,15 @@ func (h InvoiceHandler) GetAllInvoicePageByUserId(c *gin.Context) {
 		return
 	}
 
-	UserIdInt, ok := typeUtils.AnyToInt64(userId)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, InvoiceResponse{
-			Code:    500,
-			Message: "user_id类型转换错误",
-		})
-		return
+	UserIdInt := cast.ToInt64(userId)
+
+	tenantId, exists := c.Get("tenant_id")
+	var tenantIdInt int64
+	if !exists {
+		tenantIdInt = int64(0)
 	}
+
+	tenantIdInt = cast.ToInt64(tenantId)
 
 	page, err := strconv.Atoi(pageStr)
 	if err != nil {
@@ -221,7 +230,7 @@ func (h InvoiceHandler) GetAllInvoicePageByUserId(c *gin.Context) {
 		pageSize = 10
 	}
 
-	invoices, err := h.invoiceService.GetAllInvoicePageByUserId(page, pageSize, UserIdInt)
+	invoices, total, err := h.invoiceService.GetAllInvoicePageByUserId(page, pageSize, UserIdInt, tenantIdInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, InvoiceResponse{
 			Code:    500,
@@ -230,13 +239,20 @@ func (h InvoiceHandler) GetAllInvoicePageByUserId(c *gin.Context) {
 		return
 	}
 
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize > 0 {
+		totalPages++
+	}
+
 	c.JSON(http.StatusOK, InvoiceResponse{
 		Code:    200,
 		Message: "获取发票列表成功",
 		Data: map[string]interface{}{
-			"invoices": invoices,
-			"page":     page,
-			"size":     len(invoices),
+			"invoices":   invoices,
+			"page":       page,
+			"size":       pageSize,
+			"total":      total,
+			"totalPages": totalPages,
 		},
 	})
 }
@@ -249,7 +265,7 @@ func (h InvoiceHandler) GetAllInvoicePageByTenantId(c *gin.Context) {
 	if !exists || tenantId.(*int64) == nil {
 		c.JSON(http.StatusConflict, InvoiceResponse{
 			Code:    409,
-			Message: "找不到该租户",
+			Message: "无法获取租户id",
 		})
 		return
 	}
@@ -272,7 +288,7 @@ func (h InvoiceHandler) GetAllInvoicePageByTenantId(c *gin.Context) {
 	if err != nil {
 		pageSize = 10
 	}
-	invoices, err := h.invoiceService.GetAllInvoicePageByTenantId(page, pageSize, TenantIdInt)
+	invoices, total, err := h.invoiceService.GetAllInvoicePageByTenantId(page, pageSize, TenantIdInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, InvoiceResponse{
 			Code:    500,
@@ -281,13 +297,20 @@ func (h InvoiceHandler) GetAllInvoicePageByTenantId(c *gin.Context) {
 		return
 	}
 
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize > 0 {
+		totalPages++
+	}
+
 	c.JSON(http.StatusOK, InvoiceResponse{
 		Code:    200,
 		Message: "获取发票列表成功",
 		Data: map[string]interface{}{
-			"invoices": invoices,
-			"page":     page,
-			"size":     len(invoices),
+			"invoices":   invoices,
+			"page":       page,
+			"size":       pageSize,
+			"total":      total,
+			"totalPages": totalPages,
 		},
 	})
 }

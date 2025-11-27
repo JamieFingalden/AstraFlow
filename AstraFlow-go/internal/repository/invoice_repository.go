@@ -37,24 +37,50 @@ func (r *InvoiceRepository) FindByInvoiceNumber(InvoiceNumber string) (*model.In
 }
 
 // FindAllPage 分页查询所有发票
-func (r *InvoiceRepository) FindAllPage(limit, offset int) ([]*model.Invoice, error) {
+func (r *InvoiceRepository) FindAllPage(limit, offset int) ([]*model.Invoice, int64, error) {
 	var invoices []*model.Invoice
-	err := r.db.Limit(limit).Offset(offset).Find(&invoices).Error
-	return invoices, err
+	var total int64
+
+	err := r.db.Model(&model.Invoice{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = r.db.Limit(limit).Offset(offset).Find(&invoices).Error
+	return invoices, total, err
 }
 
 // FindAllPageByUserId 根据用户id分页查询所有发票
-func (r *InvoiceRepository) FindAllPageByUserId(limit, offset int, userId int64) ([]*model.Invoice, error) {
+func (r *InvoiceRepository) FindAllPageByUserId(limit, offset int, userId int64) ([]*model.Invoice, int64, error) {
 	var invoices []*model.Invoice
-	err := r.db.Where("user_id = ?", userId).Limit(limit).Offset(offset).Find(&invoices).Error
-	return invoices, err
+	var total int64
+	var err error
+
+	err = r.db.Where("user_id = ?", userId).Limit(limit).Offset(offset).Find(&invoices).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = r.db.Model(&model.Invoice{}).Where("user_id = ?", userId).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return invoices, total, err
 }
 
 // FindAllPageByTenantId 根据租户id分页查询所有发票
-func (r *InvoiceRepository) FindAllPageByTenantId(limit, offset int, tenantId int64) ([]*model.Invoice, error) {
+func (r *InvoiceRepository) FindAllPageByTenantId(limit, offset int, tenantId int64) ([]*model.Invoice, int64, error) {
 	var invoices []*model.Invoice
-	err := r.db.Where("tenant_id = ?", tenantId).Limit(limit).Offset(offset).Find(&invoices).Error
-	return invoices, err
+	var total int64
+
+	err := r.db.Model(&model.Invoice{}).Where("tenant_id = ?", tenantId).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = r.db.Where("tenant_id = ?", tenantId).Limit(limit).Offset(offset).Find(&invoices).Error
+	return invoices, total, err
 }
 
 func (r *InvoiceRepository) Update(invoice *model.Invoice) error {

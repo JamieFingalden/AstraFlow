@@ -47,15 +47,15 @@ export const getExpenseCategories = async (params = {}) => {
 }
 
 /**
- * 获取每周支出趋势数据
+ * 获取每月支出趋势数据
  * @param {Object} params - 查询参数
  * @param {string} params.start_date - 开始日期 (格式: YYYY-MM-DD)
  * @param {string} params.end_date - 结束日期 (格式: YYYY-MM-DD)
- * @returns {Promise<Object>} 每周支出趋势响应
+ * @returns {Promise<Object>} 每月支出趋势响应
  */
-export const getWeeklyExpenses = async (params = {}) => {
+export const getMonthlyExpenses = async (params = {}) => {
     return request({
-        url: API_URLS.ANALYTICS.TRENDS,
+        url: API_URLS.ANALYTICS.MONTHLY,
         method: 'GET',
         params
     })

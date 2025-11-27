@@ -62,23 +62,15 @@ func (h AnalyticsHandler) GetDashboardData(c *gin.Context) {
 		}
 	}
 
-	// Parse query parameters
-	startDateStr := c.Query("start_date")
-	endDateStr := c.Query("end_date")
+	now := time.Now()            // 当前时间
+	year, month, _ := now.Date() // 取出年、月
+	// 本月第一天 00:00:00
+	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, now.Location())
+	// 下月第一天 00:00:00 再减 1 纳秒 → 本月最后 1 秒
+	lastOfMonth := time.Date(year, month+1, 1, 0, 0, 0, -1, now.Location())
 
-	var startDate, endDate *time.Time
-
-	if startDateStr != "" {
-		if parsedDate, err := time.Parse("2006-01-02", startDateStr); err == nil {
-			startDate = &parsedDate
-		}
-	}
-
-	if endDateStr != "" {
-		if parsedDate, err := time.Parse("2006-01-02", endDateStr); err == nil {
-			endDate = &parsedDate
-		}
-	}
+	startDate := &firstOfMonth
+	endDate := &lastOfMonth
 
 	// Get dashboard data from service
 	dashboardData, err := h.analyticsService.GetDashboardData(tenantIdInt, userIdInt, startDate, endDate)
@@ -290,21 +282,21 @@ func (h AnalyticsHandler) GetWeeklyExpenses(c *gin.Context) {
 		}
 	}
 
-	// Get weekly expenses from service
-	weeklyExpenses, err := h.analyticsService.GetWeeklyExpenses(tenantIdInt, userIdInt, startDate, endDate)
+	// Get monthly expenses from service
+	monthlyExpenses, err := h.analyticsService.GetMonthlyExpenses(tenantIdInt, userIdInt, startDate, endDate)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, AnalyticsResponse{
 			Code:    500,
-			Message: "获取每周支出数据失败: " + err.Error(),
+			Message: "获取每月支出数据失败: " + err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, AnalyticsResponse{
 		Code:    200,
-		Message: "获取每周支出数据成功",
+		Message: "获取每月支出数据成功",
 		Data: map[string]interface{}{
-			"weekly_expenses": weeklyExpenses,
+			"monthly_expenses": monthlyExpenses,
 		},
 	})
 }
@@ -418,23 +410,15 @@ func (h AnalyticsHandler) GetReimbursementStatisticsData(c *gin.Context) {
 		}
 	}
 
-	// Parse query parameters
-	startDateStr := c.Query("start_date")
-	endDateStr := c.Query("end_date")
+	now := time.Now()            // 当前时间
+	year, month, _ := now.Date() // 取出年、月
+	// 本月第一天 00:00:00
+	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, now.Location())
+	// 下月第一天 00:00:00 再减 1 纳秒 → 本月最后 1 秒
+	lastOfMonth := time.Date(year, month+1, 1, 0, 0, 0, -1, now.Location())
 
-	var startDate, endDate *time.Time
-
-	if startDateStr != "" {
-		if parsedDate, err := time.Parse("2006-01-02", startDateStr); err == nil {
-			startDate = &parsedDate
-		}
-	}
-
-	if endDateStr != "" {
-		if parsedDate, err := time.Parse("2006-01-02", endDateStr); err == nil {
-			endDate = &parsedDate
-		}
-	}
+	startDate := &firstOfMonth
+	endDate := &lastOfMonth
 
 	// Get reimbursement statistics data from service
 	reimbursementData, err := h.analyticsService.GetReimbursementStatisticsData(tenantIdInt, userIdInt, startDate, endDate)
@@ -591,6 +575,68 @@ func (h AnalyticsHandler) GetReimbursementMonthlyTrends(c *gin.Context) {
 		Message: "获取报销月度趋势数据成功",
 		Data: map[string]interface{}{
 			"monthly_trends": trends,
+		},
+	})
+}
+
+// GetMonthlyExpenses retrieves monthly expense trends for the main dashboard
+func (h AnalyticsHandler) GetMonthlyExpenses(c *gin.Context) {
+	// Extract user and tenant information from context
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, AnalyticsResponse{
+			Code:    401,
+			Message: "登录过期, 请重新登录",
+		})
+		return
+	}
+
+	userIdInt, ok := typeUtils.AnyToInt64(userID)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, AnalyticsResponse{
+			Code:    500,
+			Message: "user_id类型转换错误",
+		})
+		return
+	}
+
+	tenantID, tenantExists := c.Get("tenant_id")
+	var tenantIdInt *int64
+	if !tenantExists || tenantID == nil {
+		tenantIdInt = nil
+	} else {
+		if tid, ok := tenantID.(*int64); ok && tid != nil {
+			tenantIdInt = tid
+		} else {
+			tenantIdInt = nil
+		}
+	}
+
+	now := time.Now()            // 当前时间
+	year, month, _ := now.Date() // 取出年、月
+	// 本月第一天 00:00:00
+	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, now.Location())
+	// 下月第一天 00:00:00 再减 1 纳秒 → 本月最后 1 秒
+	lastOfMonth := time.Date(year, month+1, 1, 0, 0, 0, -1, now.Location())
+
+	startDate := &firstOfMonth
+	endDate := &lastOfMonth
+
+	// Get monthly expenses from service
+	monthlyExpenses, err := h.analyticsService.GetMonthlyExpenses(tenantIdInt, userIdInt, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, AnalyticsResponse{
+			Code:    500,
+			Message: "获取每月支出数据失败: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, AnalyticsResponse{
+		Code:    200,
+		Message: "获取每月支出数据成功",
+		Data: map[string]interface{}{
+			"monthly_expenses": monthlyExpenses,
 		},
 	})
 }

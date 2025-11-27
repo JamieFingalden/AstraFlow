@@ -85,15 +85,15 @@
           </div>
         </div>
 
-        <!-- Weekly Expense Trend Line Chart -->
+        <!-- Monthly Expense Trend Line Chart -->
         <div class="chart-card">
           <h3 class="chart-title">
-            每周支出趋势
+            每月支出趋势
           </h3>
           <div class="chart-container">
-            <div ref="lineChartRef" class="echarts-container" v-if="weeklyExpenses && weeklyExpenses.length > 0"></div>
+            <div ref="lineChartRef" class="echarts-container" v-if="monthlyExpenses && monthlyExpenses.length > 0"></div>
             <div v-else class="chart-placeholder">
-              暂无每周支出数据
+              暂无每月支出数据
             </div>
           </div>
         </div>
@@ -332,9 +332,9 @@ const fetchDashboardData = async () => {
       expenseCategories.value = dashboardData.expense_categories || []
       console.log('Expense categories updated:', expenseCategories.value) // Debug log
 
-      // Update weekly expenses
-      weeklyExpenses.value = dashboardData.weekly_expenses || []
-      console.log('Weekly expenses updated:', weeklyExpenses.value) // Debug log
+      // Update monthly expenses
+      monthlyExpenses.value = dashboardData.monthly_expenses || []
+      console.log('Monthly expenses updated:', monthlyExpenses.value) // Debug log
 
       // Update recent bills and format dates for display
       recentBills.value = (dashboardData.recent_bills || []).map(bill => ({
@@ -364,8 +364,8 @@ const fetchDashboardData = async () => {
     if (expenseCategories.value && expenseCategories.value.length > 0) {
       expenseCategories.value = [...expenseCategories.value]
     }
-    if (weeklyExpenses.value && weeklyExpenses.value.length > 0) {
-      weeklyExpenses.value = [...weeklyExpenses.value]
+    if (monthlyExpenses.value && monthlyExpenses.value.length > 0) {
+      monthlyExpenses.value = [...monthlyExpenses.value]
     }
     if (recentBills.value && recentBills.value.length > 0) {
       recentBills.value = [...recentBills.value]
@@ -378,7 +378,7 @@ const fetchDashboardData = async () => {
     setTimeout(() => {
       // Force a Vue update by touching the reactive variables again
       expenseCategories.value = [...expenseCategories.value]
-      weeklyExpenses.value = [...weeklyExpenses.value]
+      monthlyExpenses.value = [...monthlyExpenses.value]
     }, 50)
 
     // Animate elements after data is loaded
@@ -398,7 +398,7 @@ onUnmounted(() => {
 
 // Initialize with empty arrays/objects to be populated by API
 const expenseCategories = ref([])
-const weeklyExpenses = ref([])
+const monthlyExpenses = ref([])
 const recentBills = ref([])
 const aiInsights = ref([])
 const metrics = ref([])
@@ -449,7 +449,7 @@ const initCharts = () => {
   }
 
   // Initialize line chart
-  if (weeklyExpenses.value && weeklyExpenses.value.length > 0) {
+  if (monthlyExpenses.value && monthlyExpenses.value.length > 0) {
     const lineChartDom = lineChartRef.value
     if (lineChartDom) {
       const lineChart = echarts.getInstanceByDom(lineChartDom) || echarts.init(lineChartDom, isDark.value ? 'dark' : 'light')
@@ -463,7 +463,7 @@ const initCharts = () => {
           }
         },
         legend: {
-          data: ['周支出'],
+          data: ['月支出'],
           textStyle: {
             color: isDark.value ? '#fff' : '#000'
           }
@@ -477,7 +477,7 @@ const initCharts = () => {
         xAxis: {
           type: 'category',
           boundaryGap: false,
-          data: weeklyExpenses.value.map(item => item.week),
+          data: monthlyExpenses.value.map(item => item.month),
           axisLabel: {
             color: isDark.value ? '#fff' : '#000'
           }
@@ -491,10 +491,10 @@ const initCharts = () => {
         },
         series: [
           {
-            name: '周支出',
+            name: '月支出',
             type: 'line',
-            stack: '总量',
-            data: weeklyExpenses.value.map(item => item.expense),
+            smooth: true, // This makes it a curved line chart
+            data: monthlyExpenses.value.map(item => item.expense),
             itemStyle: {
               color: '#3B82F6'
             },
