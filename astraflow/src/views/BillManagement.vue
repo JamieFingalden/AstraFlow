@@ -332,7 +332,7 @@ const selectedStatus = ref('')
 
 // Pagination state - make it reactive to store
 const currentPage = ref(1)
-const itemsPerPage = 8
+const itemsPerPage = 10
 
 // Get user store for multi-tenant logic
 const userStore = useUserStore()
@@ -1172,6 +1172,20 @@ onMounted(async () => {
 .table-cell {
   padding: 1rem 1.5rem;
   text-align: center;
+  vertical-align: middle;
+  height: 100%;
+}
+
+.table-cell-centered {
+  display: table-cell !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  height: 100%;
+}
+
+.table-cell-centered .source-container,
+.table-cell-centered .action-buttons {
+  justify-content: center;
 }
 
 .bill-name {
@@ -1288,12 +1302,6 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.table-cell-centered {
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .source-icon {
