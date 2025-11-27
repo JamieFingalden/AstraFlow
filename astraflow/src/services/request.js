@@ -1,4 +1,6 @@
 import axios from 'axios'
+import { useUserStore } from '../stores/userStore'
+import router from '../router'
 
 // 创建axios实例
 const api = axios.create({
@@ -37,6 +39,29 @@ api.interceptors.request.use(
     return config
   },
   (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// 响应拦截器 - 处理401错误
+api.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error) => {
+    // 处理401未授权错误
+    if (error.response && error.response.status === 401) {
+      // 清除用户认证状态
+      const userStore = useUserStore()
+      userStore.clearAuthState()
+      
+      // 重定向到登录页
+      router.replace({
+        path: '/login',
+        query: { redirect: router.currentRoute.value.fullPath }
+      })
+    }
+    
     return Promise.reject(error)
   }
 )
