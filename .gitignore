@@ -9,3 +9,9 @@ AstraFlow-go/.idea/vcs.xml
 .idea/modules.xml
 .idea/sqldialects.xml
 .idea/vcs.xml
+ocr-ai/.idea/.gitignore
+ocr-ai/.idea/misc.xml
+ocr-ai/.idea/modules.xml
+ocr-ai/.idea/ocr-ai.iml
+ocr-ai/.idea/vcs.xml
+ocr-ai/.idea/inspectionProfiles/profiles_settings.xml

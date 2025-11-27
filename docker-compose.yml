@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    expose:
+      - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: astraflow
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+
+  migrate:
+    build: .
+    image: gin-astraflow-migrate:latest
+    container_name: astraflow-migrate-gin
+    # 覆盖默认入口，只跑迁移
+    entrypoint: ["/app/migrate"]
+    environment:
+      DB_DSN: "root:123456@tcp(mysql:3306)/astraflow?charset=utf8mb4&parseTime=True"
+      TZ: Asia/Shanghai
+    depends_on:
+      - mysql
+    # 跑完就退出，restart 不设或 no
+    restart: "no"
+
+  server:
+    build: .
+    image: gin-astraflow:latest
+    container_name: astraflow-gin
+    # 默认入口就是 /app/server
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      DB_DSN: "root:123456@tcp(mysql:3306)/astraflow?charset=utf8mb4&parseTime=True"
+      TZ: Asia/Shanghai
+    depends_on:
+      - mysql
+      - migrate   # 确保 migrate 先执行完
+    restart: always
+
+  astraflow-flask:
+    build: ./flask
+    image: astraflow-flask:latest
+    container_name: astraflow-flask
+    expose:                 # 仅内部用
+      - "5000"
+    environment:
+      # 没有数据库，留空或自定义
+      TZ: Asia/Shanghai
+    restart: always
