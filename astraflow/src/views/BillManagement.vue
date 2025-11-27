@@ -81,8 +81,10 @@
             </span>
             <select v-model="selectedStatus" class="filter-select">
               <option value="">全部状态</option>
-              <option value="已报销">已报销</option>
-              <option value="未报销">未报销</option>
+              <option value="待定/pending">待定 (pending)</option>
+              <option value="通过/recognized">通过 (recognized)</option>
+              <option value="已报销/confirmed">已报销 (confirmed)</option>
+              <option value="驳回/rejected">驳回 (rejected)</option>
             </select>
           </div>
         </div>
@@ -95,13 +97,13 @@
           <table class="bills-table">
             <thead>
               <tr class="table-header">
-                <th class="table-header-cell">账单名称</th>
-                <th class="table-header-cell">分类</th>
-                <th class="table-header-cell">金额</th>
-                <th class="table-header-cell">日期</th>
-                <th class="table-header-cell">来源</th>
-                <th class="table-header-cell">状态</th>
-                <th class="table-header-cell">操作</th>
+                <th class="table-header-cell" style="text-align: center;">账单名称</th>
+                <th class="table-header-cell" style="text-align: center;">分类</th>
+                <th class="table-header-cell" style="text-align: center;">金额</th>
+                <th class="table-header-cell" style="text-align: center;">日期</th>
+                <th class="table-header-cell" style="text-align: center;">来源</th>
+                <th class="table-header-cell" style="text-align: center;">状态</th>
+                <th class="table-header-cell" style="text-align: center;">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -113,7 +115,7 @@
                 <td class="table-cell">
                   <div>
                     <p class="bill-name">
-                      {{ bill.name }}
+                      {{ bill.vendor }}
                     </p>
                     <p class="bill-description">
                       {{ bill.description }}
@@ -132,10 +134,10 @@
                 </td>
                 <td class="table-cell">
                   <p class="bill-date">
-                    {{ bill.date }}
+                    {{ formatDate(bill.date) }}
                   </p>
                 </td>
-                <td class="table-cell">
+                <td class="table-cell table-cell-centered">
                   <div class="source-container">
                     <component
                       :is="getSourceIcon(bill.source)"
@@ -144,16 +146,16 @@
                       :class="getSourceIconClass(bill.source)"
                     />
                     <span class="source-text">
-                      {{ bill.source }}
+                      {{ bill.vendor }}
                     </span>
                   </div>
                 </td>
                 <td class="table-cell">
                   <span class="status-tag" :class="getStatusClass(bill.status)">
-                    {{ bill.status }}
+                    {{ formatStatus(bill.status) }}
                   </span>
                 </td>
-                <td class="table-cell">
+                <td class="table-cell table-cell-centered">
                   <div class="action-buttons">
                     <button class="action-button" title="编辑" @click="openEditInvoiceModal(bill)">
                       <EditIcon :size="16" />
@@ -185,7 +187,7 @@
                 </p>
               </div>
               <span class="status-tag" :class="getStatusClass(bill.status)">
-                {{ bill.status }}
+                {{ formatStatus(bill.status) }}
               </span>
             </div>
             <div class="card-grid">
@@ -199,7 +201,7 @@
               </div>
               <div>
                 <p class="card-label">日期</p>
-                <p class="card-value">{{ bill.date }}</p>
+                <p class="card-value">{{ formatDate(bill.date) }}</p>
               </div>
               <div>
                 <p class="card-label">来源</p>
@@ -211,7 +213,7 @@
                     :class="getSourceIconClass(bill.source)"
                   />
                   <span class="source-text">
-                    {{ bill.source }}
+                    {{ bill.vendor }}
                   </span>
                 </div>
               </div>
@@ -346,7 +348,18 @@ const filteredBills = computed(() => {
       (name && name.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
       (bill.description && bill.description.toLowerCase().includes(searchQuery.value.toLowerCase()))
     const matchesCategory = !selectedCategory.value || category === selectedCategory.value
-    const matchesStatus = !selectedStatus.value || status === selectedStatus.value
+    // Handle bilingual status filtering (e.g. "待定/pending", "通过/recognized", etc.)
+    let matchesStatus = true
+    if (selectedStatus.value) {
+      if (selectedStatus.value.includes('/')) {
+        // Extract both Chinese and English parts from the selected status
+        const [chinesePart, englishPart] = selectedStatus.value.split('/')
+        matchesStatus = status === englishPart.trim() || status === chinesePart.trim()
+      } else {
+        // Fallback for direct match
+        matchesStatus = status === selectedStatus.value
+      }
+    }
     return matchesSearch && matchesCategory && matchesStatus
   })
 })
@@ -366,6 +379,34 @@ const paginatedBills = computed(() => {
 })
 
 // Methods
+const formatStatus = (status) => {
+  // Map backend status values to bilingual display
+  const statusMap = {
+    'pending': '待定 (pending)',
+    '待定': '待定 (pending)',
+    'recognized': '通过 (recognized)',
+    '通过': '通过 (recognized)',
+    'confirmed': '已报销 (confirmed)',
+    '已报销': '已报销 (confirmed)',
+    'rejected': '驳回 (rejected)',
+    '驳回': '驳回 (rejected)',
+    '待审批': '待定 (pending)',
+    '已拒绝': '驳回 (rejected)'
+  }
+  return statusMap[status] || status
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return dateString // 如果日期无效，返回原始值
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
+}
+
 const getCategoryStyle = (category) => {
   const styles = {
     '交通': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
@@ -450,9 +491,11 @@ const getStatusClass = (status) => {
   // Map backend statuses to UI statuses
   if (status === 'confirmed' || status === '已报销') {
     return 'status-approved'
-  } else if (status === 'pending' || status === '待审批') {
+  } else if (status === 'recognized' || status === '通过') {
+    return 'status-recognized'
+  } else if (status === 'pending' || status === '待审批' || status === '待定') {
     return 'status-pending'
-  } else if (status === 'rejected' || status === '已拒绝') {
+  } else if (status === 'rejected' || status === '已拒绝' || status === '驳回') {
     return 'status-rejected'
   }
   return 'status-pending'
@@ -1128,6 +1171,7 @@ onMounted(async () => {
 
 .table-cell {
   padding: 1rem 1.5rem;
+  text-align: center;
 }
 
 .bill-name {
@@ -1246,6 +1290,12 @@ onMounted(async () => {
   gap: 0.5rem;
 }
 
+.table-cell-centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .source-icon {
   width: 1rem;
   height: 1rem;
@@ -1306,6 +1356,16 @@ onMounted(async () => {
 .app-container[data-theme="dark"] .status-rejected {
   background-color: #b91c1c;
   color: #fecaca;
+}
+
+.status-recognized {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.app-container[data-theme="dark"] .status-recognized {
+  background-color: #1e40af;
+  color: #bfdbfe;
 }
 
 .action-buttons {

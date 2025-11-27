@@ -216,3 +216,5 @@ Key endpoints include:
 1. Don't repeat the start of the project
 2. Frontend and backend projects I will start, when I need to reboot, prompt "Please restart frontend/backend"
 3. Write the code strictly according to the original architecture, and only change the architecture when I request it.
+4. The revised version does not consider the mobile terminal for the time being
+5. Do not go to the store to call the request request, but directly call the method in the services/api package

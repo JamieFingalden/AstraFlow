@@ -3,7 +3,7 @@
 
 -- Insert demo user (personal user with user_id = 1)
 INSERT INTO users (id, tenant_id, role_id, username, password, email, phone, created_at, updated_at) VALUES
-(1, NULL, 3, 'demo_user', '$2a$10$SEJZrIJL3MwQw8J8K8Yf0OqzQvQqN5dY9vHd5r3j3ZP6j4vY4ZQGy', 'demo@example.com', '13800138000', NOW(), NOW());
+(1, NULL, 3, 'demo_user', '$2a$10$L4748PJjRPOVGaQGXon/c.091eSsA66ND8Hd9IZ/hSyJLJni87QGq', 'demo@astraflow.com', '13800138000', NOW(), NOW());
 
 -- Insert demo invoices
 INSERT INTO invoices (id, tenant_id, user_id, invoice_number, invoice_date, amount, vendor, tax_id, category, payment_source, status, created_at, updated_at) VALUES
