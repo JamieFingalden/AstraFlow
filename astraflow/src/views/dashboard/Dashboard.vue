@@ -26,7 +26,7 @@
         </div>
 
         <div class="header-right">
-          <button @click="toggleTheme" class="theme-toggle">
+          <button @click="() => { toggleTheme(); handleThemeChange(); }" class="theme-toggle">
             <SunIcon v-if="isDark" :size="20" />
             <MoonIcon v-else :size="20" />
           </button>
@@ -73,74 +73,28 @@
       <!-- Charts Row -->
       <div class="charts-row">
         <!-- Expense Categories Pie Chart -->
-        <div ref="pieChartRef" class="chart-card">
+        <div class="chart-card">
           <h3 class="chart-title">
             支出类别占比
           </h3>
           <div class="chart-container">
-            <PieChart>
-              <Pie
-                :data="expenseCategories"
-                cx="50%"
-                cy="50%"
-                :labelLine="false"
-                :outerRadius="80"
-                fill="#8884d8"
-                dataKey="value"
-                :label="renderCustomizedLabel"
-              >
-                <Cell v-for="(entry, index) in expenseCategories" :key="`cell-${index}`" :fill="entry.color" />
-              </Pie>
-              <Tooltip
-                :contentStyle="{
-                  backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                  border: isDark ? '1px solid #374151' : '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  color: isDark ? '#ffffff' : '#000000'
-                }"
-              />
-            </PieChart>
+            <div ref="pieChartRef" class="echarts-container" v-if="expenseCategories && expenseCategories.length > 0"></div>
+            <div v-else class="chart-placeholder">
+              暂无支出类别数据
+            </div>
           </div>
         </div>
 
         <!-- Weekly Expense Trend Line Chart -->
-        <div ref="lineChartRef" class="chart-card">
+        <div class="chart-card">
           <h3 class="chart-title">
             每周支出趋势
           </h3>
           <div class="chart-container">
-            <LineChart :data="weeklyExpenses">
-              <CartesianGrid
-                strokeDasharray="3 3"
-                :stroke="isDark ? '#374151' : '#e5e7eb'"
-              />
-              <XAxis
-                dataKey="week"
-                :stroke="isDark ? '#9ca3af' : '#6b7280'"
-              />
-              <YAxis
-                :stroke="isDark ? '#9ca3af' : '#6b7280'"
-                :tickFormatter="formatYAxis"
-              />
-              <Tooltip
-                :contentStyle="{
-                  backgroundColor: isDark ? '#1f2937' : '#ffffff',
-                  border: isDark ? '1px solid #374151' : '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  color: isDark ? '#ffffff' : '#000000'
-                }"
-                :formatter="formatTooltip"
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="expense"
-                stroke="#3B82F6"
-                :strokeWidth="3"
-                :activeDot="{ r: 8 }"
-                name="周支出"
-              />
-            </LineChart>
+            <div ref="lineChartRef" class="echarts-container" v-if="weeklyExpenses && weeklyExpenses.length > 0"></div>
+            <div v-else class="chart-placeholder">
+              暂无每周支出数据
+            </div>
           </div>
         </div>
       </div>
@@ -227,9 +181,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
+import * as echarts from 'echarts'
 import {
   CreditCard,
   DollarSign,
@@ -242,6 +196,7 @@ import {
 } from 'lucide-vue-next'
 import { useTheme } from '../../composables/useTheme'
 import { useUserStore } from '../../stores/userStore'
+import { getDashboardData } from '../../services/api/analyticsApi'
 
 const router = useRouter()
 const { theme, toggleTheme, isDark } = useTheme()
@@ -253,6 +208,10 @@ const pieChartRef = ref(null)
 const lineChartRef = ref(null)
 const billsTableRef = ref(null)
 const aiInsightsRef = ref(null)
+
+// State for loading and error
+const loading = ref(false)
+const error = ref(null)
 
 // Set card ref function
 const setCardRef = (el, index) => {
@@ -279,6 +238,13 @@ const handleCardHover = (index, isHover) => {
   }
 }
 
+// Update charts when theme changes
+const handleThemeChange = () => {
+  nextTick(() => {
+    updateChartTheme()
+  })
+}
+
 // Animate elements on mount
 const animateElements = () => {
   // Animate key metrics cards
@@ -295,20 +261,10 @@ const animateElements = () => {
     }
   })
 
-  // Animate charts
-  const charts = [pieChartRef.value, lineChartRef.value]
-  charts.forEach((chart, index) => {
-    if (chart) {
-      chart.style.opacity = '0'
-      chart.style.transform = index === 0 ? 'translateX(-20px)' : 'translateX(20px)'
-
-      setTimeout(() => {
-        chart.style.transition = 'opacity 0.5s ease, transform 0.5s ease'
-        chart.style.opacity = '1'
-        chart.style.transform = 'translateX(0)'
-      }, 300)
-    }
-  })
+  // Initialize charts after a short delay to ensure DOM is ready
+  setTimeout(() => {
+    initCharts()
+  }, 100)
 
   // Animate tables and insights
   const otherElements = [billsTableRef.value, aiInsightsRef.value]
@@ -326,91 +282,275 @@ const animateElements = () => {
   })
 }
 
+// Fetch dashboard data from API
+const fetchDashboardData = async () => {
+  loading.value = true
+  error.value = null
+
+  try {
+    const response = await getDashboardData()
+    console.log('Dashboard API Response:', response) // Debug log
+
+    if (response.code === 200 && response.data && response.data.dashboard) {
+      const dashboardData = response.data.dashboard
+      console.log('Dashboard data processed:', dashboardData) // Debug log
+
+      // Update metrics
+      metrics.value = [
+        {
+          title: '本月总支出',
+          value: `¥${dashboardData.metrics.monthly_expense?.toLocaleString() || '0'}`,
+          icon: DollarSign,
+          color: 'from-blue-500 to-cyan-500',
+          change: '+0.0%' // Placeholder - will calculate from API when available
+        },
+        {
+          title: '自动报销笔数',
+          value: `${dashboardData.metrics.auto_processed || 0}笔`,
+          icon: FileText,
+          color: 'from-green-500 to-emerald-500',
+          change: '+0.0%' // Placeholder - will calculate from API when available
+        },
+        {
+          title: 'AI识别准确率',
+          value: `${dashboardData.metrics.ai_accuracy?.toFixed(1) || '0.0'}%`,
+          icon: CheckCircle,
+          color: 'from-purple-500 to-pink-500',
+          change: '+0.0%' // Placeholder - will calculate from API when available
+        },
+        {
+          title: '待审核报销',
+          value: `${dashboardData.metrics.pending_reviews || 0}条`,
+          icon: CreditCard,
+          color: 'from-amber-500 to-orange-500',
+          change: '+0.0%' // Placeholder - will calculate from API when available
+        }
+      ]
+      console.log('Metrics updated:', metrics.value) // Debug log
+
+      // Update expense categories
+      expenseCategories.value = dashboardData.expense_categories || []
+      console.log('Expense categories updated:', expenseCategories.value) // Debug log
+
+      // Update weekly expenses
+      weeklyExpenses.value = dashboardData.weekly_expenses || []
+      console.log('Weekly expenses updated:', weeklyExpenses.value) // Debug log
+
+      // Update recent bills and format dates for display
+      recentBills.value = (dashboardData.recent_bills || []).map(bill => ({
+        ...bill,
+        date: new Date(bill.date).toLocaleDateString('zh-CN')
+      }))
+      console.log('Recent bills updated:', recentBills.value) // Debug log
+
+      // Update AI insights (keeping empty as requested by user)
+      // aiInsights.value = dashboardData.ai_insights || []
+      // For now, we'll use empty array as AI insights will be implemented later
+      aiInsights.value = []
+      console.log('AI Insights updated:', aiInsights.value) // Debug log
+    } else {
+      error.value = response.message || '获取仪表板数据失败'
+      console.error('Dashboard API response error:', response) // Debug log
+    }
+  } catch (err) {
+    console.error('Error fetching dashboard data:', err)
+    error.value = '获取数据时发生错误，请稍后重试'
+  } finally {
+    loading.value = false
+    // Force Vue to re-render the charts by making the data arrays reactive again
+    if (metrics.value && metrics.value.length > 0) {
+      metrics.value = [...metrics.value]
+    }
+    if (expenseCategories.value && expenseCategories.value.length > 0) {
+      expenseCategories.value = [...expenseCategories.value]
+    }
+    if (weeklyExpenses.value && weeklyExpenses.value.length > 0) {
+      weeklyExpenses.value = [...weeklyExpenses.value]
+    }
+    if (recentBills.value && recentBills.value.length > 0) {
+      recentBills.value = [...recentBills.value]
+    }
+    if (aiInsights.value && aiInsights.value.length > 0) {
+      aiInsights.value = [...aiInsights.value]
+    }
+
+    // Trigger chart re-rendering after a small delay
+    setTimeout(() => {
+      // Force a Vue update by touching the reactive variables again
+      expenseCategories.value = [...expenseCategories.value]
+      weeklyExpenses.value = [...weeklyExpenses.value]
+    }, 50)
+
+    // Animate elements after data is loaded
+    setTimeout(animateElements, 100)
+  }
+}
+
 onMounted(() => {
-  // Animate elements after a short delay
-  setTimeout(animateElements, 100)
+  fetchDashboardData()
 })
 
 onUnmounted(() => {
   // Clean up any animation timeouts if needed
+  disposeCharts()
 })
 
-// Custom label for pie chart
-const renderCustomizedLabel = ({ name, percent }) => {
-  return `${name} ${(percent * 100).toFixed(0)}%`
-}
 
-// Format Y axis for line chart
-const formatYAxis = (value) => {
-  return `¥${value}`
-}
+// Initialize with empty arrays/objects to be populated by API
+const expenseCategories = ref([])
+const weeklyExpenses = ref([])
+const recentBills = ref([])
+const aiInsights = ref([])
+const metrics = ref([])
 
-// Format tooltip for line chart
-const formatTooltip = (value) => {
-  return [`¥${value}`, '支出']
-}
+// Initialize and update charts
+const initCharts = () => {
+  // Initialize pie chart
+  if (expenseCategories.value && expenseCategories.value.length > 0) {
+    const pieChartDom = pieChartRef.value
+    if (pieChartDom) {
+      const pieChart = echarts.getInstanceByDom(pieChartDom) || echarts.init(pieChartDom, isDark.value ? 'dark' : 'light')
 
-// Mock data for the charts
-const expenseCategories = ref([
-  { name: '餐饮', value: 4500, color: '#3B82F6' },
-  { name: '交通', value: 3200, color: '#10B981' },
-  { name: '办公', value: 2800, color: '#8B5CF6' },
-  { name: '住宿', value: 6500, color: '#EF4444' },
-  { name: '其他', value: 1200, color: '#F59E0B' }
-])
+      const pieOption = {
+        tooltip: {
+          trigger: 'item',
+          formatter: '{a} <br/>{b}: ¥{c} ({d}%)'
+        },
+        legend: {
+          orient: 'vertical',
+          left: 'left',
+          textStyle: {
+            color: isDark.value ? '#fff' : '#000'
+          }
+        },
+        series: [
+          {
+            name: '支出类别',
+            type: 'pie',
+            radius: '50%',
+            data: expenseCategories.value.map(item => ({
+              value: item.value,
+              name: item.name,
+              itemStyle: { color: item.color }
+            })),
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            }
+          }
+        ]
+      }
 
-const weeklyExpenses = ref([
-  { week: '第1周', expense: 3200 },
-  { week: '第2周', expense: 4500 },
-  { week: '第3周', expense: 2800 },
-  { week: '第4周', expense: 5800 }
-])
-
-const recentBills = ref([
-  { id: 1, date: '2025-11-01', category: '餐饮', amount: 128.50, status: '已通过', vendor: '星巴克' },
-  { id: 2, date: '2025-10-31', category: '交通', amount: 45.00, status: '待审核', vendor: '滴滴出行' },
-  { id: 3, date: '2025-10-30', category: '办公', amount: 299.90, status: '已通过', vendor: '京东' },
-  { id: 4, date: '2025-10-29', category: '餐饮', amount: 89.60, status: '已拒绝', vendor: '麦当劳' },
-  { id: 5, date: '2025-10-28', category: '住宿', amount: 450.00, status: '已通过', vendor: '汉庭酒店' }
-])
-
-const aiInsights = ref([
-  { id: 1, message: '系统检测到本月餐饮支出较上月增长25%，建议控制预算', type: 'warning' },
-  { id: 2, message: 'AI识别到3笔相似金额的报销，可能存在重复提交', type: 'info' },
-  { id: 3, message: '交通费用报销已达到月度上限，剩余预算不足', type: 'alert' }
-])
-
-// Mock metrics data
-const metrics = ref([
-  {
-    title: '本月总支出',
-    value: '¥12,380',
-    icon: DollarSign,
-    color: 'from-blue-500 to-cyan-500',
-    change: '+12.5%'
-  },
-  {
-    title: '自动报销笔数',
-    value: '48笔',
-    icon: FileText,
-    color: 'from-green-500 to-emerald-500',
-    change: '+8.2%'
-  },
-  {
-    title: 'AI识别准确率',
-    value: '98.7%',
-    icon: CheckCircle,
-    color: 'from-purple-500 to-pink-500',
-    change: '+1.2%'
-  },
-  {
-    title: '待审核报销',
-    value: '5条',
-    icon: CreditCard,
-    color: 'from-amber-500 to-orange-500',
-    change: '-2.1%'
+      pieChart.setOption(pieOption, true)
+    }
   }
-])
+
+  // Initialize line chart
+  if (weeklyExpenses.value && weeklyExpenses.value.length > 0) {
+    const lineChartDom = lineChartRef.value
+    if (lineChartDom) {
+      const lineChart = echarts.getInstanceByDom(lineChartDom) || echarts.init(lineChartDom, isDark.value ? 'dark' : 'light')
+
+      const lineOption = {
+        tooltip: {
+          trigger: 'axis',
+          formatter: (params) => {
+            const param = params[0]
+            return `${param.name}<br/>${param.seriesName}: ¥${param.value}`
+          }
+        },
+        legend: {
+          data: ['周支出'],
+          textStyle: {
+            color: isDark.value ? '#fff' : '#000'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          boundaryGap: false,
+          data: weeklyExpenses.value.map(item => item.week),
+          axisLabel: {
+            color: isDark.value ? '#fff' : '#000'
+          }
+        },
+        yAxis: {
+          type: 'value',
+          axisLabel: {
+            color: isDark.value ? '#fff' : '#000',
+            formatter: '¥{value}'
+          }
+        },
+        series: [
+          {
+            name: '周支出',
+            type: 'line',
+            stack: '总量',
+            data: weeklyExpenses.value.map(item => item.expense),
+            itemStyle: {
+              color: '#3B82F6'
+            },
+            lineStyle: {
+              color: '#3B82F6'
+            }
+          }
+        ]
+      }
+
+      lineChart.setOption(lineOption, true)
+    }
+  }
+}
+
+// Dispose charts when component unmounts
+const disposeCharts = () => {
+  const pieChartDom = pieChartRef.value
+  const lineChartDom = lineChartRef.value
+
+  if (pieChartDom) {
+    const pieChart = echarts.getInstanceByDom(pieChartDom)
+    if (pieChart) {
+      pieChart.dispose()
+    }
+  }
+
+  if (lineChartDom) {
+    const lineChart = echarts.getInstanceByDom(lineChartDom)
+    if (lineChart) {
+      lineChart.dispose()
+    }
+  }
+}
+
+// Update chart when theme changes
+const updateChartTheme = () => {
+  const pieChartDom = pieChartRef.value
+  const lineChartDom = lineChartRef.value
+
+  if (pieChartDom) {
+    const pieChart = echarts.getInstanceByDom(pieChartDom)
+    if (pieChart) {
+      pieChart.dispose()
+      initCharts()
+    }
+  }
+
+  if (lineChartDom) {
+    const lineChart = echarts.getInstanceByDom(lineChartDom)
+    if (lineChart) {
+      lineChart.dispose()
+      initCharts()
+    }
+  }
+}
 
 // Helper methods for dynamic classes
 const getStatusBadgeClass = (status) => {
@@ -878,6 +1018,20 @@ const getInsightClass = (type) => {
 
 .chart-container {
   height: 20rem;
+}
+
+.chart-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.echarts-container {
+  width: 100%;
+  height: 100%;
 }
 
 /* Content Row */

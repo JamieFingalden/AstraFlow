@@ -48,6 +48,17 @@ func InitRouter() *gin.Engine {
 			protected.GET("/invoicesByTenant", invoiceHandler.GetAllInvoicePageByTenantId) // 根据租户id分页获取发票列表
 			protected.PUT("/invoices/:id", invoiceHandler.UpdateInvoice)                   // 更新发票信息
 			protected.DELETE("/invoices/:id", invoiceHandler.DeleteInvoice)                // 删除发票
+
+			// 分析和报告相关接口
+			analyticsHandler := handler.NewAnalyticsHandler()
+			protected.GET("/analytics/dashboard", analyticsHandler.GetDashboardData)                          // 仪表板数据
+			protected.GET("/analytics/metrics", analyticsHandler.GetMetrics)                                  // 关键指标
+			protected.GET("/analytics/categories", analyticsHandler.GetExpenseCategories)                     // 支出类别
+			protected.GET("/analytics/weekly", analyticsHandler.GetWeeklyExpenses)                            // 每周支出趋势
+			protected.GET("/analytics/recent-bills", analyticsHandler.GetRecentBills)                         // 近期账单
+			protected.GET("/analytics/reimbursement", analyticsHandler.GetReimbursementStatisticsData)        // 报销统计数据
+			protected.GET("/analytics/reimbursement/statistics", analyticsHandler.GetReimbursementStatistics) // 报销统计详情
+			protected.GET("/analytics/reimbursement/trends", analyticsHandler.GetReimbursementMonthlyTrends)  // 报销月度趋势
 		}
 	}
 

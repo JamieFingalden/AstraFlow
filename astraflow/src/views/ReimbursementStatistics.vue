@@ -50,19 +50,16 @@
     <main class="stats-main-content">
       <!-- Data Overview Cards -->
       <div class="stats-cards-grid">
-        <!-- 本月总支出 -->
+        <!-- 总支出 -->
         <div :class="'stats-card ' + (isDark ? 'dark-theme red-theme' : 'light-theme red-theme')">
           <div class="card-header">
             <div :class="'card-icon-container ' + (isDark ? 'dark-theme red-theme' : 'light-theme red-theme')">
               <WalletIcon :size="24" :class="isDark ? 'card-icon-dark' : 'card-icon-light'" />
             </div>
-            <span :class="'card-badge ' + (isDark ? 'dark-theme red-theme' : 'light-theme red-theme')">
-              本月
-            </span>
           </div>
-          <h3 :class="'card-subtitle ' + (isDark ? 'dark-theme' : 'light-theme')">本月总支出</h3>
-          <p :class="'card-value ' + (isDark ? 'dark-theme' : 'light-theme')">¥12,486.50</p>
-          <p :class="'card-change ' + (isDark ? 'dark-theme' : 'light-theme')">较上月 +8.5%</p>
+          <h3 :class="'card-subtitle ' + (isDark ? 'dark-theme' : 'light-theme')">总支出</h3>
+          <p :class="'card-value ' + (isDark ? 'dark-theme' : 'light-theme')">¥{{ monthlyExpense ? monthlyExpense.toFixed(2) : '0.00' }}</p>
+          <p :class="'card-change ' + (isDark ? 'dark-theme' : 'light-theme')">&nbsp;</p>
         </div>
 
         <!-- 报销通过金额 -->
@@ -76,8 +73,8 @@
             </span>
           </div>
           <h3 :class="'card-subtitle ' + (isDark ? 'dark-theme' : 'light-theme')">报销通过金额</h3>
-          <p :class="'card-value ' + (isDark ? 'dark-theme' : 'light-theme')">¥8,234.00</p>
-          <p :class="'card-change ' + (isDark ? 'dark-theme' : 'light-theme')">通过率 66.0%</p>
+          <p :class="'card-value ' + (isDark ? 'dark-theme' : 'light-theme')">¥{{ approvedAmount ? approvedAmount.toFixed(2) : '0.00' }}</p>
+          <p :class="'card-change ' + (isDark ? 'dark-theme' : 'light-theme')">通过率 {{ approvalRate?.toFixed(1) || '0.0' }}%</p>
         </div>
 
         <!-- 未报销金额 -->
@@ -91,7 +88,7 @@
             </span>
           </div>
           <h3 :class="'card-subtitle ' + (isDark ? 'dark-theme' : 'light-theme')">未报销金额</h3>
-          <p :class="'card-value ' + (isDark ? 'dark-theme' : 'light-theme')">¥4,252.50</p>
+          <p :class="'card-value ' + (isDark ? 'dark-theme' : 'light-theme')">¥{{ pendingAmount ? pendingAmount.toFixed(2) : '0.00' }}</p>
           <p :class="'card-change ' + (isDark ? 'dark-theme' : 'light-theme')">34.0% 待报销</p>
         </div>
 
@@ -106,7 +103,7 @@
             </span>
           </div>
           <h3 :class="'card-subtitle ' + (isDark ? 'dark-theme' : 'light-theme')">报销通过率</h3>
-          <p :class="'card-value ' + (isDark ? 'dark-theme' : 'light-theme')">66.0%</p>
+          <p :class="'card-value ' + (isDark ? 'dark-theme' : 'light-theme')">{{ approvalRate?.toFixed(1) || '0.0' }}%</p>
           <p :class="'card-change ' + (isDark ? 'dark-theme' : 'light-theme')">较上月 +2.3%</p>
         </div>
       </div>
@@ -116,13 +113,13 @@
         <!-- Monthly Trend Bar Chart -->
         <div :class="'chart-card ' + (isDark ? 'dark-theme' : 'light-theme')">
           <h3 :class="'chart-title ' + (isDark ? 'dark-theme' : 'light-theme')">最近6个月报销趋势</h3>
-          <div ref="barChartRef" :style="{ height: '300px' }" class="chart-container"></div>
+          <div ref="barChartRef" class="chart-container"></div>
         </div>
 
         <!-- Category Distribution Pie Chart -->
         <div :class="'chart-card ' + (isDark ? 'dark-theme' : 'light-theme')">
           <h3 :class="'chart-title ' + (isDark ? 'dark-theme' : 'light-theme')">支出分类分布</h3>
-          <div ref="pieChartRef" :style="{ height: '300px' }" class="chart-container"></div>
+          <div ref="pieChartRef" class="chart-container"></div>
         </div>
       </div>
     </main>
@@ -153,6 +150,7 @@ import {
   SunIcon,
   MoonIcon
 } from 'lucide-vue-next'
+import { getReimbursementStatisticsData } from '../services/api/analyticsApi'
 
 const router = useRouter()
 const { isDark, toggleTheme } = useTheme()
@@ -165,27 +163,86 @@ const pieChartRef = ref(null)
 let barChart = null
 let pieChart = null
 
-// Mock data for charts
-const monthlyData = {
-  months: ['6月', '7月', '8月', '9月', '10月', '11月'],
-  total: [8500, 9200, 7800, 10500, 11500, 12486.50],
-  approved: [5200, 6100, 4800, 6800, 7500, 8234.00],
-  pending: [3300, 3100, 3000, 3700, 4000, 4252.50]
-}
+// State for loading and data
+const loading = ref(false)
+const error = ref(null)
 
-const categoryData = [
-  { name: '餐饮', value: 3856.20, percentage: 30.9 },
-  { name: '交通', value: 2847.80, percentage: 22.8 },
-  { name: '住宿', value: 2346.50, percentage: 18.8 },
-  { name: '办公', value: 1872.30, percentage: 15.0 },
-  { name: '其他', value: 1563.70, percentage: 12.5 }
-]
+// Reactive variables for data
+const monthlyExpense = ref(0)
+const approvedAmount = ref(0)
+const pendingAmount = ref(0)
+const approvalRate = ref(0)
+
+// For charts
+const monthlyData = ref({
+  months: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+  total: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  approved: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  pending: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+})
+
+const categoryData = ref([])
+
+// Fetch reimbursement statistics data from API
+const fetchStatisticsData = async () => {
+  loading.value = true
+  error.value = null
+
+  try {
+    const response = await getReimbursementStatisticsData()
+    console.log('Reimbursement Stats API Response:', response) // Debug log
+
+    if (response.code === 200 && response.data && response.data.reimbursement_statistics) {
+      const reimbursementData = response.data.reimbursement_statistics
+      const statistics = reimbursementData.statistics
+      const monthlyTrends = reimbursementData.monthly_trends || []
+      const categories = reimbursementData.categories || []
+
+      console.log('Reimbursement data processed:', reimbursementData) // Debug log
+
+      // Update statistics cards
+      monthlyExpense.value = statistics.total_amount || 0
+      approvedAmount.value = statistics.approved_amount || 0
+      pendingAmount.value = statistics.pending_amount || 0
+      approvalRate.value = statistics.approval_rate || 0
+
+      console.log('Updated values:', { monthlyExpense: monthlyExpense.value, approvedAmount: approvedAmount.value, pendingAmount: pendingAmount.value, approvalRate: approvalRate.value }) // Debug log
+
+      // Update category data for pie chart
+      categoryData.value = categories.map(cat => ({
+        name: cat.name,
+        value: parseFloat(cat.value.toFixed(2)),
+        percentage: monthlyExpense.value ? (cat.value / monthlyExpense.value * 100).toFixed(1) : 0
+      }))
+
+      console.log('Category data updated:', categoryData.value) // Debug log
+
+      // Update monthly data for bar chart
+      monthlyData.value = {
+        months: monthlyTrends.map(trend => trend.month) || [],
+        total: monthlyTrends.map(trend => trend.total) || [],
+        approved: monthlyTrends.map(trend => trend.approved) || [],
+        pending: monthlyTrends.map(trend => trend.pending) || []
+      }
+
+      console.log('Monthly data updated:', monthlyData.value) // Debug log
+    } else {
+      error.value = response.message || '获取报销统计信息失败'
+      console.error('Reimbursement Stats API response error:', response) // Debug log
+    }
+  } catch (err) {
+    console.error('Error fetching reimbursement statistics data:', err)
+    error.value = '获取数据时发生错误，请稍后重试'
+  } finally {
+    loading.value = false
+  }
+}
 
 // Initialize bar chart
 const initBarChart = () => {
   if (!barChartRef.value) return
 
-  barChart = echarts.init(barChartRef.value)
+  barChart = echarts.init(barChartRef.value, isDark.value ? 'dark' : 'default')
 
   const option = {
     tooltip: {
@@ -197,6 +254,15 @@ const initBarChart = () => {
       borderColor: isDark.value ? '#374151' : '#e5e7eb',
       textStyle: {
         color: isDark.value ? '#f3f4f6' : '#111827'
+      },
+      formatter: (params) => {
+        const date = params[0].axisValue
+        let tooltip = `${date}<br/>`
+        params.forEach(param => {
+          const value = parseFloat(param.value).toFixed(2)
+          tooltip += `${param.seriesName}: ¥${value}<br/>`
+        })
+        return tooltip
       }
     },
     legend: {
@@ -213,7 +279,7 @@ const initBarChart = () => {
     },
     xAxis: {
       type: 'category',
-      data: monthlyData.months,
+      data: monthlyData.value.months,
       axisLabel: {
         color: isDark.value ? '#9ca3af' : '#6b7280'
       },
@@ -227,7 +293,7 @@ const initBarChart = () => {
       type: 'value',
       axisLabel: {
         color: isDark.value ? '#9ca3af' : '#6b7280',
-        formatter: '¥{value}'
+        formatter: (value) => `¥${value.toFixed(2)}`
       },
       axisLine: {
         lineStyle: {
@@ -244,7 +310,7 @@ const initBarChart = () => {
       {
         name: '总支出',
         type: 'bar',
-        data: monthlyData.total,
+        data: monthlyData.value.total,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: '#3b82f6' },
@@ -262,7 +328,7 @@ const initBarChart = () => {
       {
         name: '已报销',
         type: 'bar',
-        data: monthlyData.approved,
+        data: monthlyData.value.approved,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: '#10b981' },
@@ -280,7 +346,7 @@ const initBarChart = () => {
       {
         name: '待报销',
         type: 'bar',
-        data: monthlyData.pending,
+        data: monthlyData.value.pending,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: '#f59e0b' },
@@ -305,7 +371,7 @@ const initBarChart = () => {
 const initPieChart = () => {
   if (!pieChartRef.value) return
 
-  pieChart = echarts.init(pieChartRef.value)
+  pieChart = echarts.init(pieChartRef.value, isDark.value ? 'dark' : 'default')
 
   const option = {
     tooltip: {
@@ -315,7 +381,10 @@ const initPieChart = () => {
       textStyle: {
         color: isDark.value ? '#f3f4f6' : '#111827'
       },
-      formatter: '{a} <br/>{b}: ¥{c} ({d}%)'
+      formatter: (params) => {
+        const value = parseFloat(params.value).toFixed(2)
+        return `${params.seriesName} <br/>${params.name}: ¥${value} (${params.percent}%)`
+      }
     },
     legend: {
       orient: 'vertical',
@@ -350,7 +419,7 @@ const initPieChart = () => {
         labelLine: {
           show: false
         },
-        data: categoryData.map((item, index) => ({
+        data: categoryData.value.map((item, index) => ({
           value: item.value,
           name: item.name,
           itemStyle: {
@@ -367,13 +436,16 @@ const initPieChart = () => {
 }
 
 // Update charts when theme changes
-const updateChartsTheme = () => {
+const updateChartsTheme = async () => {
   if (barChart) {
-    initBarChart()
+    barChart.dispose()
   }
   if (pieChart) {
-    initPieChart()
+    pieChart.dispose()
   }
+  await nextTick()
+  initBarChart()
+  initPieChart()
 }
 
 // Handle window resize
@@ -387,6 +459,7 @@ const handleResize = () => {
 }
 
 onMounted(async () => {
+  await fetchStatisticsData() // Fetch data first
   await nextTick()
   initBarChart()
   initPieChart()
@@ -637,7 +710,7 @@ onUnmounted(() => {
   position: relative;
   z-index: 10;
   flex: 1;
-  max-width: 80rem;
+  width: 80rem;
   margin: 0 auto;
   padding: 2rem 1rem;
 }
@@ -940,6 +1013,7 @@ onUnmounted(() => {
 /* 图表容器 */
 .chart-container {
   width: 100%;
+  height: 300px;
 }
 
 /* 页脚 */
@@ -992,6 +1066,7 @@ onUnmounted(() => {
 /* 响应式图表容器 */
 @media (max-width: 768px) {
   .chart-container {
+    height: 250px;
     min-height: 250px;
   }
 }

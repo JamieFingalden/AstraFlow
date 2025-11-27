@@ -50,8 +50,15 @@ export const API_URLS = {
   // 分析和报告
   ANALYTICS: {
     DASHBOARD: '/v1/analytics/dashboard',
-    REPORTS: '/v1/analytics/reports',
-    TRENDS: '/v1/analytics/trends',
+    METRICS: '/v1/analytics/metrics',
+    CATEGORIES: '/v1/analytics/categories',
+    TRENDS: '/v1/analytics/weekly',
+    RECENT_BILLS: '/v1/analytics/recent-bills',
+    REIMBURSEMENT: {
+      LIST: '/v1/analytics/reimbursement',
+      STATISTICS: '/v1/analytics/reimbursement/statistics',
+      TRENDS: '/v1/analytics/reimbursement/trends',
+    },
   },
 
   // 设置相关

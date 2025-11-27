@@ -182,9 +182,9 @@ func (h InvoiceHandler) GetAllInvoicePage(c *gin.Context) {
 		Code:    200,
 		Message: "获取发票列表成功",
 		Data: map[string]interface{}{
-			"tenants": invoices,
-			"page":    page,
-			"size":    len(invoices),
+			"invoices": invoices,
+			"page":     page,
+			"size":     len(invoices),
 		},
 	})
 }
@@ -220,6 +220,7 @@ func (h InvoiceHandler) GetAllInvoicePageByUserId(c *gin.Context) {
 	if err != nil {
 		pageSize = 10
 	}
+
 	invoices, err := h.invoiceService.GetAllInvoicePageByUserId(page, pageSize, UserIdInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, InvoiceResponse{
@@ -284,9 +285,9 @@ func (h InvoiceHandler) GetAllInvoicePageByTenantId(c *gin.Context) {
 		Code:    200,
 		Message: "获取发票列表成功",
 		Data: map[string]interface{}{
-			"tenants": invoices,
-			"page":    page,
-			"size":    len(invoices),
+			"invoices": invoices,
+			"page":     page,
+			"size":     len(invoices),
 		},
 	})
 }
@@ -380,7 +381,7 @@ func (h InvoiceHandler) DeleteInvoice(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, TenantResponse{
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
 			Code:    400,
 			Message: "发票ID格式错误",
 		})
