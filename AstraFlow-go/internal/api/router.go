@@ -17,6 +17,9 @@ func InitRouter() *gin.Engine {
 	// 添加CORS中间件
 	r.Use(middleware.CORSMiddleware())
 
+	// 静态文件服务 - 提供上传的文件访问
+	r.Static("/uploads", "./uploads")
+
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/health", handler.Health)
@@ -40,6 +43,15 @@ func InitRouter() *gin.Engine {
 			protected.GET("/tenants/:id", tenantHandler.GetTenant)       // 获取租户详情
 			protected.PUT("/tenants/:id", tenantHandler.UpdateTenant)    // 更新租户
 			protected.DELETE("/tenants/:id", tenantHandler.DeleteTenant) // 删除租户
+
+			// 附件上传相关接口
+			attachmentHandler := handler.NewAttachmentHandler()
+			protected.POST("/attachments", attachmentHandler.UploadFile)                    // 上传文件
+			protected.GET("/attachments/:id", attachmentHandler.GetAttachmentByID)          // 根据ID获取附件
+			protected.GET("/attachments", attachmentHandler.GetAttachmentsByUserID)         // 获取用户附件列表
+			protected.GET("/attachments/tenant", attachmentHandler.GetAttachmentsByTenantID) // 获取租户附件列表
+			protected.GET("/attachments/invoice/:invoice_id", attachmentHandler.GetAttachmentsByInvoiceID) // 根据发票ID获取附件列表
+			protected.DELETE("/attachments/:id", attachmentHandler.DeleteAttachment)        // 删除附件
 
 			invoiceHandler := handler.NewInvoiceHandler()
 			protected.POST("/invoices", invoiceHandler.CreateInvoice)                      // 创建发票

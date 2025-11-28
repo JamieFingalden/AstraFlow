@@ -8,3 +8,4 @@ sentencepiece==0.1.99
 protobuf<4.0.0
 numpy<2.0.0
 python-dotenv==1.0.0
+openai==2.8.1
