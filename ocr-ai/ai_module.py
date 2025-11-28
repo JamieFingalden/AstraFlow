@@ -20,7 +20,7 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 
 # 阿里云百炼API配置
 DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY', 'your_api_key_here')
-DASHSCOPE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+DASHSCOPE_URL = os.getenv('DASHSCOPE_URL', 'https://api-inference.modelscope.cn/v1/')
 
 def initialize_model():
     """
@@ -80,24 +80,24 @@ def classify_with_ollama(ocr_text, user_categories):
     
     # 构造系统提示词（简化版以节省内存）
     prompt = f"""你是一个账单分类助手。
-你将接收一段中文账单文字，任务是：
-1. 判断账单属于哪一类（从以下类别中选择一个）：
-[{categories_str}]
-2. 提取消费金额（数字即可，可以有小数）。
-3. 提取消费日期，输出完整的'YYYY-MM-DD'格式日期：
-   - 如果日期是相对描述（如"今天"、"昨天"、"周一"），请根据当前日期推算具体日期。
-   - 如果账单只提供"月-日"，则使用当前年份补全。
-4. 严格按照指定的JSON格式返回，不要多余文字。
+        你将接收一段中文账单文字，任务是：
+        1. 判断账单属于哪一类（从以下类别中选择一个）：
+        [{categories_str}]
+        2. 提取消费金额（数字即可，可以有小数）。
+        3. 提取消费日期，输出完整的'YYYY-MM-DD'格式日期：
+        - 如果日期是相对描述（如"今天"、"昨天"、"周一"），请根据当前日期推算具体日期。
+        - 如果账单只提供"月-日"，则使用当前年份补全。
+        4. 严格按照指定的JSON格式返回，不要多余文字。
 
-输出示例：'美团外卖 11:30 23.50元'
-返回格式：{{"category": "类别", "amount": 金额数字, "date": "YYYY-MM-DD"}}
+        输出示例：'美团外卖 11:30 23.50元'
+        返回格式：{{"category": "类别", "amount": 金额数字, "date": "YYYY-MM-DD"}}
 
-用户提供的文字是：{ocr_text}
-请严格按照指定的JSON格式返回，不要多余文字。"""
+        用户提供的文字是：{ocr_text}
+        请严格按照指定的JSON格式返回，不要多余文字。"""
     
     # 构造请求数据（优化参数以适应16GB内存）
     data = {
-        "model": "qwen2:1.5b",  # 使用更小的1.5B版本模型以适应16GB内存
+        "model": "Qwen3-Coder-480B-A35B-Instruct",  # 使用更小的1.5B版本模型以适应16GB内存
         "prompt": prompt,
         "stream": False,
         "options": {

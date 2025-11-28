@@ -6,6 +6,7 @@
 import requests
 import os
 
+
 def test_process_image():
     """
     测试图片处理接口
@@ -39,6 +40,7 @@ def test_process_image():
         print(response.json())
     except Exception as e:
         print("图片处理测试失败:", str(e))
+
 
 if __name__ == "__main__":
     test_process_image()
