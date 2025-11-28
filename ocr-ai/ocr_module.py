@@ -6,44 +6,62 @@ OCR模块：使用PaddleOCR进行中文文本识别
 from paddleocr import PaddleOCR
 import os
 
-# 初始化PaddleOCR引擎（支持中英文）
-# 使用轻量级模型以适应Mac mini M4的内存限制
-ocr_engine = PaddleOCR(
-    use_angle_cls=True,      # 启用文字方向分类
-    lang='ch',               # 设置语言为中英文混合
-    det_model_dir=None,      # 使用默认检测模型
-    rec_model_dir=None,      # 使用默认识别模型
-    cls_model_dir=None,      # 使用默认分类模型
-    show_log=False           # 关闭日志输出
-)
+# 设置环境变量 to avoid OneDNN issues
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+# 禁用 OneDNN / MKLDNN（避免 OneDNN Filter 报错）
+os.environ['FLAGS_use_mkldnn'] = '0'
+os.environ['PADDLE_DISABLE_ONEDNN'] = '1'
+
+# Global variable to hold the OCR engine instance
+_ocr_engine = None
+
+def get_ocr_engine():
+    """
+    Lazy initialization of the OCR engine to avoid OneDNN issues during startup.
+    Creates the OCR engine instance only when first needed.
+    """
+    global _ocr_engine
+    if _ocr_engine is None:
+        _ocr_engine = PaddleOCR(
+            use_textline_orientation=True,  # use_angle_cls is deprecated in 3.x, use use_textline_orientation instead
+            lang='ch'
+        )
+    return _ocr_engine
 
 def ocr_image(image_path):
     """
     对图片进行OCR识别，返回拼接后的文本
-    
+
     Args:
         image_path (str): 图片文件路径
-        
+
     Returns:
         str: 识别出的文本内容
     """
     # 检查文件是否存在
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"图片文件不存在: {image_path}")
-    
+
+    # Get the OCR engine (lazy initialization)
+    ocr_engine = get_ocr_engine()
+
     # 执行OCR识别
-    result = ocr_engine.ocr(image_path, cls=True)
-    
+    result = ocr_engine.predict(image_path)
+
     # 提取文本内容并拼接
+    # PaddleOCR 3.x returns a list of dictionaries, each containing recognition results
     texts = []
-    for line in result:
-        if line is not None:  # 检查是否有识别结果
-            for item in line:
-                if item is not None and len(item) > 1:
-                    text_info = item[1]
-                    if text_info is not None and len(text_info) > 0:
-                        texts.append(text_info[0])
-    
+    if result and len(result) > 0:
+        first_result = result[0]  # Get the first result (for single image)
+        if isinstance(first_result, dict) and 'rec_texts' in first_result:
+            # Extract recognized texts from the rec_texts field
+            recognized_texts = first_result['rec_texts']
+            if isinstance(recognized_texts, list):
+                for text in recognized_texts:
+                    if text:  # Check if text is not empty
+                        texts.append(str(text))
+
     # 返回拼接后的文本
     return '\n'.join(texts)
 
