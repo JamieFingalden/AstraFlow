@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 OCR模块：使用PaddleOCR进行中文文本识别
+同时集成AI模块，支持从图片中提取结构化发票信息
 """
 
 from paddleocr import PaddleOCR
 import os
+import ai_module
 
 # 设置环境变量 to avoid OneDNN issues
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -65,13 +67,75 @@ def ocr_image(image_path):
     # 返回拼接后的文本
     return '\n'.join(texts)
 
+
+def extract_invoice_info(image_path, use_ai=True):
+    """
+    完整的发票信息提取流程：先进行OCR识别，然后使用AI提取结构化字段
+
+    Args:
+        image_path (str): 图片文件路径
+        use_ai (bool): 是否使用AI模型进行字段提取，如果为False则只返回OCR文本
+
+    Returns:
+        dict: 包含OCR文本和提取的结构化字段
+    """
+    # 首先执行OCR识别
+    ocr_text = ocr_image(image_path)
+
+    result = {
+        "ocr_text": ocr_text,
+        "extracted_fields": {}
+    }
+
+    # 如果启用AI，则使用AI模型提取结构化字段
+    if use_ai:
+        try:
+            # 使用AI模块提取发票字段
+            ai_result = ai_module.classify_expense(image_path=image_path)
+            result["extracted_fields"] = ai_result
+        except Exception as e:
+            print(f"AI字段提取失败: {str(e)}")
+            # 如果AI提取失败，返回空的字段字典
+            result["extracted_fields"] = {
+                "tax_id": "",
+                "invoice_number": "",
+                "amount": 0.0,
+                "merchant_name": "",
+                "date": "",
+                "payment_method": "",
+                "invoice_type": ""
+            }
+    else:
+        # 如果不使用AI，只返回OCR文本
+        result["extracted_fields"] = {
+            "tax_id": "",
+            "invoice_number": "",
+            "amount": 0.0,
+            "merchant_name": "",
+            "date": "",
+            "payment_method": "",
+            "invoice_type": ""
+        }
+
+    return result
+
+
 # 测试代码（可选）
 if __name__ == "__main__":
     # 示例用法
     test_image = "test_bill.jpg"
     if os.path.exists(test_image):
+        # 只进行OCR识别
         ocr_text = ocr_image(test_image)
         print("OCR识别结果:")
         print(ocr_text)
+
+        print("\n" + "="*50)
+
+        # 完整的发票信息提取（OCR + AI字段提取）
+        full_result = extract_invoice_info(test_image, use_ai=True)
+        print("完整发票信息提取结果:")
+        print(f"OCR文本:\n{full_result['ocr_text']}")
+        print(f"\n提取的字段:\n{full_result['extracted_fields']}")
     else:
         print(f"测试图片 {test_image} 不存在")

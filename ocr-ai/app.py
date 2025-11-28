@@ -7,15 +7,10 @@ from flask import Flask, request, jsonify
 import os
 import tempfile
 from ocr_module import ocr_image
-from ai_module import initialize_model, classify_expense
+from ai_module import extract_invoice_fields_with_openai
 
 # 创建Flask应用实例
 app = Flask(__name__)
-
-# 在应用启动时初始化AI模型
-# 注意：这会在应用启动时执行一次，而不是在每次请求时执行
-with app.app_context():
-    initialize_model()
 
 @app.route('/process_image', methods=['POST'])
 def process_image():
@@ -68,13 +63,12 @@ def process_image():
                 }), 400
             
             # 使用AI模型进行分类
-            category = classify_expense(ocr_text)
+            category = extract_invoice_fields_with_openai(temp_image_path, ocr_text)
             
             # 返回成功结果
             return jsonify({
                 "status": "success",
-                "ocr_text": ocr_text,
-                "category": category
+                "data": category
             })
         
         finally:
