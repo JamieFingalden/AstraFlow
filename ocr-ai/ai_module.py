@@ -75,6 +75,19 @@ def extract_invoice_fields_with_openai(image_path, ocr_result):
         6. 分辨支付方式（Payment Method）
         7. 分辨发票类型（Invoice Type）
         8. 如果某个字段在图片中不存在或识别不出，请留空
+
+        商户名称需要根据情况来分辨，如以下例子
+        {{
+            {{
+                "input": "网易云音乐主站",
+                "output": "网易云音乐"
+            }},
+            {{
+                "input": "中国平安保险股份有限公司",
+                "output": "中国平安保险"
+            }}
+        }}
+
         
         你需要根据发票信息来判断该发票数据下面几个类别中的哪一类并放入invoice_type：{DEFAULT_CATEGORIES}
         
