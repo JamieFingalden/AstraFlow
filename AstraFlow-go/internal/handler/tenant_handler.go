@@ -2,6 +2,7 @@ package handler
 
 import (
 	"AstraFlow-go/internal/service"
+	"AstraFlow-go/pkg/jwt"
 	"net/http"
 	"strconv"
 
@@ -24,11 +25,13 @@ func NewTenantHandler() *TenantHandler {
 
 // CreateTenantRequest 创建租户请求体
 type CreateTenantRequest struct {
-	Name         string  `json:"name" binding:"required,min=1,max=100"`
+	TenantName   string  `json:"tenant_name" binding:"required,min=1,max=100"`
+	Name         string  `json:"username" binding:"required,min=1,max=100"`
+	ContactEmail *string `json:"email" binding:"required,email"`
+	Password     string  `json:"password" binding:"required,min=6,max=100"`
 	Industry     *string `json:"industry,omitempty"`
 	ContactName  *string `json:"contact_name,omitempty"`
 	ContactPhone *string `json:"contact_phone,omitempty"`
-	ContactEmail *string `json:"contact_email,omitempty"`
 }
 
 // UpdateTenantRequest 更新租户请求体
@@ -59,30 +62,21 @@ func (h *TenantHandler) CreateTenant(c *gin.Context) {
 		return
 	}
 
-	// 设置默认值
-	industry := ""
-	if req.Industry != nil {
-		industry = *req.Industry
-	}
-	contactName := ""
-	if req.ContactName != nil {
-		contactName = *req.ContactName
-	}
-	contactPhone := ""
-	if req.ContactPhone != nil {
-		contactPhone = *req.ContactPhone
-	}
-	contactEmail := ""
-	if req.ContactEmail != nil {
-		contactEmail = *req.ContactEmail
-	}
-
 	// 调用服务层创建租户
-	tenant, err := h.tenantService.CreateTenant(req.Name, industry, contactName, contactPhone, contactEmail)
+	tenant, user, err := h.tenantService.CreateTenant(req.TenantName, req.Name, *req.ContactEmail, req.Password)
 	if err != nil {
 		c.JSON(http.StatusConflict, TenantResponse{
 			Code:    409,
 			Message: err.Error(),
+		})
+		return
+	}
+
+	token, err := jwt.GenerateToken(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, TenantResponse{
+			Code:    500,
+			Message: "Token生成失败",
 		})
 		return
 	}
@@ -92,6 +86,7 @@ func (h *TenantHandler) CreateTenant(c *gin.Context) {
 		Message: "创建租户成功",
 		Data: map[string]interface{}{
 			"tenant": tenant,
+			"token":  token,
 		},
 	})
 }

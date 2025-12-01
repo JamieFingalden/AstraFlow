@@ -4,12 +4,15 @@ import (
 	"AstraFlow-go/internal/model"
 	"AstraFlow-go/internal/repository"
 	"errors"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // TenantService 租户服务
 // 处理租户相关的业务逻辑
 type TenantService struct {
 	tenantRepo *repository.TenantRepository // 租户数据访问仓库
+	userRepo   *repository.UserRepository   // 用户数据访问仓库
 }
 
 // NewTenantService 创建租户服务实例
@@ -17,36 +20,60 @@ type TenantService struct {
 func NewTenantService() *TenantService {
 	return &TenantService{
 		tenantRepo: repository.NewTenantRepository(),
+		userRepo:   repository.NewUserRepository(),
 	}
 }
 
 // CreateTenant 创建租户
 // 验证租户名称唯一性，并创建新租户
-func (s *TenantService) CreateTenant(name, industry, contactName, contactPhone, contactEmail string) (*model.Tenant, error) {
+func (s *TenantService) CreateTenant(tenantName, username, email, password string) (*model.Tenant, *model.User, error) {
 	// 检查租户名称是否已存在
-	existingTenant, err := s.tenantRepo.FindByName(name)
+	existingTenant, err := s.tenantRepo.FindByName(tenantName)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if existingTenant != nil {
-		return nil, errors.New("租户名称已存在")
+		return nil, nil, errors.New("租户名称已存在")
+	}
+
+	existingUser, err := s.userRepo.FindByUsername(username)
+	if err != nil {
+		return nil, nil, err
+	}
+	if existingUser != nil {
+		return nil, nil, errors.New("用户名已存在")
 	}
 
 	// 创建租户
 	tenant := &model.Tenant{
-		Name:         name,
-		Industry:     &industry,
-		ContactName:  &contactName,
-		ContactPhone: &contactPhone,
-		ContactEmail: &contactEmail,
+		Name:         tenantName,
+		ContactName:  &username,
+		ContactEmail: &email,
 	}
 
 	err = s.tenantRepo.Create(tenant)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return tenant, nil
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	user := &model.User{
+		TenantID: &tenant.ID,
+		Username: username,
+		Password: string(hashedPassword),
+		Role:     "admin",
+	}
+
+	err = s.userRepo.Create(user)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return tenant, user, nil
 }
 
 // GetTenantByID 根据ID获取租户

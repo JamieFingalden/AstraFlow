@@ -1,44 +1,12 @@
 <template>
   <form @submit.prevent="handleSubmit" class="register-form">
     <div class="form-header">
-      <h2 class="form-title">创建账户</h2>
-      <p class="form-subtitle">加入 AstraFlow，开启智能财务管理之旅</p>
+      <h2 class="form-title">创建企业账户</h2>
+      <p class="form-subtitle">加入 AstraFlow，开启企业智能财务管理之旅</p>
     </div>
 
-    <!-- User Type Selection -->
+    <!-- Tenant Name (required for all users now) -->
     <div class="form-field">
-      <label class="field-label">
-        账户类型
-        <span class="required">*</span>
-      </label>
-      <div class="user-type-options">
-        <label
-          v-for="type in userTypes"
-          :key="type.value"
-          class="user-type-option"
-          :class="{ 'selected': form.userType === type.value }"
-        >
-          <input
-            v-model="form.userType"
-            :value="type.value"
-            type="radio"
-            name="userType"
-            :disabled="loading"
-            class="user-type-radio"
-          />
-          <div class="option-content">
-            <div class="option-icon">{{ type.icon }}</div>
-            <div class="option-details">
-              <div class="option-title">{{ type.title }}</div>
-              <div class="option-description">{{ type.description }}</div>
-            </div>
-          </div>
-        </label>
-      </div>
-    </div>
-
-    <!-- Tenant Name (for enterprise users) -->
-    <div v-if="form.userType === 'enterprise'" class="form-field">
       <label for="tenantName" class="field-label">
         企业名称
         <span class="required">*</span>
@@ -175,7 +143,7 @@
       class="submit-btn gradient-stellar"
     >
       <div v-if="loading" class="loading-spinner"></div>
-      <span v-else>创建账户</span>
+      <span v-else>创建企业账户</span>
     </button>
 
     <!-- Login Link -->
@@ -210,23 +178,7 @@ const userStore = useUserStore()
 const loading = ref(false)
 const successMessage = ref('')
 
-const userTypes = [
-  {
-    value: 'personal',
-    icon: '👤',
-    title: '个人用户',
-    description: '适合个人财务管理需求'
-  },
-  {
-    value: 'enterprise',
-    icon: '🏢',
-    title: '企业用户',
-    description: '适合企业团队协作管理'
-  }
-]
-
 const form = reactive({
-  userType: 'personal',
   tenantName: '',
   username: '',
   email: '',
@@ -236,7 +188,6 @@ const form = reactive({
 })
 
 const errors = reactive({
-  userType: '',
   tenantName: '',
   username: '',
   email: '',
@@ -246,35 +197,20 @@ const errors = reactive({
 })
 
 const isFormValid = computed(() => {
-  const baseValidation = form.userType &&
-                        form.username &&
-                        form.email &&
-                        form.password &&
-                        form.confirmPassword &&
-                        form.agreeToTerms &&
-                        !Object.values(errors).some(error => error) &&
-                        !loading.value
-
-  if (form.userType === 'enterprise') {
-    return baseValidation && form.tenantName
-  }
-
-  return baseValidation
+  return form.username &&
+         form.email &&
+         form.password &&
+         form.confirmPassword &&
+         form.tenantName && // Now tenantName is required
+         form.agreeToTerms &&
+         !Object.values(errors).some(error => error) &&
+         !loading.value
 })
-
-const validateUserType = () => {
-  errors.userType = ''
-  if (!form.userType) {
-    errors.userType = '请选择账户类型'
-    return false
-  }
-  return true
-}
 
 const validateTenantName = () => {
   errors.tenantName = ''
 
-  if (form.userType === 'enterprise' && !form.tenantName) {
+  if (!form.tenantName) {
     errors.tenantName = '请输入企业名称'
     return false
   }
@@ -387,7 +323,6 @@ const validateTerms = () => {
 
 const validateForm = () => {
   const validations = [
-    validateUserType(),
     validateTenantName(),
     validateUsername(),
     validateEmail(),
@@ -413,18 +348,12 @@ const handleSubmit = async () => {
       email: form.email,
       password: form.password,
       phone: '', // 前端暂无电话输入
+      tenant_name: form.tenantName // Add tenant name to registration data
     }
 
-    // 个人用户注册时，tenant_id 为 null (默认)
-    // 企业用户将由管理员创建，普通用户不能直接创建企业账户
-    if (form.userType === 'personal') {
-      // 个人用户：tenant_id 为 null，系统自动分配 personal 角色
-      userData.tenant_id = null
-    } else {
-      // 对于企业用户类型，我们仍然设置为 null
-      // 企业租户的创建通常由管理员通过专门的租户管理功能处理
-      userData.tenant_id = null
-    }
+    // Now all users will be registered as tenant users
+    // The backend should create a new tenant for this user
+    userData.tenant_id = null // This will be set by the backend when creating the new tenant
 
     // 直接调用API
     const response = await registerApi(userData)
@@ -441,8 +370,8 @@ const handleSubmit = async () => {
       roleId: backendUser.role_id || null,
       roleName: getRoleDisplayName(backendUser.role),
       tenantId: backendUser.tenant_id,
-      tenantName: null,
-      tenantRole: backendUser.tenant_id ? getTenantRoleFromRole(backendUser.role) : 'personal',
+      tenantName: form.tenantName, // Set the tenant name from form
+      tenantRole: getTenantRoleFromRole(backendUser.role), // User will have tenant role
       isAuthenticated: true
     }
 

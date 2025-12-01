@@ -28,6 +28,8 @@ func InitRouter() *gin.Engine {
 		authHandler := handler.NewAuthHandler()
 		v1.POST("/auth/register", authHandler.Register) // 用户注册
 		v1.POST("/auth/login", authHandler.Login)       // 用户登录
+		tenantHandler := handler.NewTenantHandler()
+		v1.POST("/tenants", tenantHandler.CreateTenant) // 创建租户
 
 		// 需要认证的接口
 		protected := v1.Group("/")
@@ -37,8 +39,6 @@ func InitRouter() *gin.Engine {
 			protected.GET("/auth/me", authHandler.GetCurrentUser)     // 获取当前用户信息
 
 			// 租户相关接口
-			tenantHandler := handler.NewTenantHandler()
-			protected.POST("/tenants", tenantHandler.CreateTenant)       // 创建租户
 			protected.GET("/tenants", tenantHandler.GetTenantList)       // 获取租户列表
 			protected.GET("/tenants/:id", tenantHandler.GetTenant)       // 获取租户详情
 			protected.PUT("/tenants/:id", tenantHandler.UpdateTenant)    // 更新租户
@@ -46,12 +46,12 @@ func InitRouter() *gin.Engine {
 
 			// 附件上传相关接口
 			attachmentHandler := handler.NewAttachmentHandler()
-			protected.POST("/attachments", attachmentHandler.UploadFile)                    // 上传文件
-			protected.GET("/attachments/:id", attachmentHandler.GetAttachmentByID)          // 根据ID获取附件
-			protected.GET("/attachments", attachmentHandler.GetAttachmentsByUserID)         // 获取用户附件列表
-			protected.GET("/attachments/tenant", attachmentHandler.GetAttachmentsByTenantID) // 获取租户附件列表
+			protected.POST("/attachments", attachmentHandler.UploadFile)                                   // 上传文件
+			protected.GET("/attachments/:id", attachmentHandler.GetAttachmentByID)                         // 根据ID获取附件
+			protected.GET("/attachments", attachmentHandler.GetAttachmentsByUserID)                        // 获取用户附件列表
+			protected.GET("/attachments/tenant", attachmentHandler.GetAttachmentsByTenantID)               // 获取租户附件列表
 			protected.GET("/attachments/invoice/:invoice_id", attachmentHandler.GetAttachmentsByInvoiceID) // 根据发票ID获取附件列表
-			protected.DELETE("/attachments/:id", attachmentHandler.DeleteAttachment)        // 删除附件
+			protected.DELETE("/attachments/:id", attachmentHandler.DeleteAttachment)                       // 删除附件
 
 			invoiceHandler := handler.NewInvoiceHandler()
 			protected.POST("/invoices", invoiceHandler.CreateInvoice)                      // 创建发票
