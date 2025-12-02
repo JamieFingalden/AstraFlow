@@ -68,6 +68,14 @@
         >
           设置中心
         </router-link>
+        <router-link
+          v-if="canAccessUserManagement"
+          to="/users"
+          class="nav-link"
+          :class="{ 'nav-link-active': $route.path === '/users' }"
+        >
+          用户管理
+        </router-link>
       </div>
 
       <!-- 移动端汉堡菜单按钮 -->
@@ -82,8 +90,13 @@
 
       <!-- 右侧操作区 -->
       <div class="nav-actions desktop-nav">
+        <!-- 用户信息加载中状态 -->
+        <div v-if="isUserLoading" class="loading-indicator">
+          <div class="loading-spinner-small"></div>
+        </div>
+
         <!-- 未登录状态显示登录按钮 -->
-        <button v-if="!isAuthenticated" class="register-button" @click="toLogin">
+        <button v-else-if="!isAuthenticated" class="register-button" @click="toLogin">
           登录/注册
         </button>
 
@@ -166,9 +179,24 @@
         >
           设置中心
         </router-link>
+        <router-link
+          v-if="canAccessUserManagement"
+          to="/users"
+          class="mobile-nav-link"
+          :class="{ 'mobile-nav-link-active': $route.path === '/users' }"
+          @click="closeMobileMenu"
+        >
+          用户管理
+        </router-link>
         <div class="mobile-actions">
+          <!-- 用户信息加载中状态 -->
+          <div v-if="isUserLoading" class="loading-indicator">
+            <div class="loading-spinner-small"></div>
+            <span>加载中...</span>
+          </div>
+
           <!-- 未登录状态显示登录注册按钮 -->
-          <template v-if="!isAuthenticated">
+          <template v-else-if="!isAuthenticated">
             <button class="mobile-login-button" @click="toLogin; closeMobileMenu()">
               登录
             </button>
@@ -240,6 +268,14 @@ const mobileMenuOpen = ref(false)
 
 // 检查用户是否已登录
 const isAuthenticated = computed(() => userStore.isAuthenticated)
+
+// 检查用户信息是否正在加载
+const isUserLoading = computed(() => userStore.loading)
+
+// 检查用户是否可以访问用户管理页面
+const canAccessUserManagement = computed(() => {
+  return isAuthenticated.value && (userStore.isTenantAdmin() || userStore.isSystemAdmin())
+})
 
 function toLogin() {
   router.push('/login')
@@ -845,6 +881,40 @@ const closeMobileMenu = () => {
   background: rgba(239, 68, 68, 0.2);
   border-color: rgba(239, 68, 68, 0.3);
   color: #b91c1c;
+}
+
+/* 加载指示器 */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #d1d5db;
+  font-size: 14px;
+}
+
+.loading-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* 亮色主题下加载指示器 */
+[data-theme="light"] .loading-indicator {
+  color: #6b7280;
+}
+
+[data-theme="light"] .loading-spinner-small {
+  border-color: rgba(0, 0, 0, 0.1);
+  border-top-color: #3b82f6;
+}
+
+/* 旋转动画 */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* 脉冲动画 */

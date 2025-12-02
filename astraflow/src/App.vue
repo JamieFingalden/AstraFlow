@@ -4,7 +4,14 @@
       <n-dialog-provider>
         <n-notification-provider>
           <div id="app">
-            <router-view v-slot="{ Component }">
+            <!-- 全局加载状态 -->
+            <div v-if="isInitializing" class="app-loading">
+              <div class="loading-spinner"></div>
+              <p>正在初始化应用...</p>
+            </div>
+
+            <!-- 正常内容 -->
+            <router-view v-else v-slot="{ Component }">
               <transition name="fade" mode="out-in">
                 <component :is="Component" />
               </transition>
@@ -20,6 +27,9 @@
 import { onMounted, ref } from 'vue'
 import { useUserStore } from './stores/userStore'
 import { NConfigProvider, NMessageProvider, NDialogProvider, NNotificationProvider, zhCN, dateZhCN } from 'naive-ui'
+
+// 应用初始化状态
+const isInitializing = ref(true)
 
 // Theme overrides for stellar colors
 const themeOverrides = ref({
@@ -92,7 +102,22 @@ const themeOverrides = ref({
 // Initialize authentication on app startup
 onMounted(async () => {
   const userStore = useUserStore()
-  await userStore.initializeAuth()
+
+  try {
+    // 如果有 token，则初始化用户信息
+    if (userStore.accessToken) {
+      await userStore.initializeAuth()
+    } else {
+      // 没有 token，直接结束初始化
+      isInitializing.value = false
+      return
+    }
+  } catch (error) {
+    console.error('Failed to initialize auth:', error)
+  } finally {
+    // 无论成功与否，都要结束初始化状态
+    isInitializing.value = false
+  }
 })
 </script>
 
@@ -108,5 +133,54 @@ onMounted(async () => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* 全局加载状态 */
+.app-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, #000000, rgba(30, 58, 138, 0.2), #000000);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.app-loading .loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.app-loading p {
+  margin-top: 20px;
+  color: #ffffff;
+  font-size: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 亮色主题适配 */
+[data-theme="light"] .app-loading {
+  background: linear-gradient(to bottom, #ffffff, #f1f5f9, #ffffff);
+}
+
+[data-theme="light"] .app-loading .loading-spinner {
+  border-color: rgba(0, 0, 0, 0.1);
+  border-top-color: #3b82f6;
+}
+
+[data-theme="light"] .app-loading p {
+  color: #1f2937;
 }
 </style>

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { me } from '../services/api/authApi'
 
 export const useUserStore = defineStore('user', () => {
   // State
@@ -176,18 +177,18 @@ export const useUserStore = defineStore('user', () => {
 
       // 检查用户信息是否为空，如果为空则调用API获取用户信息
       if (!user.value.id || !user.value.name) {
+        loading.value = true
         try {
-          // 尝试获取用户信息以恢复完整的用户状态
-          const { me } = await import('@/services/api/authApi') // 动态导入避免循环依赖
           const response = await me()
 
           if (response?.data) {
-            const backendUser = response.data
+            // 检查数据结构，可能是 response.data.user 或直接 response.data
+            const backendUser = response.data.user || response.data
 
             // 转换后端用户数据格式到前端格式
             const frontendUserData = {
               id: backendUser.id,
-              name: backendUser.username,
+              name: backendUser.username || backendUser.name,
               email: backendUser.email,
               avatar: backendUser.avatar || '',
               permissions: backendUser.permissions || [],
@@ -206,9 +207,12 @@ export const useUserStore = defineStore('user', () => {
             user.value.isAuthenticated = true
           }
         } catch (error) {
-          console.error('Failed to fetch user info during initialization:', error) // 这变为error级别
+          console.error('Failed to fetch user info during initialization:', error)
           // 即使获取用户信息失败，也要设置基本的认证状态，因为token存在
           user.value.isAuthenticated = true
+          error.value = error.message || 'Failed to fetch user info'
+        } finally {
+          loading.value = false
         }
       } else {
         // 用户信息已经存在，不需要重新获取

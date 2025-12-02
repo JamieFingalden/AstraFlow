@@ -8,6 +8,7 @@ import AnalysisPage from '../views/AnalysisPage.vue'
 import BillManagement from '../views/BillManagement.vue'
 import ReimbursementStatistics from '../views/ReimbursementStatistics.vue'
 import SettingsCenter from '../views/SettingsCenter.vue'
+import UserManagement from '../views/UserManagement.vue'
 import { useUserStore } from '../stores/userStore'
 
 const routes = [
@@ -47,6 +48,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: Dashboard,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/visualization',
     name: 'Visualization',
     component: Dashboard,
@@ -69,6 +76,15 @@ const routes = [
     name: 'SettingsCenter',
     component: SettingsCenter,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/users',
+    name: 'UserManagement',
+    component: UserManagement,
+    meta: {
+      requiresAuth: true,
+      requiresTenantAdmin: true
+    }
   }
 ]
 
@@ -80,12 +96,6 @@ const router = createRouter({
 // Navigation guards for authentication
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
-
-  // Ensure authentication state is initialized before checking
-  // Only initialize if we have an access token but the user isn't authenticated yet
-  if (userStore.accessToken && !userStore.user.isAuthenticated) {
-    await userStore.initializeAuth()
-  }
 
   const isAuthenticated = userStore.isAuthenticated
 
@@ -99,10 +109,19 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
+  // Handle routes that require tenant admin access
+  if (to.meta.requiresTenantAdmin && isAuthenticated) {
+    if (!userStore.isTenantAdmin() && !userStore.isSystemAdmin()) {
+      // Redirect to dashboard or show error page
+      next({ name: 'Dashboard' }) // Or you could redirect to an error page
+      return
+    }
+  }
+
   // Handle routes that should be hidden for authenticated users
   if (to.meta.hideForAuth && isAuthenticated) {
     // Redirect to dashboard or home page
-    next({ name: 'Visualization' })
+    next({ name: 'Dashboard' })
     return
   }
 
