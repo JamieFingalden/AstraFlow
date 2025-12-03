@@ -54,12 +54,6 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/visualization',
-    name: 'Visualization',
-    component: Dashboard,
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/ai-result',
     name: 'AIResult',
     component: AnalysisPage,

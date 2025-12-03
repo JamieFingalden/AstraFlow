@@ -7,39 +7,23 @@
       <div class="particle particle-purple"></div>
     </div>
 
-    <!-- Header -->
-    <header class="dashboard-header">
-      <div class="header-container">
-        <div class="header-left">
-          <!-- 返回主页按钮 -->
-          <router-link to="/" class="back-button" title="返回主页">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m15 18-6-6 6-6"/>
-            </svg>
-            <span class="back-text">返回</span>
-          </router-link>
+    <!-- Page Header -->
+    <PageHeader
+      title="账单可视化 Dashboard"
+      :show-back-button="true"
+      back-to="/"
+      :show-theme-toggle="true"
+    />
 
-          <div class="brand-name">
-            AstraFlow
-          </div>
-          <h1 class="page-title">账单可视化 Dashboard</h1>
+    <!-- User Info Container -->
+    <div class="user-info-container">
+      <div class="user-info">
+        <div class="user-avatar">
+          <UserCircle :size="20" class="user-icon" />
         </div>
-
-        <div class="header-right">
-          <button @click="() => { toggleTheme(); handleThemeChange(); }" class="theme-toggle">
-            <SunIcon v-if="isDark" :size="20" />
-            <MoonIcon v-else :size="20" />
-          </button>
-
-          <div class="user-info">
-            <div class="user-avatar">
-              <UserCircle :size="20" class="user-icon" />
-            </div>
-            <span class="user-name">{{ userStore.user.name || '用户' }}</span>
-          </div>
-        </div>
+        <span class="user-name">{{ userStore.user.name || '用户' }}</span>
       </div>
-    </header>
+    </div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -167,16 +151,8 @@
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="dashboard-footer">
-      <div class="footer-container">
-        <div class="footer-content">
-          <p class="footer-text">
-            © 2025 AstraFlow · Smart Expense Made Simple
-          </p>
-        </div>
-      </div>
-    </footer>
+    <!-- Page Footer -->
+    <PageFooter />
   </div>
 </template>
 
@@ -196,6 +172,8 @@ import {
 } from 'lucide-vue-next'
 import { useTheme } from '../../composables/useTheme'
 import { useUserStore } from '../../stores/userStore'
+import PageHeader from '../../components/ui/PageHeader.vue'
+import PageFooter from '../../components/ui/PageFooter.vue'
 import { getDashboardData } from '../../services/api/analyticsApi'
 
 const router = useRouter()
@@ -1259,50 +1237,6 @@ const getInsightClass = (type) => {
   color: #fecaca;
 }
 
-/* Footer */
-.dashboard-footer {
-  position: relative;
-  z-index: 10;
-  backdrop-filter: blur(12px);
-  border-top: 1px solid;
-  margin-top: 1rem;
-  transition: all 0.3s ease;
-}
-
-.dashboard-container[data-theme="dark"] .dashboard-footer {
-  background-color: rgba(31, 41, 55, 0.7);
-  border-color: rgba(55, 65, 81, 0.5);
-}
-
-.dashboard-container[data-theme="light"] .dashboard-footer {
-  background-color: rgba(255, 255, 255, 0.7);
-  border-color: rgba(229, 231, 235, 0.5);
-}
-
-.footer-container {
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
-}
-
-@media (min-width: 640px) {
-  .footer-container {
-    padding: 1.5rem 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .footer-container {
-    padding: 1.5rem 2rem;
-  }
-}
-
-.footer-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
 
 .home-button {
   display: inline-flex;
@@ -1339,19 +1273,6 @@ const getInsightClass = (type) => {
   box-shadow: 0 20px 25px -5px rgba(6, 182, 212, 0.4);
 }
 
-.footer-text {
-  text-align: center;
-  font-size: 0.875rem;
-  transition: color 0.3s ease;
-}
-
-.dashboard-container[data-theme="dark"] .footer-text {
-  color: #9ca3af;
-}
-
-.dashboard-container[data-theme="light"] .footer-text {
-  color: #6b7280;
-}
 
 /* Animations */
 @keyframes pulse {
@@ -1361,5 +1282,69 @@ const getInsightClass = (type) => {
   50% {
     opacity: 0.5;
   }
+}
+
+.user-info-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .user-info-container {
+    padding: 0 1.5rem;
+    padding-top: 0.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .user-info-container {
+    padding: 0 2rem;
+    padding-top: 0.5rem;
+  }
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboard-container[data-theme="dark"] .user-info {
+  color: #d1d5db;
+}
+
+.dashboard-container[data-theme="light"] .user-info {
+  color: #374151;
+}
+
+.user-avatar {
+  width: 2rem;
+  height: 2rem;
+  background: linear-gradient(135deg, #22d3ee, #3b82f6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-icon {
+  color: white;
+}
+
+.user-name {
+  font-size: 0.875rem;
+  transition: color 0.3s ease;
+}
+
+.dashboard-container[data-theme="dark"] .user-name {
+  color: #d1d5db;
+}
+
+.dashboard-container[data-theme="light"] .user-name {
+  color: #374151;
 }
 </style>

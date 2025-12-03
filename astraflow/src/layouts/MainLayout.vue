@@ -41,9 +41,9 @@
           账单管理
         </router-link>
         <router-link
-          to="/visualization"
+          to="/dashboard"
           class="nav-link"
-          :class="{ 'nav-link-active': $route.path === '/visualization' }"
+          :class="{ 'nav-link-active': $route.path === '/dashboard' }"
         >
           可视化
         </router-link>

@@ -7,32 +7,13 @@
       <div class="particle particle-purple"></div>
     </div>
 
-    <!-- Header -->
-    <header class="app-header">
-      <div class="header-content">
-        <div class="header-left">
-          <!-- 返回主页按钮 -->
-          <router-link to="/" class="back-button" title="返回主页">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m15 18-6-6 6-6"/>
-            </svg>
-            <span class="back-text">返回</span>
-          </router-link>
-
-          <div class="brand-name">
-            AstraFlow
-          </div>
-          <h1 class="page-title">发票上传 Upload Invoice</h1>
-        </div>
-
-        <div class="header-right">
-          <button @click="toggleTheme" class="theme-toggle">
-            <SunIcon v-if="isDark" :size="20" />
-            <MoonIcon v-else :size="20" />
-          </button>
-        </div>
-      </div>
-    </header>
+    <!-- Page Header -->
+    <PageHeader
+      title="发票上传 Upload Invoice"
+      :show-back-button="true"
+      back-to="/"
+      :show-theme-toggle="true"
+    />
 
     <!-- Main Content -->
     <main class="main-content">
@@ -221,14 +202,8 @@
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="app-footer">
-      <div class="footer-content">
-        <p class="footer-text">
-          © 2025 AstraFlow · Smart Expense Made Simple
-        </p>
-      </div>
-    </footer>
+    <!-- Page Footer -->
+    <PageFooter />
   </div>
 </template>
 
@@ -244,6 +219,8 @@ import {
   MoonIcon
 } from 'lucide-vue-next'
 import { useTheme } from '../composables/useTheme'
+import PageHeader from '../components/ui/PageHeader.vue'
+import PageFooter from '../components/ui/PageFooter.vue'
 
 const router = useRouter()
 const { theme, toggleTheme, isDark } = useTheme()
@@ -1446,56 +1423,6 @@ const getStatusIcon = (status) => {
   color: #4b5563;
 }
 
-/* Footer */
-.app-footer {
-  position: relative;
-  z-index: 10;
-  backdrop-filter: blur(12px);
-  border-top: 1px solid;
-  transition: all 0.3s ease;
-}
-
-.app-container[data-theme="dark"] .app-footer {
-  background-color: rgba(31, 41, 55, 0.7);
-  border-color: rgba(55, 65, 81, 0.5);
-}
-
-.app-container[data-theme="light"] .app-footer {
-  background-color: rgba(255, 255, 255, 0.7);
-  border-color: rgba(229, 231, 235, 0.5);
-}
-
-.footer-content {
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
-}
-
-@media (min-width: 640px) {
-  .footer-content {
-    padding: 1.5rem 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .footer-content {
-    padding: 1.5rem 2rem;
-  }
-}
-
-.footer-text {
-  text-align: center;
-  font-size: 0.875rem;
-  transition: color 0.3s ease;
-}
-
-.app-container[data-theme="dark"] .footer-text {
-  color: #9ca3af;
-}
-
-.app-container[data-theme="light"] .footer-text {
-  color: #4b5563;
-}
 
 /* Upload area transitions */
 .upload-fade-enter-active,

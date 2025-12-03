@@ -1,175 +1,167 @@
 <template>
   <div class="user-management">
-    <div class="page-header">
-      <h1>用户管理</h1>
-      <p>管理企业租户下的成员</p>
-    </div>
+    <!-- 顶部导航栏 -->
+    <PageHeader title="用户管理" />
 
-    <!-- 添加用户按钮 -->
-    <div class="header-actions">
-      <button @click="showAddUserModal = true" class="btn btn-primary">
-        添加用户
-      </button>
-    </div>
-
-    <!-- 搜索和过滤 -->
-    <div class="search-container">
-      <div class="search-group">
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="搜索用户..."
-          class="search-input"
-        />
-        <select v-model="filterRole" class="filter-select">
-          <option value="">所有角色</option>
-          <option value="admin">管理员</option>
-          <option value="normal">普通用户</option>
-        </select>
-        <select v-model="filterStatus" class="filter-select">
-          <option value="">所有状态</option>
-          <option value="true">启用</option>
-          <option value="false">禁用</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- 用户列表 -->
-    <div class="user-list-container">
-      <div class="table-container">
-        <table class="user-table">
-          <thead>
-            <tr>
-              <th>用户名</th>
-              <th>邮箱</th>
-              <th>角色</th>
-              <th>状态</th>
-              <th>加入时间</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in filteredUsers" :key="user.id">
-              <td>{{ user.name }}</td>
-              <td>{{ user.email }}</td>
-              <td>
-                <span class="role-badge" :class="getRoleClass(user.role)">
-                  {{ getRoleDisplayName(user.role) }}
-                </span>
-              </td>
-              <td>
-                <span class="status-badge" :class="user.is_active ? 'status-active' : 'status-inactive'">
-                  {{ user.is_active ? '启用' : '禁用' }}
-                </span>
-              </td>
-              <td>{{ formatDate(user.created_at || user.created_time) }}</td>
-              <td class="actions">
-                <button @click="toggleUserStatus(user)" class="btn btn-sm" :class="user.is_active ? 'btn-warning' : 'btn-success'">
-                  {{ user.is_active ? '禁用' : '启用' }}
-                </button>
-                <button @click="editUser(user)" class="btn btn-sm btn-outline">编辑</button>
-                <button @click="deleteUser(user)" class="btn btn-sm btn-danger" :disabled="user.id === currentUser.id">
-                  删除
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- 页面内容 -->
+    <div class="page-content">
+      <div class="page-subheader">
+        <p>管理企业租户下的成员</p>
       </div>
 
-      <!-- 空状态 -->
-      <div v-if="filteredUsers.length === 0 && users.length > 0" class="empty-state">
-        <p>没有找到匹配的用户</p>
+      <!-- 添加用户按钮 -->
+      <div class="header-actions">
+        <button @click="showAddUserModal = true" class="btn btn-primary">
+          添加用户
+        </button>
       </div>
-      <div v-else-if="users.length === 0" class="empty-state">
-        <p>暂无用户数据</p>
-      </div>
-    </div>
 
-    <!-- 添加/编辑用户模态框 -->
-    <div v-if="showAddUserModal" class="modal-overlay" @click="closeModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>{{ editingUser ? '编辑用户' : '添加用户' }}</h3>
-          <button @click="closeModal" class="close-btn">&times;</button>
-        </div>
-        <div class="modal-body">
-          <form @submit.prevent="saveUser">
-            <div class="form-group">
-              <label for="userName">用户名</label>
-              <input
-                type="text"
-                id="userName"
-                v-model="form.name"
-                :disabled="editingUser"
-                required
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label for="userEmail">邮箱</label>
-              <input
-                type="email"
-                id="userEmail"
-                v-model="form.email"
-                :disabled="editingUser"
-                required
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label for="userRole">角色</label>
-              <select id="userRole" v-model="form.role" :disabled="editingUser" required class="form-select">
-                <option value="normal">普通用户</option>
-                <option value="admin">管理员</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  v-model="form.is_active"
-                  class="form-checkbox"
-                />
-                启用用户
-              </label>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button @click="closeModal" class="btn btn-secondary">取消</button>
-          <button @click="saveUser" class="btn btn-primary" :disabled="formLoading">
-            {{ formLoading ? '保存中...' : (editingUser ? '更新' : '添加') }}
-          </button>
+      <!-- 搜索和过滤 -->
+      <div class="search-container">
+        <div class="search-group">
+          <input v-model="searchQuery" type="text" placeholder="搜索用户..." class="search-input" />
+          <select v-model="filterRole" class="filter-select">
+            <option value="">所有角色</option>
+            <option value="admin">管理员</option>
+            <option value="normal">普通用户</option>
+          </select>
+          <select v-model="filterStatus" class="filter-select">
+            <option value="">所有状态</option>
+            <option value="true">启用</option>
+            <option value="false">禁用</option>
+          </select>
         </div>
       </div>
-    </div>
 
-    <!-- 加载指示器 -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner"></div>
-      <p>加载中...</p>
-    </div>
-
-    <!-- 确认对话框 -->
-    <div v-if="showConfirmDialog" class="modal-overlay" @click="closeConfirmDialog">
-      <div class="modal-content" @click.stop>
-        <div class="modal-body">
-          <p>{{ confirmMessage }}</p>
+      <!-- 用户列表 -->
+      <div class="user-list-container">
+        <div class="table-container">
+          <table class="user-table">
+            <thead>
+              <tr>
+                <th>用户名</th>
+                <th>邮箱</th>
+                <th>角色</th>
+                <th>状态</th>
+                <th>加入时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in filteredUsers" :key="user.id">
+                <td>{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                  <span class="role-badge" :class="getRoleClass(user.role)">
+                    {{ getRoleDisplayName(user.role) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge" :class="user.is_active ? 'status-active' : 'status-inactive'">
+                    {{ user.is_active ? '启用' : '禁用' }}
+                  </span>
+                </td>
+                <td>{{ formatDate(user.created_at || user.created_time) }}</td>
+                <td class="actions">
+                  <button @click="toggleUserStatus(user)" class="btn btn-sm"
+                    :class="user.is_active ? 'btn-warning' : 'btn-success'">
+                    {{ user.is_active ? '禁用' : '启用' }}
+                  </button>
+                  <button @click="editUser(user)" class="btn btn-sm btn-outline">编辑</button>
+                  <button @click="deleteUser(user)" class="btn btn-sm btn-danger"
+                    :disabled="user.id === currentUser.id">
+                    删除
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div class="modal-footer">
-          <button @click="closeConfirmDialog" class="btn btn-secondary">取消</button>
-          <button @click="confirmAction" class="btn btn-danger">确定</button>
+
+        <!-- 空状态 -->
+        <div v-if="filteredUsers.length === 0 && users.length > 0" class="empty-state">
+          <p>没有找到匹配的用户</p>
+        </div>
+        <div v-else-if="users.length === 0" class="empty-state">
+          <p>暂无用户数据</p>
         </div>
       </div>
+
+      <!-- 添加/编辑用户模态框 -->
+      <div v-if="showAddUserModal" class="modal-overlay" @click="closeModal">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h3>{{ editingUser ? '编辑用户' : '添加用户' }}</h3>
+            <button @click="closeModal" class="close-btn">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="saveUser">
+              <div class="form-group">
+                <label for="userName">用户名</label>
+                <input type="text" id="userName" v-model="form.name" :disabled="editingUser" required
+                  class="form-input" />
+              </div>
+              <div class="form-group">
+                <label for="userEmail">邮箱</label>
+                <input type="email" id="userEmail" v-model="form.email" :disabled="editingUser" required
+                  class="form-input" />
+              </div>
+              <div class="form-group">
+                <label for="userRole">角色</label>
+                <select id="userRole" v-model="form.role" :disabled="editingUser" required class="form-select">
+                  <option value="normal">普通用户</option>
+                  <option value="admin">管理员</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" v-model="form.is_active" class="form-checkbox" />
+                  启用用户
+                </label>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button @click="closeModal" class="btn btn-secondary">取消</button>
+            <button @click="saveUser" class="btn btn-primary" :disabled="formLoading">
+              {{ formLoading ? '保存中...' : (editingUser ? '更新' : '添加') }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 加载指示器 -->
+      <div v-if="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>加载中...</p>
+      </div>
+
+      <!-- 确认对话框 -->
+      <div v-if="showConfirmDialog" class="modal-overlay" @click="closeConfirmDialog">
+        <div class="modal-content" @click.stop>
+          <div class="modal-body">
+            <p>{{ confirmMessage }}</p>
+          </div>
+          <div class="modal-footer">
+            <button @click="closeConfirmDialog" class="btn btn-secondary">取消</button>
+            <button @click="confirmAction" class="btn btn-danger">确定</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 页脚 -->
+      <PageFooter />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/userStore'
 import { getTenantUsers, createTenantUser, updateTenantUser, deleteTenantUser } from '../services/api/userManagementApi'
+import PageHeader from '../components/ui/PageHeader.vue'
+import PageFooter from '../components/ui/PageFooter.vue'
 
 // State
 const users = ref([])
@@ -433,27 +425,26 @@ onMounted(() => {
 
 <style scoped>
 .user-management {
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   color: #ffffff;
 }
 
-.page-header {
+.page-content {
+  flex: 1;
+  padding: 0 20px;
+}
+
+.page-subheader {
+  padding: 20px 0;
   margin-bottom: 24px;
 }
 
-.page-header h1 {
-  margin: 0 0 8px 0;
-  font-size: 24px;
-  font-weight: 600;
-  background: linear-gradient(to right, #60a5fa, #a855f7);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-}
-
-.page-header p {
+.page-subheader p {
   margin: 0;
   color: #9ca3af;
+  font-size: 16px;
 }
 
 .header-actions {
@@ -600,6 +591,7 @@ onMounted(() => {
 
 /* 用户列表容器 */
 .user-list-container {
+  margin-bottom: 20px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -839,8 +831,13 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-overlay p {
@@ -960,10 +957,11 @@ onMounted(() => {
 }
 
 
+
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .user-management {
-    padding: 16px;
+  .page-content {
+    padding: 0 16px;
   }
 
   .search-group {

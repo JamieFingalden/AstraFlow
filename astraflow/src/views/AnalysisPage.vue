@@ -7,43 +7,13 @@
       <div :class="`absolute top-1/2 left-1/2 particle-purple ${isDark ? 'dark-particle' : 'light-particle'}`"></div>
     </div>
 
-    <!-- Header -->
-    <header :class="`relative z-10 header ${isDark ? 'dark-header' : 'light-header'}`">
-      <div class="container">
-        <div class="header-content">
-          <div class="header-left">
-            <!-- 返回上传页按钮 -->
-            <router-link
-              to="/upload"
-              :class="`back-button ${isDark ? 'dark-back-button' : 'light-back-button'}`"
-              title="返回上传页"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m15 18-6-6 6-6"/>
-              </svg>
-              <span class="hidden-sm">返回</span>
-            </router-link>
-
-            <div class="brand-gradient">
-              AstraFlow
-            </div>
-            <h1 :class="`page-title ${isDark ? 'dark-text' : 'light-text'}`">
-              AI识别结果 Analysis
-            </h1>
-          </div>
-
-          <div class="header-right">
-            <button
-              @click="toggleTheme"
-              :class="`theme-toggle-btn ${isDark ? 'dark-theme-toggle' : 'light-theme-toggle'}`"
-            >
-              <SunIcon v-if="isDark" :size="20" />
-              <MoonIcon v-else :size="20" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <!-- Page Header -->
+    <PageHeader
+      title="AI识别结果 Analysis"
+      :show-back-button="true"
+      back-to="/upload"
+      :show-theme-toggle="true"
+    />
 
     <!-- Main Content -->
     <main class="relative z-10 main-content">
@@ -192,14 +162,8 @@
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer :class="`relative z-10 footer ${isDark ? 'dark-footer' : 'light-footer'}`">
-      <div class="container">
-        <p :class="`footer-text ${isDark ? 'dark-muted-text' : 'light-muted-text'}`">
-          © 2025 AstraFlow · Smart Expense Made Simple
-        </p>
-      </div>
-    </footer>
+    <!-- Page Footer -->
+    <PageFooter />
   </div>
 </template>
 
@@ -229,6 +193,8 @@ import {
   UploadIcon
 } from 'lucide-vue-next'
 import { useTheme } from '../composables/useTheme'
+import PageHeader from '../components/ui/PageHeader.vue'
+import PageFooter from '../components/ui/PageFooter.vue'
 
 const router = useRouter()
 const { theme, toggleTheme, isDark } = useTheme()
@@ -1236,32 +1202,6 @@ onMounted(async () => {
   margin-right: 0.5rem;
 }
 
-/* Footer */
-.footer {
-  position: relative;
-  z-index: 10;
-  backdrop-filter: blur(12px);
-  border-top-width: 1px;
-  margin-top: 3rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.dark-footer {
-  background-color: rgba(55, 65, 81, 0.7); /* gray-800/70 */
-  border-color: rgba(55, 65, 81, 0.5); /* gray-700/50 */
-}
-
-.light-footer {
-  background-color: rgba(255, 255, 255, 0.7); /* white/70 */
-  border-color: rgba(229, 231, 235, 0.5); /* gray-200/50 */
-}
-
-.footer-text {
-  text-align: center;
-  font-size: 0.875rem;
-  padding: 1.5rem 0;
-  transition: color 0.3s ease;
-}
 
 /* Animations */
 @keyframes spin {

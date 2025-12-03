@@ -7,44 +7,13 @@
       <div :class="'particle-circle particle-3 ' + (isDark ? 'dark-particle' : 'light-particle')"></div>
     </div>
 
-    <!-- Header -->
-    <header :class="'settings-header ' + (isDark ? 'dark-theme' : 'light-theme')">
-      <div class="container">
-        <div class="header-content">
-          <div class="header-left">
-            <!-- 返回按钮 -->
-            <router-link
-              to="/"
-              :class="'back-button ' + (isDark ? 'dark-theme' : 'light-theme')"
-              title="返回首页"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m15 18-6-6 6-6"/>
-              </svg>
-              <span class="back-button-text">返回</span>
-            </router-link>
-
-            <div class="brand-text">
-              AstraFlow
-            </div>
-            <h1 :class="'page-title ' + (isDark ? 'dark-theme' : 'light-theme')">
-              设置中心
-            </h1>
-          </div>
-
-          <div class="header-right">
-            <!-- 主题切换按钮 -->
-            <button
-              @click="toggleTheme"
-              :class="'theme-toggle-btn ' + (isDark ? 'dark-theme' : 'light-theme')"
-            >
-              <SunIcon v-if="isDark" :size="20" />
-              <MoonIcon v-else :size="20" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <!-- Page Header -->
+    <PageHeader
+      title="设置中心"
+      :show-back-button="true"
+      back-to="/"
+      :show-theme-toggle="true"
+    />
 
     <!-- Main Content -->
     <main class="settings-main-content">
@@ -326,16 +295,8 @@
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer :class="'stats-footer ' + (isDark ? 'dark-theme' : 'light-theme')">
-      <div class="footer-container">
-        <div class="footer-content">
-          <p :class="'footer-text ' + (isDark ? 'dark-theme' : 'light-theme')">
-            © 2025 AstraFlow · Smart Expense Made Simple
-          </p>
-        </div>
-      </div>
-    </footer>
+    <!-- Page Footer -->
+    <PageFooter />
   </div>
 </template>
 
@@ -343,6 +304,8 @@
 import { ref, onMounted, watch } from 'vue'
 import { useTheme } from '../composables/useTheme'
 import { useSettingsStore } from '../stores/settings'
+import PageHeader from '../components/ui/PageHeader.vue'
+import PageFooter from '../components/ui/PageFooter.vue'
 import {
   UserIcon,
   SettingsIcon,
@@ -1396,51 +1359,6 @@ watch(() => settingsStore.appearance, (newVal) => {
 }
 
 /* 页脚 */
-.stats-footer {
-  position: relative;
-  z-index: 10;
-  backdrop-filter: blur(12px);
-  border-top: 1px solid;
-  margin-top: 3rem;
-  transition: all 0.3s ease;
-}
-
-.stats-footer.dark-theme {
-  background-color: rgba(31, 41, 55, 0.7);
-  border-color: rgba(55, 65, 81, 0.5);
-}
-
-.stats-footer.light-theme {
-  background-color: rgba(255, 255, 255, 0.7);
-  border-color: rgba(229, 231, 235, 0.5);
-}
-
-.footer-container {
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
-}
-
-.footer-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.footer-text {
-  text-align: center;
-  font-size: 0.875rem;
-  transition: color 0.3s ease;
-}
-
-.footer-text.dark-theme {
-  color: #9ca3af;
-}
-
-.footer-text.light-theme {
-  color: #6b7280;
-}
 
 /* 响应式网格 */
 @media (max-width: 1024px) {

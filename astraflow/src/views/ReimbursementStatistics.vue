@@ -8,43 +8,13 @@
     </div>
 
     <!-- Header -->
-    <header :class="'stats-header ' + (isDark ? 'dark-theme' : 'light-theme')">
-      <div class="container">
-        <div class="header-content">
-          <div class="header-left">
-            <!-- 返回按钮 -->
-            <router-link
-              to="/"
-              :class="'back-button ' + (isDark ? 'dark-theme' : 'light-theme')"
-              title="返回首页"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m15 18-6-6 6-6"/>
-              </svg>
-              <span class="back-button-text">返回</span>
-            </router-link>
-
-            <div class="brand-text">
-              AstraFlow
-            </div>
-            <h1 :class="'page-title ' + (isDark ? 'dark-theme' : 'light-theme')">
-              报销统计
-            </h1>
-          </div>
-
-          <div class="header-right">
-            <!-- 主题切换按钮 -->
-            <button
-              @click="toggleTheme"
-              :class="'theme-toggle-btn ' + (isDark ? 'dark-theme' : 'light-theme')"
-            >
-              <SunIcon v-if="isDark" :size="20" />
-              <MoonIcon v-else :size="20" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
+    <PageHeader
+      title="报销统计"
+      :show-brand="true"
+      back-to="/"
+      back-title="返回首页"
+      :show-theme-toggle="true"
+    />
 
     <!-- Main Content -->
     <main class="stats-main-content">
@@ -124,16 +94,8 @@
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer :class="'stats-footer ' + (isDark ? 'dark-theme' : 'light-theme')">
-      <div class="footer-container">
-        <div class="footer-content">
-          <p :class="'footer-text ' + (isDark ? 'dark-theme' : 'light-theme')">
-            © 2025 AstraFlow · Smart Expense Made Simple
-          </p>
-        </div>
-      </div>
-    </footer>
+    <!-- Page Footer -->
+    <PageFooter />
   </div>
 </template>
 
@@ -141,6 +103,7 @@
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTheme } from '../composables/useTheme'
+import PageFooter from '../components/ui/PageFooter.vue'
 import * as echarts from 'echarts'
 import {
   WalletIcon,
@@ -150,6 +113,7 @@ import {
   SunIcon,
   MoonIcon
 } from 'lucide-vue-next'
+import PageHeader from '../components/ui/PageHeader.vue'
 import { getReimbursementStatisticsData } from '../services/api/analyticsApi'
 
 const router = useRouter()
@@ -558,151 +522,48 @@ onUnmounted(() => {
   }
 }
 
-/* 头部 */
-.stats-header {
-  position: relative;
-  z-index: 10;
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid;
-  transition: all 0.3s ease;
+/* 粒子圆圈 */
+.particle-circle {
+  position: absolute;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 50%;
+  mix-blend-mode: multiply;
+  filter: blur(6rem);
+  animation: pulse 4s ease-in-out infinite;
 }
 
-.stats-header.dark-theme {
-  background-color: rgba(31, 41, 55, 0.7);
-  border-color: rgba(55, 65, 81, 0.5);
+.particle-1 {
+  top: -10rem;
+  right: -10rem;
 }
 
-.stats-header.light-theme {
-  background-color: rgba(255, 255, 255, 0.7);
-  border-color: rgba(229, 231, 235, 0.5);
+.particle-2 {
+  bottom: -10rem;
+  left: -10rem;
 }
 
-.container {
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 0 1rem;
+.particle-3 {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-@media (min-width: 640px) {
-  .container {
-    padding: 0 1.5rem;
+.particle-circle.dark-particle {
+  background-color: rgba(6, 182, 212, 0.3);
+}
+
+.particle-circle.light-particle {
+  background-color: #06b6d4;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
   }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    padding: 0 2rem;
+  50% {
+    opacity: 0.8;
   }
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 4rem;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* 返回按钮 */
-.back-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease;
-  text-decoration: none;
-}
-
-.back-button.dark-theme {
-  color: #d1d5db;
-}
-
-.back-button.light-theme {
-  color: #4b5563;
-}
-
-.back-button:hover.dark-theme {
-  background-color: rgba(55, 65, 81, 0.5);
-  color: #ffffff;
-}
-
-.back-button:hover.light-theme {
-  background-color: #f3f4f6;
-  color: #1f2937;
-}
-
-.back-button-text {
-  display: none;
-}
-
-@media (min-width: 640px) {
-  .back-button-text {
-    display: inline;
-  }
-}
-
-/* 品牌文字 */
-.brand-text {
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #06b6d4, #3b82f6);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-}
-
-/* 页面标题 */
-.page-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.page-title.dark-theme {
-  color: #ffffff;
-}
-
-.page-title.light-theme {
-  color: #1f2937;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* 主题切换按钮 */
-.theme-toggle-btn {
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease;
-  border: none;
-  cursor: pointer;
-}
-
-.theme-toggle-btn.dark-theme {
-  background-color: rgba(55, 65, 81, 0.5);
-  color: #d1d5db;
-}
-
-.theme-toggle-btn.light-theme {
-  background-color: #f3f4f6;
-  color: #374151;
-}
-
-.theme-toggle-btn:hover.dark-theme {
-  background-color: rgba(75, 85, 99, 0.5);
-}
-
-.theme-toggle-btn:hover.light-theme {
-  background-color: #e5e7eb;
 }
 
 /* 主内容 */
@@ -1017,51 +878,305 @@ onUnmounted(() => {
 }
 
 /* 页脚 */
-.stats-footer {
-  position: relative;
-  z-index: 10;
-  backdrop-filter: blur(12px);
-  border-top: 1px solid;
-  margin-top: 3rem;
+
+/* 响应式图表容器 */
+@media (max-width: 768px) {
+  .chart-container {
+    height: 250px;
+    min-height: 250px;
+  }
+}
+
+/* 统计卡片网格 */
+.stats-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .stats-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* 统计卡片 */
+.stats-card {
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid;
   transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+  cursor: pointer;
 }
 
-.footer-container {
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
+.stats-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-.footer-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.stats-footer.dark-theme {
+.stats-card.dark-theme {
   background-color: rgba(31, 41, 55, 0.7);
   border-color: rgba(55, 65, 81, 0.5);
 }
 
-.stats-footer.light-theme {
+.stats-card.light-theme {
   background-color: rgba(255, 255, 255, 0.7);
   border-color: rgba(229, 231, 235, 0.5);
 }
 
-.footer-text {
-  text-align: center;
-  font-size: 0.875rem;
-  transition: color 0.3s ease;
+/* 红色主题 */
+.stats-card.red-theme.dark-theme {
+  background: linear-gradient(135deg, rgba(127, 29, 29, 0.3), rgba(146, 39, 64, 0.3));
+  border-color: rgba(209, 55, 78, 0.5);
 }
 
-.footer-text.dark-theme {
+.stats-card.red-theme.light-theme {
+  background: linear-gradient(135deg, #fef2f2, #fff7f7);
+  border-color: rgba(254, 202, 202, 0.5);
+}
+
+/* 绿色主题 */
+.stats-card.green-theme.dark-theme {
+  background: linear-gradient(135deg, rgba(21, 128, 61, 0.3), rgba(22, 101, 52, 0.3));
+  border-color: rgba(74, 222, 128, 0.5);
+}
+
+.stats-card.green-theme.light-theme {
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  border-color: rgba(187, 247, 208, 0.5);
+}
+
+/* 黄色主题 */
+.stats-card.yellow-theme.dark-theme {
+  background: linear-gradient(135deg, rgba(161, 98, 7, 0.3), rgba(180, 83, 9, 0.3));
+  border-color: rgba(253, 230, 138, 0.5);
+}
+
+.stats-card.yellow-theme.light-theme {
+  background: linear-gradient(135deg, #fefce8, #fef9c3);
+  border-color: rgba(254, 240, 138, 0.5);
+}
+
+/* 紫色主题 */
+.stats-card.purple-theme.dark-theme {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.3), rgba(76, 29, 149, 0.3));
+  border-color: rgba(165, 180, 252, 0.5);
+}
+
+.stats-card.purple-theme.light-theme {
+  background: linear-gradient(135deg, #f5f3ff, #faf5ff);
+  border-color: rgba(224, 231, 255, 0.5);
+}
+
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+/* 卡片图标容器 */
+.card-icon-container {
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+}
+
+.card-icon-container.dark-theme.red-theme {
+  background-color: rgba(127, 29, 29, 0.5);
+}
+
+.card-icon-container.light-theme.red-theme {
+  background-color: #fee2e2;
+}
+
+.card-icon-container.dark-theme.green-theme {
+  background-color: rgba(21, 128, 61, 0.5);
+}
+
+.card-icon-container.light-theme.green-theme {
+  background-color: #dcfce7;
+}
+
+.card-icon-container.dark-theme.yellow-theme {
+  background-color: rgba(161, 98, 7, 0.5);
+}
+
+.card-icon-container.light-theme.yellow-theme {
+  background-color: #fef9c3;
+}
+
+.card-icon-container.dark-theme.purple-theme {
+  background-color: rgba(88, 28, 135, 0.5);
+}
+
+.card-icon-container.light-theme.purple-theme {
+  background-color: #e0e7ff;
+}
+
+/* 卡片徽章 */
+.card-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.card-badge.dark-theme.red-theme {
+  background-color: rgba(127, 29, 29, 0.5);
+  color: #fcd34d;
+}
+
+.card-badge.light-theme.red-theme {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.card-badge.dark-theme.green-theme {
+  background-color: rgba(21, 128, 61, 0.5);
+  color: #86efac;
+}
+
+.card-badge.light-theme.green-theme {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.card-badge.dark-theme.yellow-theme {
+  background-color: rgba(161, 98, 7, 0.5);
+  color: #fde68a;
+}
+
+.card-badge.light-theme.yellow-theme {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+.card-badge.dark-theme.purple-theme {
+  background-color: rgba(88, 28, 135, 0.5);
+  color: #c7d2fe;
+}
+
+.card-badge.light-theme.purple-theme {
+  background-color: #e0e7ff;
+  color: #4f46e5;
+}
+
+/* 卡片子标题 */
+.card-subtitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.card-subtitle.dark-theme {
   color: #9ca3af;
 }
 
-.footer-text.light-theme {
+.card-subtitle.light-theme {
+  color: #4b5563;
+}
+
+/* 卡片值 */
+.card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.card-value.dark-theme {
+  color: #ffffff;
+}
+
+.card-value.light-theme {
+  color: #1f2937;
+}
+
+/* 卡片变化 */
+.card-change {
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.card-change.dark-theme {
   color: #6b7280;
 }
+
+.card-change.light-theme {
+  color: #6b7280;
+}
+
+/* 图标类 */
+.card-icon-dark {
+  color: #fbbf24;
+}
+
+.card-icon-light {
+  color: #dc2626;
+}
+
+/* 图表网格 */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 图表卡片 */
+.chart-card {
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(12px);
+}
+
+.chart-card.dark-theme {
+  background-color: rgba(31, 41, 55, 0.7);
+  border-color: rgba(55, 65, 81, 0.5);
+}
+
+.chart-card.light-theme {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(229, 231, 235, 0.5);
+}
+
+/* 图表标题 */
+.chart-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.chart-title.dark-theme {
+  color: #ffffff;
+}
+
+.chart-title.light-theme {
+  color: #1f2937;
+}
+
+/* 图表容器 */
+.chart-container {
+  width: 100%;
+  height: 300px;
+}
+
+/* 页脚 */
 
 /* 响应式图表容器 */
 @media (max-width: 768px) {

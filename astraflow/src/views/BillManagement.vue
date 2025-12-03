@@ -7,39 +7,21 @@
       <div class="particle particle-purple"></div>
     </div>
 
-    <!-- Header -->
-    <header class="app-header">
-      <div class="header-container">
-        <div class="header-left">
-          <!-- 返回按钮 -->
-          <router-link to="/" class="back-button" title="返回首页">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m15 18-6-6 6-6"/>
-            </svg>
-            <span class="back-text">返回</span>
-          </router-link>
+    <!-- Page Header -->
+    <PageHeader
+      title="账单管理"
+      :show-back-button="true"
+      back-to="/"
+      :show-theme-toggle="true"
+    />
 
-          <div class="brand-name">
-            AstraFlow
-          </div>
-          <h1 class="page-title">账单管理</h1>
-        </div>
-
-        <div class="header-right">
-          <!-- 添加账单按钮 -->
-          <button class="add-bill-button" @click="openCreateInvoiceModal">
-            <PlusIcon :size="20" class="button-icon" />
-            添加发票
-          </button>
-
-          <!-- 主题切换按钮 -->
-          <button @click="toggleTheme" class="theme-toggle">
-            <SunIcon v-if="isDark" :size="20" />
-            <MoonIcon v-else :size="20" />
-          </button>
-        </div>
-      </div>
-    </header>
+    <!-- Action Button Container -->
+    <div class="action-buttons-container">
+      <button class="add-bill-button" @click="openCreateInvoiceModal">
+        <PlusIcon :size="20" class="button-icon" />
+        添加发票
+      </button>
+    </div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -256,14 +238,8 @@
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="app-footer">
-      <div class="footer-container">
-        <p class="footer-text">
-          © 2025 AstraFlow · Smart Expense Made Simple
-        </p>
-      </div>
-    </footer>
+    <!-- Page Footer -->
+    <PageFooter />
 
     <!-- Invoice Modal -->
     <InvoiceModal
@@ -295,6 +271,8 @@ import {
 } from 'lucide-vue-next'
 import { useTheme } from '../composables/useTheme'
 import InvoiceModal from '../components/InvoiceModal.vue'
+import PageHeader from '../components/ui/PageHeader.vue'
+import PageFooter from '../components/ui/PageFooter.vue'
 import { useMessage } from 'naive-ui'
 import {
   getInvoicesByUser,
@@ -1572,55 +1550,6 @@ onMounted(async () => {
 }
 
 /* Footer */
-.app-footer {
-  position: relative;
-  z-index: 10;
-  backdrop-filter: blur(12px);
-  border-top: 1px solid;
-  transition: all 0.3s ease;
-}
-
-.app-container[data-theme="dark"] .app-footer {
-  background-color: rgba(31, 41, 55, 0.7);
-  border-color: rgba(55, 65, 81, 0.5);
-}
-
-.app-container[data-theme="light"] .app-footer {
-  background-color: rgba(255, 255, 255, 0.7);
-  border-color: rgba(229, 231, 235, 0.5);
-}
-
-.footer-container {
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
-}
-
-@media (min-width: 640px) {
-  .footer-container {
-    padding: 1.5rem 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .footer-container {
-    padding: 1.5rem 2rem;
-  }
-}
-
-.footer-text {
-  text-align: center;
-  font-size: 0.875rem;
-  transition: color 0.3s ease;
-}
-
-.app-container[data-theme="dark"] .footer-text {
-  color: #9ca3af;
-}
-
-.app-container[data-theme="light"] .footer-text {
-  color: #6b7280;
-}
 
 /* Animations */
 @keyframes pulse {
@@ -1642,6 +1571,29 @@ onMounted(async () => {
   .add-bill-button {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
+  }
+}
+
+.action-buttons-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1rem;
+}
+
+@media (min-width: 640px) {
+  .action-buttons-container {
+    padding: 0 1.5rem;
+    padding-top: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .action-buttons-container {
+    padding: 0 2rem;
+    padding-top: 1rem;
   }
 }
 </style>
