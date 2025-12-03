@@ -3,6 +3,7 @@ package repository
 import (
 	"AstraFlow-go/internal/database"
 	"AstraFlow-go/internal/model"
+
 	"gorm.io/gorm"
 )
 
@@ -29,6 +30,17 @@ func (r *UserRepository) Create(user *model.User) error {
 	}
 
 	return r.db.Create(user).Error
+}
+
+// GetUserList 获取用户列表
+// 根据租户ID查询所有用户
+func (r *UserRepository) GetUserList(tenantId int64) ([]*model.User, error) {
+	var users []*model.User
+	err := r.db.Where("tenant_id = ?", tenantId).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 // FindByUsername 根据用户名查找用户

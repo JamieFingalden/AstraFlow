@@ -26,8 +26,8 @@ func InitRouter() *gin.Engine {
 
 		// 认证相关接口
 		authHandler := handler.NewAuthHandler()
-		v1.POST("/auth/register", authHandler.Register) // 用户注册
-		v1.POST("/auth/login", authHandler.Login)       // 用户登录
+		// v1.POST("/auth/register", authHandler.Register) // 用户注册
+		v1.POST("/auth/login", authHandler.Login) // 用户登录
 		tenantHandler := handler.NewTenantHandler()
 		v1.POST("/tenants", tenantHandler.CreateTenant) // 创建租户
 
@@ -37,6 +37,13 @@ func InitRouter() *gin.Engine {
 		{
 			protected.POST("/auth/refresh", authHandler.RefreshToken) // 刷新Token
 			protected.GET("/auth/me", authHandler.GetCurrentUser)     // 获取当前用户信息
+
+			// 用户管理相关接口
+			userHandler := handler.NewUserHandler()
+			protected.GET("/users", userHandler.GetUserList)       // 获取用户列表
+			protected.POST("/users", userHandler.CreateUser)       // 创建用户
+			protected.PUT("/users/:id", userHandler.UpdateUser)    // 更新用户
+			protected.DELETE("/users/:id", userHandler.DeleteUser) // 删除用户
 
 			// 租户相关接口
 			protected.GET("/tenants", tenantHandler.GetTenantList)       // 获取租户列表
