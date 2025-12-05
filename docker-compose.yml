@@ -5,16 +5,18 @@ services:
     image: mysql:8.0
     container_name: mysql
     restart: always
-    expose:
-      - "3306"
+    ports:
+      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: astraflow
     volumes:
       - ./data/mysql:/var/lib/mysql
+    networks:
+      - astraflow-network
 
   migrate:
-    build: .
+    build: ./AstraFlow-go
     image: gin-astraflow-migrate:latest
     container_name: astraflow-migrate-gin
     # 覆盖默认入口，只跑迁移
@@ -26,9 +28,11 @@ services:
       - mysql
     # 跑完就退出，restart 不设或 no
     restart: "no"
+    networks:
+      - astraflow-network
 
   server:
-    build: .
+    build: ./AstraFlow-go
     image: gin-astraflow:latest
     container_name: astraflow-gin
     # 默认入口就是 /app/server
@@ -41,9 +45,11 @@ services:
       - mysql
       - migrate   # 确保 migrate 先执行完
     restart: always
+    networks:
+      - astraflow-network
 
   astraflow-flask:
-    build: ./flask
+    build: ./ocr-ai
     image: astraflow-flask:latest
     container_name: astraflow-flask
     expose:                 # 仅内部用
@@ -52,3 +58,9 @@ services:
       # 没有数据库，留空或自定义
       TZ: Asia/Shanghai
     restart: always
+    networks:
+      - astraflow-network
+
+networks:
+  astraflow-network:
+    driver: bridge

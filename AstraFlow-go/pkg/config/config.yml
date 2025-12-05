@@ -6,8 +6,8 @@ mysql:
   host: "127.0.0.1"
   port: 3306
   user: "root"
-  password: "123456"     # 你可以随便改
+  password: "123456"
   database: "astraflow"
   charset: "utf8mb4"
   parseTime: true
-  loc: "Local"
+  loc: "Asia/Shanghai"   # 与docker-compose中的TZ保持一致
