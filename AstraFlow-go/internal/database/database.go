@@ -5,6 +5,7 @@ import (
 	"AstraFlow-go/pkg/config"
 	"fmt"
 	"log"
+	"net/url"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -19,8 +20,16 @@ func InitDB() {
 	cfg := config.Cfg.MySQL
 
 	// 构建DSN (Data Source Name)
+	// 对密码和其他可能包含特殊字符的参数进行转义
+	username := url.QueryEscape(cfg.User)
+	password := url.QueryEscape(cfg.Password)
+	host := cfg.Host // host一般不需要转义
+	database := url.QueryEscape(cfg.Database)
+	charset := url.QueryEscape(cfg.Charset)
+	loc := url.QueryEscape(cfg.Loc)
+
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=%t&loc=%s",
-		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Database, cfg.Charset, cfg.ParseTime, cfg.Loc)
+		username, password, host, cfg.Port, database, charset, cfg.ParseTime, loc)
 
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{}) // 使用默认配置（复数表名）
