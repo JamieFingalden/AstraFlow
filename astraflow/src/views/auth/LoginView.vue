@@ -82,7 +82,6 @@ const handleDemoLogin = async () => {
   try {
     // Auto-login with demo credentials
     await userStore.login('demo@astraflow.com', 'Demo@123', true)
-    router.push('/visualization')
   } catch (error) {
     console.error('Demo login error:', error)
   }
@@ -90,9 +89,6 @@ const handleDemoLogin = async () => {
 
 // Check if user is already authenticated and redirect
 onMounted(() => {
-  if (userStore.isAuthenticated) {
-    router.push('/visualization')
-  }
 })
 </script>
 
