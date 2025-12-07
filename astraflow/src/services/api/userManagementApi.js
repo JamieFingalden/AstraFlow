@@ -2,14 +2,13 @@ import { request } from '../request'
 import { API_URLS } from '../apiUrls'
 
 /**
- * 获取租户下的用户列表
- * @param {string} tenantId - 租户ID
+ * 获取用户列表 (租户ID从JWT中获取)
  * @param {Object} params - 查询参数
  * @returns {Promise<Object>} 用户列表响应
  */
-export const getTenantUsers = async (tenantId, params = {}) => {
+export const getTenantUsers = async (params = {}) => {
     return request({
-        url: `/v1/tenants/${tenantId}/users`,
+        url: '/v1/users',
         method: 'GET',
         params
     })
@@ -28,13 +27,12 @@ export const getUserById = async (userId) => {
 }
 
 /**
- * 创建租户用户
+ * 创建用户 (租户ID从JWT中获取)
  * @param {Object} userData - 用户数据
  * @param {string} userData.name - 用户名
  * @param {string} userData.email - 邮箱
  * @param {string} userData.role - 用户角色 (admin, normal)
  * @param {boolean} userData.is_active - 是否激活
- * @param {string} userData.tenant_id - 租户ID
  * @returns {Promise<Object>} 用户创建响应
  */
 export const createTenantUser = async (userData) => {
@@ -46,13 +44,11 @@ export const createTenantUser = async (userData) => {
 }
 
 /**
- * 更新租户用户
+ * 更新用户 (租户ID从JWT中获取)
  * @param {string} userId - 用户ID
  * @param {Object} userData - 用户数据
- * @param {string} [userData.name] - 用户名
  * @param {string} [userData.email] - 邮箱
- * @param {string} [userData.role] - 用户角色
- * @param {boolean} [userData.is_active] - 是否激活
+ * @param {string} [userData.phone] - 电话
  * @returns {Promise<Object>} 用户更新响应
  */
 export const updateTenantUser = async (userId, userData) => {

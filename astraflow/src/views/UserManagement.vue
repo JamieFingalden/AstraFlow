@@ -39,34 +39,24 @@
           <table class="user-table">
             <thead>
               <tr>
-                <th>用户名</th>
+                <th>账号</th>
                 <th>邮箱</th>
+                <th>手机号</th>
                 <th>角色</th>
-                <th>状态</th>
-                <th>加入时间</th>
                 <th>操作</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="user in filteredUsers" :key="user.id">
-                <td>{{ user.name }}</td>
-                <td>{{ user.email }}</td>
+                <td>{{ user.username || user.name }}</td>
+                <td>{{ user.email || '-' }}</td>
+                <td>{{ user.phone || '-' }}</td>
                 <td>
                   <span class="role-badge" :class="getRoleClass(user.role)">
                     {{ getRoleDisplayName(user.role) }}
                   </span>
                 </td>
-                <td>
-                  <span class="status-badge" :class="user.is_active ? 'status-active' : 'status-inactive'">
-                    {{ user.is_active ? '启用' : '禁用' }}
-                  </span>
-                </td>
-                <td>{{ formatDate(user.created_at || user.created_time) }}</td>
                 <td class="actions">
-                  <button @click="toggleUserStatus(user)" class="btn btn-sm"
-                    :class="user.is_active ? 'btn-warning' : 'btn-success'">
-                    {{ user.is_active ? '禁用' : '启用' }}
-                  </button>
                   <button @click="editUser(user)" class="btn btn-sm btn-outline">编辑</button>
                   <button @click="deleteUser(user)" class="btn btn-sm btn-danger"
                     :disabled="user.id === currentUser.id">
@@ -98,12 +88,17 @@
             <form @submit.prevent="saveUser">
               <div class="form-group">
                 <label for="userName">用户名</label>
-                <input type="text" id="userName" v-model="form.name" :disabled="editingUser" required
+                <input type="text" id="userName" v-model="form.username" :disabled="editingUser" required
                   class="form-input" />
               </div>
               <div class="form-group">
                 <label for="userEmail">邮箱</label>
-                <input type="email" id="userEmail" v-model="form.email" :disabled="editingUser" required
+                <input type="email" id="userEmail" v-model="form.email" required
+                  class="form-input" />
+              </div>
+              <div class="form-group">
+                <label for="userPhone">手机号</label>
+                <input type="text" id="userPhone" v-model="form.phone"
                   class="form-input" />
               </div>
               <div class="form-group">
@@ -112,12 +107,6 @@
                   <option value="normal">普通用户</option>
                   <option value="admin">管理员</option>
                 </select>
-              </div>
-              <div class="form-group">
-                <label class="checkbox-label">
-                  <input type="checkbox" v-model="form.is_active" class="form-checkbox" />
-                  启用用户
-                </label>
               </div>
             </form>
           </div>
@@ -180,10 +169,10 @@ const filterStatus = ref('')
 
 // Form data
 const form = ref({
-  name: '',
+  username: '',
   email: '',
-  role: 'normal',
-  is_active: true
+  phone: '',
+  role: 'normal'
 })
 
 const userStore = useUserStore()
@@ -199,20 +188,21 @@ const filteredUsers = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(user =>
-      user.name.toLowerCase().includes(query) ||
-      user.email.toLowerCase().includes(query)
+      (user.username || user.name).toLowerCase().includes(query) ||
+      (user.email || '').toLowerCase().includes(query) ||
+      (user.phone || '').toLowerCase().includes(query)
     )
   }
 
   // Role filter
   if (filterRole.value) {
-    filtered = filtered.filter(user => user.role === filterRole.value)
+    filtered = filtered.filter(user => (user.role || 'normal') === filterRole.value)
   }
 
   // Status filter
   if (filterStatus.value !== '') {
     const isActive = filterStatus.value === 'true'
-    filtered = filtered.filter(user => user.is_active === isActive)
+    filtered = filtered.filter(user => (user.deleted_at ? false : true) === isActive)
   }
 
   return filtered
@@ -246,12 +236,7 @@ const getRoleClass = (role) => {
 const fetchUsers = async () => {
   loading.value = true
   try {
-    if (!userStore.user.tenantId) {
-      console.error('No tenant ID available')
-      return
-    }
-
-    const response = await getTenantUsers(userStore.user.tenantId)
+    const response = await getTenantUsers()
     users.value = response.data || []
   } catch (error) {
     console.error('Failed to fetch users:', error)
@@ -289,10 +274,10 @@ const fetchUsers = async () => {
 const editUser = (user) => {
   editingUser.value = user
   form.value = {
-    name: user.name,
+    username: user.username || user.name,
     email: user.email,
-    role: user.role,
-    is_active: user.is_active
+    phone: user.phone || '',
+    role: user.role
   }
   showAddUserModal.value = true
 }
@@ -327,21 +312,51 @@ const saveUser = async () => {
   try {
     if (editingUser.value) {
       // Update existing user
-      const response = await updateTenantUser(editingUser.value.id, form.value)
+      // Only update email and phone when editing user (as per requirements)
+      const userData = {
+        email: form.value.email,
+        phone: form.value.phone // Add phone field as expected by backend
+      };
+      const response = await updateTenantUser(editingUser.value.id, userData)
       const index = users.value.findIndex(u => u.id === editingUser.value.id)
       if (index !== -1) {
-        users.value[index] = { ...editingUser.value, ...form.value, ...response.data }
+        // Map backend response to frontend format
+        const updatedUser = {
+          ...editingUser.value,
+          username: response.data.username || response.data.name || form.value.username,
+          email: response.data.email || form.value.email,
+          phone: response.data.phone || form.value.phone,
+          role: response.data.role || form.value.role,
+          ...response.data
+        };
+        users.value[index] = updatedUser;
       }
     } else {
       // Add new user
-      const response = await createTenantUser({
-        ...form.value,
-        tenant_id: userStore.user.tenantId
-      })
-      users.value.push({ ...form.value, id: response.data.id })
+      // Map frontend fields to backend expectations
+      const userData = {
+        username: form.value.username,
+        password: 'default123', // Default password for new users, should be changed by user later
+        email: form.value.email,
+        role: form.value.role === 'admin', // Map string to boolean: 'admin' becomes true, 'normal' becomes false
+        phone: form.value.phone // Add phone field as expected by backend
+      };
+      const response = await createTenantUser(userData)
+      // Map backend response to frontend format
+      const newUser = {
+        id: response.data.id,
+        username: response.data.username || userData.username,
+        email: response.data.email || userData.email,
+        phone: response.data.phone || userData.phone,
+        role: response.data.role || userData.role,
+        created_at: response.data.created_at
+      };
+      users.value.push(newUser)
     }
 
     closeModal()
+    // Refresh the user list to ensure it's up to date
+    await fetchUsers()
   } catch (error) {
     console.error('Failed to save user:', error)
     // Handle error
@@ -356,10 +371,10 @@ const closeModal = () => {
   showAddUserModal.value = false
   editingUser.value = null
   form.value = {
-    name: '',
+    username: '',
     email: '',
-    role: 'normal',
-    is_active: true
+    phone: '',
+    role: 'normal'
   }
 }
 
@@ -377,30 +392,6 @@ const confirmAction = () => {
   }
 }
 
-// Toggle user status
-const toggleUserStatus = (user) => {
-  if (user.id === currentUser.value.id) {
-    alert('不能修改自己的状态')
-    return
-  }
-
-  const action = user.is_active ? '禁用' : '启用'
-  confirmMessage.value = `确定要${action}用户 "${user.name}" 吗？`
-  confirmCallback.value = async () => {
-    try {
-      const response = await updateTenantUser(user.id, { is_active: !user.is_active })
-      const index = users.value.findIndex(u => u.id === user.id)
-      if (index !== -1) {
-        users.value[index] = { ...user, is_active: !user.is_active, ...response.data }
-      }
-    } catch (error) {
-      console.error('Failed to toggle user status:', error)
-      alert(`${action}用户失败: ` + (error.message || '未知错误'))
-    }
-    closeConfirmDialog()
-  }
-  showConfirmDialog.value = true
-}
 
 // Format date
 const formatDate = (dateString) => {
@@ -432,8 +423,10 @@ onMounted(() => {
 }
 
 .page-content {
+  width: 80rem;
+  margin: 0 auto;
   flex: 1;
-  padding: 0 20px;
+  padding: 0 3rem;
 }
 
 .page-subheader {
