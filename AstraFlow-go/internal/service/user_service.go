@@ -61,3 +61,8 @@ func (s *UserService) UpdateUser(userId int64, username, password, email, phone,
 func (s *UserService) DeleteUser(userId int64) error {
 	return s.userRepo.Delete(userId)
 }
+
+// FindUserById 根据ID查找用户
+func (s *UserService) FindUserById(userId int64) (*model.User, error) {
+	return s.userRepo.FindByID(userId)
+}

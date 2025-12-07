@@ -44,6 +44,7 @@ func InitRouter() *gin.Engine {
 			protected.POST("/users", userHandler.CreateUser)       // 创建用户
 			protected.PUT("/users/:id", userHandler.UpdateUser)    // 更新用户
 			protected.DELETE("/users/:id", userHandler.DeleteUser) // 删除用户
+			protected.GET("/users/:id", userHandler.GetUserById)   // 获取用户详情
 
 			// 租户相关接口
 			protected.GET("/tenants", tenantHandler.GetTenantList)       // 获取租户列表

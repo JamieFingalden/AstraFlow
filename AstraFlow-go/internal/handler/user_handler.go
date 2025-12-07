@@ -244,3 +244,58 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 		Message: "删除用户成功",
 	})
 }
+
+// 获取用户详情
+func (h *UserHandler) GetUserById(c *gin.Context) {
+	// Get the authenticated user ID (current user)
+	authUserId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, UserResponse{
+			Code:    401,
+			Message: "无权限",
+		})
+		return
+	}
+
+	authUserIdInt64 := cast.ToInt64(authUserId)
+
+	// Get the requested user ID from the URL parameter
+	requestedUserIdStr := c.Param("id")
+	requestedUserIdInt64 := cast.ToInt64(requestedUserIdStr)
+
+	// Check if the authenticated user has permission to access the requested user
+	authUserRole, err := h.userService.FindUserRoleByUserId(authUserIdInt64)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, UserResponse{
+			Code:    500,
+			Message: "获取当前用户角色失败：" + err.Error(),
+		})
+		return
+	}
+
+	// Allow access if it's the same user or if current user is admin
+	if requestedUserIdInt64 != authUserIdInt64 && authUserRole != "admin" {
+		c.JSON(http.StatusUnauthorized, UserResponse{
+			Code:    401,
+			Message: "无权限",
+		})
+		return
+	}
+
+	user, err := h.userService.FindUserById(requestedUserIdInt64)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, UserResponse{
+			Code:    500,
+			Message: "获取用户详情失败：" + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, UserResponse{
+		Code:    200,
+		Message: "获取用户详情成功",
+		Data:    user,
+	})
+}
+
+
