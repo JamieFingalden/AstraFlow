@@ -32,6 +32,10 @@ func (r *UserRepository) Create(user *model.User) error {
 	return r.db.Create(user).Error
 }
 
+func (r *UserRepository) CreateUserReturnIt(user *model.User) error {
+	return r.db.Save(&user).Error
+}
+
 // GetUserList 获取用户列表
 // 根据租户ID查询所有用户
 func (r *UserRepository) GetUserList(tenantId int64) ([]*model.User, error) {
@@ -59,6 +63,20 @@ func (r *UserRepository) FindByUsername(username string) (*model.User, error) {
 	user.RoleName = user.Role
 
 	return &user, nil
+}
+
+// FindUserRoleByUserId 根据用户ID查找用户角色
+// 返回用户角色字符串，如果未找到则返回空字符串
+func (r *UserRepository) FindUserRoleByUserId(userId int64) (string, error) {
+	var user model.User
+	err := r.db.Where("id = ?", userId).First(&user).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return "", nil
+		}
+		return "", err
+	}
+	return user.Role, nil
 }
 
 func (r *UserRepository) FindByEmail(email string) (*model.User, error) {
