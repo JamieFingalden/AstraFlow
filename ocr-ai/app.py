@@ -12,6 +12,14 @@ from ai_module import extract_invoice_fields_with_openai
 # 创建Flask应用实例
 app = Flask(__name__)
 
+ALLOWED_MIME_TYPES = {
+    "application/pdf",
+    "image/png",
+    "image/jpeg",
+    "image/jpg",
+    "image/webp"
+}
+
 @app.route('/process_image', methods=['POST'])
 def process_image():
     """
@@ -30,26 +38,41 @@ def process_image():
         }
     """
     try:
-        # 检查是否有文件上传
+        # 1. 是否上传文件
         if 'image' not in request.files:
             return jsonify({
                 "status": "error",
-                "message": "没有上传图片文件"
+                "message": "没有上传文件"
             }), 400
-        
+
         file = request.files['image']
-        
-        # 检查文件名
+
+        # 2. 文件名校验
         if file.filename == '':
             return jsonify({
                 "status": "error",
                 "message": "文件名为空"
             }), 400
-        
-        # 创建临时文件保存上传的图片
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+
+        # 3. 文件类型校验
+        if file.mimetype not in ALLOWED_MIME_TYPES:
+            return jsonify({
+                "status": "error",
+                "message": "仅支持上传 PDF 或图片文件"
+            }), 400
+
+        # 4. 根据文件类型决定后缀
+        if file.mimetype == "application/pdf" or file.filename.lower().endswith(".pdf"):
+            suffix = ".pdf"
+            file_type = "pdf"
+        else:
+            suffix = ".jpg"   # 统一图片后缀即可
+            file_type = "image"
+
+        # 5. 保存为临时文件
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
             file.save(tmp_file.name)
-            temp_image_path = tmp_file.name
+            temp_file_path = tmp_file.name
         
         try:
             # 执行OCR识别
