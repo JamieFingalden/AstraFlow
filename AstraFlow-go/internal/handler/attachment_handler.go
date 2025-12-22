@@ -56,20 +56,19 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	// 获取可选的invoice_id参数
-	invoiceIDStr := c.PostForm("invoice_id")
-	var invoiceID *int64
-	if invoiceIDStr != "" {
-		id, err := strconv.ParseInt(invoiceIDStr, 10, 64)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, Response{
-				Code:    400,
-				Message: "invoice_id格式错误",
-			})
-			return
-		}
-		invoiceID = &id
+	// 校验文件格式是否正确
+	if err := h.service.ValidateFile(file); err != nil {
+		c.JSON(http.StatusBadRequest, Response{
+			Code:    400,
+			Message: "文件格式错误: " + err.Error(),
+		})
+		return
 	}
+
+	// TODO Use Flask to get invoice image information and save it to the database via an HTTP request
+
+	// TODO Save the invoice information first to obtain the invoice ID
+	var invoiceID *int64
 
 	// 调用服务层上传文件
 	attachment, err := h.service.UploadFile(file, userID.(int64), tenantID.(*int64), invoiceID)

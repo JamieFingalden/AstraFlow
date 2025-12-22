@@ -127,13 +127,8 @@ func (s *attachmentService) ValidateFile(file *multipart.FileHeader) error {
 		".jpg":  true,
 		".jpeg": true,
 		".png":  true,
-		".gif":  true,
 		".bmp":  true,
 		".pdf":  true,
-		".doc":  true,
-		".docx": true,
-		".xls":  true,
-		".xlsx": true,
 	}
 
 	extension := strings.ToLower(filepath.Ext(file.Filename))
