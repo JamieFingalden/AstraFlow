@@ -57,18 +57,10 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 	}
 
 	// 校验文件格式是否正确
-	if err := h.service.ValidateFile(file); err != nil {
+	if err = h.service.ValidateFile(file); err != nil {
 		c.JSON(http.StatusBadRequest, Response{
 			Code:    400,
 			Message: "文件格式错误: " + err.Error(),
-		})
-		return
-	}
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{
-			Code:    400,
-			Message: "获取发票信息失败: " + err.Error(),
 		})
 		return
 	}
