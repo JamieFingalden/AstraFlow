@@ -65,6 +65,14 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
+	if err != nil {
+		c.JSON(http.StatusBadRequest, Response{
+			Code:    400,
+			Message: "获取发票信息失败: " + err.Error(),
+		})
+		return
+	}
+
 	// TODO Use Flask to get invoice image information and save it to the database via an HTTP request
 
 	// TODO Save the invoice information first to obtain the invoice ID
