@@ -6,6 +6,7 @@ AI模型调用模块：支持多种AI服务进行发票字段提取
 
 import json
 import os
+import re
 import base64
 from datetime import date
 from dotenv import load_dotenv
@@ -126,7 +127,6 @@ def extract_invoice_fields_with_openai(image_path, ocr_result):
         response_text = response.choices[0].message.content.strip()
 
         # 解析JSON响应
-        import re
         json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
         if json_match:
             result_json = json_match.group()
@@ -153,11 +153,6 @@ if __name__ == "__main__":
     # 示例2：基于图像提取发票字段
     print("\n=== 基于图像的发票字段提取 (DashScope) ===")
     test_image = "test_bill.jpg"  # 请确保测试图片存在
-    if os.path.exists(test_image):
-        result = extract_invoice_fields_with_dashscope(image_path=test_image, ocr_result="OCR result placeholder")
-        print(f"图像提取结果: {result}")
-    else:
-        print(f"测试图片 {test_image} 不存在")
 
     # 示例3：基于图像提取发票字段 using OpenAI
     print("\n=== 基于图像的发票字段提取 (OpenAI) ===")
