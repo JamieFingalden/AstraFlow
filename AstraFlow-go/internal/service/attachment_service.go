@@ -13,7 +13,7 @@ import (
 )
 
 type AttachmentService interface {
-	UploadFile(file *multipart.FileHeader, userID int64, tenantID *int64, invoiceID *int64) (*model.Attachment, error)
+	UploadFile(file *multipart.FileHeader, userID int64, tenantID *int64) (*model.Attachment, error)
 	GetAttachmentByID(id int64) (*model.Attachment, error)
 	GetAttachmentsByUserID(userID int64) ([]*model.Attachment, error)
 	GetAttachmentsByTenantID(tenantID int64) ([]*model.Attachment, error)
@@ -32,7 +32,7 @@ func NewAttachmentService() AttachmentService {
 	}
 }
 
-func (s *attachmentService) UploadFile(file *multipart.FileHeader, userID int64, tenantID *int64, invoiceID *int64) (*model.Attachment, error) {
+func (s *attachmentService) UploadFile(file *multipart.FileHeader, userID int64, tenantID *int64) (*model.Attachment, error) {
 	// 验证文件
 	if err := s.ValidateFile(file); err != nil {
 		return nil, err
@@ -70,12 +70,11 @@ func (s *attachmentService) UploadFile(file *multipart.FileHeader, userID int64,
 	// 创建附件记录
 	fileType := extension
 	attachment := &model.Attachment{
-		TenantID:  tenantID,
-		UserID:    userID,
-		InvoiceID: invoiceID,
-		FileURL:   "/uploads/" + filename,
-		FileType:  &fileType,
-		FileSize:  &file.Size,
+		TenantID: tenantID,
+		UserID:   userID,
+		FileURL:  "/uploads/" + filename,
+		FileType: &fileType,
+		FileSize: &file.Size,
 	}
 
 	if err := s.repo.Create(attachment); err != nil {

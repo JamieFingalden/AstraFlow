@@ -25,7 +25,19 @@ func NewAttachmentHandler() *AttachmentHandler {
 	}
 }
 
-// UploadFile 上传文件
+// UploadFile 上传发票文件并识别发票信息
+//  1. 用户上传文件
+//  2. Go 保存文件到本地
+//  3. Go 插入 file 表（记录文件信息）
+//  4. Go 调 Flask 做发票识别
+//     ├─ 成功：
+//     │    5. 插入 invoice（真实识别数据）
+//     │    6. 更新 file.invoice_id = invoice.id
+//     │    7. 返回前端：识别成功
+//     └─ 失败：
+//  5. 插入 invoice（空 / 标记失败）
+//  6. 更新 file.invoice_id = invoice.id
+//  7. 返回前端：识别失败，请手动输入
 func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 	// 获取当前用户信息
 	userID, exists := c.Get("user_id")
@@ -65,13 +77,8 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	// TODO Use Flask to get invoice image information and save it to the database via an HTTP request
-
-	// TODO Save the invoice information first to obtain the invoice ID
-	var invoiceID *int64
-
 	// 调用服务层上传文件
-	attachment, err := h.service.UploadFile(file, userID.(int64), tenantID.(*int64), invoiceID)
+	attachment, err := h.service.UploadFile(file, userID.(int64), tenantID.(*int64))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
 			Code:    500,
@@ -79,6 +86,11 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 		})
 		return
 	}
+
+	// TODO: Publish OCR task to RabbitMQ
+	// 1. 构造 OCR 任务消息（包含 file_id / file_path / tenant_id / user_id）
+	// 2. 推送消息到 RabbitMQ
+	// 3. 不在 Web 层等待 OCR 结果
 
 	c.JSON(http.StatusOK, Response{
 		Code:    200,

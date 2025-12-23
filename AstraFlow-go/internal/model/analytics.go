@@ -50,11 +50,11 @@ type AIInsight struct {
 
 // DashboardData represents the complete dashboard response
 type DashboardData struct {
-	Metrics           DashboardMetrics   `json:"metrics"`
-	ExpenseCategories []ExpenseCategory  `json:"expense_categories"`
-	MonthlyExpenses   []MonthlyExpense   `json:"monthly_expenses"`
-	RecentBills       []RecentBill       `json:"recent_bills"`
-	AIInsights        []AIInsight        `json:"ai_insights"`
+	Metrics           DashboardMetrics  `json:"metrics"`
+	ExpenseCategories []ExpenseCategory `json:"expense_categories"`
+	MonthlyExpenses   []MonthlyExpense  `json:"monthly_expenses"`
+	RecentBills       []RecentBill      `json:"recent_bills"`
+	AIInsights        []AIInsight       `json:"ai_insights"`
 }
 
 // AnalyticsRequest represents the request parameters for analytics
@@ -65,23 +65,23 @@ type AnalyticsRequest struct {
 
 // ReimbursementStatistics represents key reimbursement statistics
 type ReimbursementStatistics struct {
-	TotalAmount     float64 `json:"total_amount"`
-	ApprovedAmount  float64 `json:"approved_amount"`
-	PendingAmount   float64 `json:"pending_amount"`
-	RejectionRate   float64 `json:"rejection_rate"`
-	ApprovalRate    float64 `json:"approval_rate"`
-	TotalRequests   int64   `json:"total_requests"`
-	ApprovedCount   int64   `json:"approved_count"`
-	PendingCount    int64   `json:"pending_count"`
-	RejectedCount   int64   `json:"rejected_count"`
+	TotalAmount    float64 `json:"total_amount"`
+	ApprovedAmount float64 `json:"approved_amount"`
+	PendingAmount  float64 `json:"pending_amount"`
+	RejectionRate  float64 `json:"rejection_rate"`
+	ApprovalRate   float64 `json:"approval_rate"`
+	TotalRequests  int64   `json:"total_requests"`
+	ApprovedCount  int64   `json:"approved_count"`
+	PendingCount   int64   `json:"pending_count"`
+	RejectedCount  int64   `json:"rejected_count"`
 }
 
 // MonthlyTrend represents monthly reimbursement trends for bar chart
 type MonthlyTrend struct {
-	Month string  `json:"month"`
-	Total float64 `json:"total"`
+	Month    string  `json:"month"`
+	Total    float64 `json:"total"`
 	Approved float64 `json:"approved"`
-	Pending float64 `json:"pending"`
+	Pending  float64 `json:"pending"`
 }
 
 // ReimbursementStatisticsData represents the complete reimbursement statistics response

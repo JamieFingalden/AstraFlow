@@ -21,10 +21,10 @@ func main() {
 		&model.Role{},
 		&model.Tenant{},
 		&model.Invoice{},
-		&model.OCRResult{},
+		// &model.OCRResult{},
 		&model.Attachment{},
-		&model.Reimbursement{},
-		&model.ReimbursementItem{},
+		// &model.Reimbursement{},
+		// &model.ReimbursementItem{},
 	)
 	if err != nil {
 		log.Fatalf("数据库迁移失败: %v", err)
