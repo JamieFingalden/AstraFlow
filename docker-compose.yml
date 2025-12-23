@@ -40,10 +40,27 @@ services:
       - "127.0.0.1:8080:8080"
     environment:
       DB_DSN: "root:123456@tcp(mysql:3306)/astraflow?charset=utf8mb4&parseTime=True"
+      MQ_URL: "amqp://guest:guest@rabbitmq:5672/"
       TZ: Asia/Shanghai
     depends_on:
       - mysql
       - migrate   # 确保 migrate 先执行完
+      - rabbitmq
+    restart: always
+    networks:
+      - astraflow-network
+
+  worker:
+    build: ./AstraFlow-go
+    image: gin-astraflow:latest
+    container_name: astraflow-worker
+    entrypoint: ["/app/worker"]
+    environment:
+      DB_DSN: "root:123456@tcp(mysql:3306)/astraflow?charset=utf8mb4&parseTime=True"
+      MQ_URL: "amqp://guest:guest@rabbitmq:5672/"
+    depends_on:
+      - rabbitmq
+      - mysql
     restart: always
     networks:
       - astraflow-network
@@ -58,6 +75,15 @@ services:
       # 没有数据库，留空或自定义
       TZ: Asia/Shanghai
     restart: always
+    networks:
+      - astraflow-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: astraflow-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     networks:
       - astraflow-network
 
