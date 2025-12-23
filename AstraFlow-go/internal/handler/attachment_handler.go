@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"AstraFlow-go/internal/mq"
 	"AstraFlow-go/internal/service"
 	"net/http"
 	"strconv"
@@ -88,9 +89,42 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 	}
 
 	// TODO: Publish OCR task to RabbitMQ
-	// 1. 构造 OCR 任务消息（包含 file_id / file_path / tenant_id / user_id）
-	// 2. 推送消息到 RabbitMQ
-	// 3. 不在 Web 层等待 OCR 结果
+	// - build OCRTask message
+	// - send to MQ
+	// - do NOT wait for OCR result
+
+	// 发布 OCR 任务到 MQ
+	conn, err := mq.NewConnection()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Response{
+			Code:    500,
+			Message: "MQ 连接失败: " + err.Error(),
+		})
+		return
+	}
+	defer conn.Close()
+
+	producer, err := mq.NewProducer(conn)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Response{
+			Code:    500,
+			Message: "MQ Producer 初始化失败: " + err.Error(),
+		})
+		return
+	}
+
+	task := mq.OCRTask{
+		FileID:   attachment.ID,
+		FilePath: attachment.FileURL,
+	}
+
+	if err := producer.PublishOCRTask(task); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{
+			Code:    500,
+			Message: "发送 OCR 任务失败: " + err.Error(),
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, Response{
 		Code:    200,

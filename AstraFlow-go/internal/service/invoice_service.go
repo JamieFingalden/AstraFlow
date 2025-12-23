@@ -28,18 +28,19 @@ func (s *InvoiceService) CreateInvoice(tenantId, userId int64, invoiceDate time.
 	}
 
 	invoice := &model.Invoice{
-		TenantID:      &tenantId,
-		UserID:        userId,
-		InvoiceNumber: &invoiceNumber,
-		InvoiceDate:   &invoiceDate,
-		Amount:        &amount,
-		Vendor:        vendor,
-		TaxID:         &taxId,
-		Category:      &category,
-		PaymentSource: &paymentSource,
-		Status:        status,
-		ImageURL:      imageURL,
-		Description:   description,
+		TenantID:       &tenantId,
+		UserID:         userId,
+		InvoiceNumber:  &invoiceNumber,
+		InvoiceDate:    &invoiceDate,
+		Amount:         &amount,
+		Vendor:         vendor,
+		TaxID:          &taxId,
+		Category:       &category,
+		PaymentSource:  &paymentSource,
+		Status:         status,
+		ImageURL:       imageURL,
+		Description:    description,
+		IdentifyStatus: "unnecessary", // 默认值
 	}
 
 	err = s.invoiceRepo.Create(invoice)
