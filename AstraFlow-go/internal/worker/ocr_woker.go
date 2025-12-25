@@ -1,18 +1,17 @@
 package worker
 
 import (
-	"AstraFlow-go/internal/mq"
 	"log"
 )
 
-// StartWorker 启动OCR工作服务
-// 这是一个简单的函数，直接处理从队列收到的任务
-func StartWorker(consumer *mq.Consumer) error {
-	log.Println("OCR Worker starting, waiting for OCR tasks...")
+// StartWorker 启动Python消费者工作服务
+// 注意：此函数现在仅作保留，实际的OCR处理由Python消费者完成
+// Go后端只负责发送任务到队列，不处理消费逻辑
+func StartWorker() error {
+	log.Println("Python Consumer Worker started, but actual OCR processing handled by Python consumers...")
+	log.Println("Go端仅负责发送任务到队列，Python消费者负责处理OCR任务")
 
-	// 消费队列中的消息，每个消息都是一个OCR任务
-	return consumer.Consume(func(task mq.OCRTask) error {
-		// 直接调用处理函数处理OCR任务
-		return ProcessOCRTask(task.FileID, task.FilePath)
-	})
+	// 保持此函数运行，但不执行实际的消费任务
+	// 实际的OCR处理由Python消费者完成
+	select {}
 }

@@ -2,18 +2,12 @@ package worker
 
 import (
 	"log"
-
-	"github.com/streadway/amqp"
-	"AstraFlow-go/internal/mq"
 )
 
 // NewConsumer 创建MQ消费者
-// 简单的辅助函数，用于创建消费者实例
-func NewConsumer(conn *amqp.Connection) (*mq.Consumer, error) {
-	consumer, err := mq.NewConsumer(conn)
-	if err != nil {
-		log.Printf("MQ Consumer 初始化失败: %v", err)
-		return nil, err
-	}
-	return consumer, nil
+// 注意：此函数现在仅作保留，实际的OCR处理由Python消费者完成
+// Go后端只负责发送任务到队列，不处理消费逻辑
+func NewConsumer() error {
+	log.Println("实际的OCR处理由Python消费者完成，Go后端只负责发送任务")
+	return nil
 }

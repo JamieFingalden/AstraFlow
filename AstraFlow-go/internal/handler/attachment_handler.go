@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"AstraFlow-go/internal/mq"
+	"AstraFlow-go/internal/client"
 	"AstraFlow-go/internal/service"
 	"net/http"
 	"strconv"
@@ -88,49 +88,51 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	// TODO: Publish OCR task to RabbitMQ
-	// - build OCRTask message
-	// - send to MQ
-	// - do NOT wait for OCR result
+	// 尝试调用 Flask 服务进行 OCR 识别
+	// 如果 Flask 服务不可用，则使用 Go 端的消费者作为备用方案
+	useFallback := true
+	// _, err = client.SendFileToFlask(attachment.FileURL)
+	// if err != nil {
+	// 	// Flask 服务不可用，使用备用方案
+	// 	useFallback = true
+	// }
 
-	// 发布 OCR 任务到 MQ
-	conn, err := mq.NewConnection()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, Response{
-			Code:    500,
-			Message: "MQ 连接失败: " + err.Error(),
+	// 如果 Flask 服务不可用或配置了备用方案，发布 OCR 任务到 RabbitMQ
+	if useFallback {
+		// 发布 OCR 任务到 RabbitMQ
+		rabbitmqClient, err := client.NewRabbitMQOCRClient()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, Response{
+				Code:    500,
+				Message: "RabbitMQ 客户端初始化失败: " + err.Error(),
+			})
+			return
+		}
+		defer rabbitmqClient.Close()
+
+		// 发送任务到队列
+		_, err = rabbitmqClient.AddTask(attachment.ID, attachment.FileURL, nil)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, Response{
+				Code:    500,
+				Message: "发送 OCR 任务失败: " + err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, Response{
+			Code:    200,
+			Message: "文件上传成功，OCR 任务已加入队列处理",
+			Data:    attachment,
 		})
-		return
-	}
-	defer conn.Close()
-
-	producer, err := mq.NewProducer(conn)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, Response{
-			Code:    500,
-			Message: "MQ Producer 初始化失败: " + err.Error(),
+	} else {
+		// Flask 服务可用，直接返回成功
+		c.JSON(http.StatusOK, Response{
+			Code:    200,
+			Message: "文件上传成功",
+			Data:    attachment,
 		})
-		return
 	}
-
-	task := mq.OCRTask{
-		FileID:   attachment.ID,
-		FilePath: attachment.FileURL,
-	}
-
-	if err := producer.PublishOCRTask(task); err != nil {
-		c.JSON(http.StatusInternalServerError, Response{
-			Code:    500,
-			Message: "发送 OCR 任务失败: " + err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, Response{
-		Code:    200,
-		Message: "文件上传成功",
-		Data:    attachment,
-	})
 }
 
 // GetAttachmentByID 根据ID获取附件信息

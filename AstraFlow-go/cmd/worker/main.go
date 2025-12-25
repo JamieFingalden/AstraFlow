@@ -2,33 +2,31 @@ package main
 
 import (
 	"AstraFlow-go/internal/database"
-	"AstraFlow-go/internal/mq"
 	"AstraFlow-go/internal/worker"
+	"AstraFlow-go/pkg/config"
 	"log"
 )
 
 func main() {
-	// 1. 建立与RabbitMQ的连接
-	conn, err := mq.NewConnection()
-	if err != nil {
-		log.Fatal("MQ 连接失败:", err)
-	}
-	defer conn.Close()
+	// 1. 初始化配置
+	config.InitConfig()
 
 	// 2. 初始化数据库连接
 	database.InitDB()
 
-	// 3. 创建消费者实例
-	consumer, err := mq.NewConsumer(conn)
-	if err != nil {
-		log.Fatal("MQ Consumer 初始化失败:", err)
-	}
+	log.Println("Worker started (Python consumer handles OCR tasks)...")
 
-	log.Println("Worker started, waiting for OCR tasks...")
+	// 3. 启动Go端OCR工作进程作为备用方案
+	go func() {
+		log.Println("Starting Go OCR worker as fallback option...")
+		if err := worker.StartOCRWorker(); err != nil {
+			log.Printf("Go OCR worker stopped: %v", err)
+		}
+	}()
 
-	// 4. 启动工作服务，开始消费OCR任务
-	// ProcessOCRTask函数直接处理每个收到的任务
-	if err := worker.StartWorker(consumer); err != nil {
+	// 4. 启动Python工作服务
+	// 注意：实际的OCR处理主要由Python消费者完成，Go后端只负责发送任务
+	if err := worker.StartWorker(); err != nil {
 		log.Fatal(err)
 	}
 }

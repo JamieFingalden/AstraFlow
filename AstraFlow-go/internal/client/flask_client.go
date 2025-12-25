@@ -7,10 +7,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 )
 
-func SendFileToFlask(filePath string) ([]byte, error) {
+func SendFileToFlask(fileID int64, filePath string) ([]byte, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -20,27 +22,65 @@ func SendFileToFlask(filePath string) ([]byte, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	part, err := writer.CreateFormFile("file", filepath.Base(filePath))
+	// 添加 fileID 作为表单字段
+	err = writer.WriteField("file_id", strconv.FormatInt(fileID, 10))
 	if err != nil {
 		return nil, err
 	}
 
+	// Detect the content type based on file extension
+	contentType := "application/octet-stream" // default
+	fileExtension := strings.ToLower(filepath.Ext(filePath))
+	switch fileExtension {
+	case ".pdf":
+		contentType = "application/pdf"
+	case ".png":
+		contentType = "image/png"
+	case ".jpg", ".jpeg":
+		contentType = "image/jpeg"
+	case ".gif":
+		contentType = "image/gif"
+	case ".bmp":
+		contentType = "image/bmp"
+	case ".webp":
+		contentType = "image/webp"
+	case ".tiff", ".tif":
+		contentType = "image/tiff"
+	}
+
+	// Create the form file part manually to set the content type
+	header := make(map[string][]string)
+	header["Content-Disposition"] = []string{`form-data; name="image"; filename="` + filepath.Base(filePath) + `"`}
+	header["Content-Type"] = []string{contentType}
+
+	part, err := writer.CreatePart(header)
+	if err != nil {
+		return nil, err
+	}
+
+	// Copy the file content to the form field
 	_, err = io.Copy(part, file)
 	if err != nil {
 		return nil, err
 	}
 
-	writer.Close()
+	// Close the writer to finalize the multipart form data
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
 
+	// Create the HTTP request
 	req, err := http.NewRequest(
 		"POST",
-		"http://astraflow-flask:5000/api/process_image",
+		"http://localhost:5000/process_image",
 		body,
 	)
 	if err != nil {
 		return nil, err
 	}
 
+	// Set the content type header
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	client := &http.Client{Timeout: 60 * time.Second}

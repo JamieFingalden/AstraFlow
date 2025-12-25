@@ -6,7 +6,10 @@ OCR模块（线上版）：使用免费 OCR API 进行中文文本识别
 
 import os
 import requests
+import time
 import ai_module
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # OCR.space 免费 API（无需注册）
 OCR_API_URL = "https://api.ocr.space/parse/image"
@@ -26,33 +29,81 @@ def ocr_image(image_path):
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"图片文件不存在: {image_path}")
 
-    with open(image_path, "rb") as f:
-        response = requests.post(
-            OCR_API_URL,
-            files={"file": f},
-            data={
-                "apikey": OCR_API_KEY,
-                "language": "chs",           # 中文简体
-                "isOverlayRequired": False,
-                "OCREngine": 2               # OCR 引擎 2，效果更好
-            },
-            timeout=30
-        )
+    # Create a session with retry strategy
+    session = requests.Session()
+    
+    # Define retry strategy
+    retry_strategy = Retry(
+        total=3,  # Total number of retries
+        backoff_factor=2,  # Exponential backoff factor (1s, 2s, 4s)
+        status_forcelist=[429, 500, 502, 503, 504],  # HTTP status codes to retry
+        allowed_methods=["POST"]  # HTTP methods to retry
+    )
+    
+    # Mount adapter with retry strategy
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
 
-    response.raise_for_status()
-    result = response.json()
+    # Attempt the request with retries
+    last_exception = None
+    for attempt in range(3):
+        try:
+            with open(image_path, "rb") as f:
+                response = session.post(
+                    OCR_API_URL,
+                    files={"file": f},
+                    data={
+                        "apikey": OCR_API_KEY,
+                        "language": "chs",           # 中文简体
+                        "isOverlayRequired": False,
+                        "OCREngine": 2               # OCR 引擎 2，效果更好
+                    },
+                    timeout=120,
+                    verify=True  # Enable SSL verification
+                )
 
-    if result.get("IsErroredOnProcessing"):
-        error_msg = result.get("ErrorMessage", "未知 OCR 错误")
-        raise RuntimeError(f"OCR 识别失败: {error_msg}")
+            response.raise_for_status()
+            result = response.json()
 
-    texts = []
-    for item in result.get("ParsedResults", []):
-        text = item.get("ParsedText", "")
-        if text.strip():
-            texts.append(text.strip())
+            if result.get("IsErroredOnProcessing"):
+                error_msg = result.get("ErrorMessage", "未知 OCR 错误")
+                raise RuntimeError(f"OCR 识别失败: {error_msg}")
 
-    return "\n".join(texts)
+            texts = []
+            for item in result.get("ParsedResults", []):
+                text = item.get("ParsedText", "")
+                if text.strip():
+                    texts.append(text.strip())
+
+            return "\n".join(texts)
+            
+        except requests.exceptions.SSLError as e:
+            last_exception = e
+            if attempt < 2:  # If not the last attempt
+                print(f"OCR API SSL error (attempt {attempt + 1}/3): {str(e)}")
+                time.sleep(2 ** attempt)  # Exponential backoff
+            else:
+                raise RuntimeError(f"OCR API SSL error after 3 attempts: {str(e)}")
+                
+        except requests.exceptions.ConnectionError as e:
+            last_exception = e
+            if attempt < 2:  # If not the last attempt
+                print(f"OCR API connection error (attempt {attempt + 1}/3): {str(e)}")
+                time.sleep(2 ** attempt)  # Exponential backoff
+            else:
+                raise RuntimeError(f"OCR API connection error after 3 attempts: {str(e)}")
+                
+        except requests.exceptions.RequestException as e:
+            last_exception = e
+            if attempt < 2:  # If not the last attempt
+                print(f"OCR API request error (attempt {attempt + 1}/3): {str(e)}")
+                time.sleep(2 ** attempt)  # Exponential backoff
+            else:
+                raise RuntimeError(f"OCR API request error after 3 attempts: {str(e)}")
+    
+    # If we get here, all attempts failed
+    raise RuntimeError(f"OCR API failed after 3 attempts: {str(last_exception)}")
 
 
 def extract_invoice_info(image_path, use_ai=True):

@@ -40,13 +40,17 @@ services:
       - "127.0.0.1:8080:8080"
     environment:
       DB_DSN: "root:123456@tcp(mysql:3306)/astraflow?charset=utf8mb4&parseTime=True"
-      MQ_URL: "amqp://guest:guest@rabbitmq:5672/"
+      MQ_URL: "amqp://admin:password@rabbitmq:5672/"
+      FLASK_BASE_URL: "http://astraflow-flask:5000"
       TZ: Asia/Shanghai
     depends_on:
       - mysql
       - migrate   # 确保 migrate 先执行完
       - rabbitmq
+      - astraflow-flask
     restart: always
+    volumes:
+      - ./uploads:/uploads  # 挂载上传目录以访问上传的文件
     networks:
       - astraflow-network
 
@@ -57,11 +61,15 @@ services:
     entrypoint: ["/app/worker"]
     environment:
       DB_DSN: "root:123456@tcp(mysql:3306)/astraflow?charset=utf8mb4&parseTime=True"
-      MQ_URL: "amqp://guest:guest@rabbitmq:5672/"
+      MQ_URL: "amqp://admin:password@rabbitmq:5672/"
+      FLASK_BASE_URL: "http://astraflow-flask:5000"
     depends_on:
       - rabbitmq
       - mysql
+      - astraflow-flask
     restart: always
+    volumes:
+      - ./uploads:/uploads  # 挂载上传目录以访问上传的文件
     networks:
       - astraflow-network
 

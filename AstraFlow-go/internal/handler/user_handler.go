@@ -297,5 +297,3 @@ func (h *UserHandler) GetUserById(c *gin.Context) {
 		Data:    user,
 	})
 }
-
-

@@ -11,3 +11,9 @@ mysql:
   charset: "utf8mb4"
   parseTime: true
   loc: "Asia/Shanghai"   # 与docker-compose中的TZ保持一致
+
+mq:
+  url: "amqp://admin:password@localhost:5672/"
+
+flask:
+  base_url: "http://localhost:5000"
