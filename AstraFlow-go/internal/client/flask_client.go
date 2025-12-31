@@ -13,7 +13,17 @@ import (
 )
 
 func SendFileToFlask(fileID int64, filePath string) ([]byte, error) {
-	file, err := os.Open(filePath)
+	// 如果filePath以"/uploads/"开头，需要转换为本地路径格式"./uploads/"
+	localPath := filePath
+	if strings.HasPrefix(filePath, "/uploads/") {
+		localPath = "." + filePath
+	} else if strings.HasPrefix(filePath, "uploads/") {
+		localPath = "./" + filePath
+	} else if strings.HasPrefix(filePath, "./uploads/") {
+		localPath = filePath // 已经是正确的本地路径格式
+	}
+
+	file, err := os.Open(localPath)
 	if err != nil {
 		return nil, err
 	}
