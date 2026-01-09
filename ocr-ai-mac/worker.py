@@ -34,7 +34,8 @@ class OCRWorker:
         task_data = json.loads(body)
         task_id = task_data.get('task_id')
         file_path = task_data.get('file_path')
-        callback_url = task_data.get('callback_url')  # 可选的回调 URL
+        callback_url = task_data.get('/api/v1/callback/ocr-result')  # 可选的回调 URL
+        file_id = task_data.get('file_id', 0)  # 从任务数据中获取 file_id
 
         try:
             # 从Go后端获取文件
@@ -76,35 +77,83 @@ class OCRWorker:
                 raise ValueError("未能识别出图片中的文字")
 
             # 使用AI模块进行发票信息提取，传递OCR结果以避免重复识别
-            from ocr_module import extract_invoice_info
+            print("开始模型处理")
             invoice_info = extract_invoice_info(image_path, use_ai=True, ocr_text=ocr_text)
-            category = invoice_info["extracted_fields"]
+            extracted_fields = invoice_info["extracted_fields"]
 
-            # 准备结果并打印
-            result = {
-                'task_id': task_id,
-                'status': 'success',
-                'data': category,
-                'ocr_text': ocr_text
+            # 准备回调数据
+            callback_data = {
+                "task_id": task_id,
+                "status": "success",
+                "data": {
+                    "file_id": file_id,
+                    "invoice_number": extracted_fields.get("invoice_number", ""),
+                    "vendor": extracted_fields.get("vendor", ""),
+                    "description": extracted_fields.get("description", ""),
+                    "amount": extracted_fields.get("amount", 0),
+                    "category": extracted_fields.get("category", ""),
+                    "payment_source": extracted_fields.get("payment_source", ""),
+                    "tax_id": extracted_fields.get("tax_id", ""),
+                    "invoice_date": extracted_fields.get("invoice_date", ""),
+                    "ocr_text": ocr_text
+                }
             }
 
             print("OCR处理结果:")
-            print(json.dumps(result, indent=2, ensure_ascii=False))
+            print(json.dumps(callback_data, indent=2, ensure_ascii=False))
+
+            print("调用回调函数")
+            callback_url = "/api/v1/callback/ocr-result"
+            # 发送回调请求到Go后端
+            if callback_url:
+                try:
+                    print("发送请求")
+                    callback_response = requests.post(
+                        "http://localhost:8080" + callback_url,
+                        json=callback_data,
+                        headers={"Content-Type": "application/json"},
+                        timeout=30
+                    )
+                    print(f"回调请求状态码: {callback_response.status_code}")
+                    print(f"回调响应: {callback_response.text}")
+                except Exception as callback_error:
+                    print(f"发送回调请求失败: {str(callback_error)}")
+                    # 即使回调失败，也继续处理
 
             # 清理临时文件
+            print("清理临时文件")
             os.unlink(image_path)
             if 'temp_dir' in locals():
                 shutil.rmtree(temp_dir)
 
         except Exception as e:
-            # 打印错误结果
-            error_result = {
-                'task_id': task_id,
-                'status': 'error',
-                'error_message': str(e)
+            print(f"处理任务 {task_id} 时发生错误: {str(e)}")
+            # 准备错误回调数据
+            error_callback_data = {
+                "task_id": task_id,
+                "status": "failure",
+                "data": {
+                    "file_id": file_id
+                },
+                "error_message": str(e)
             }
+
             print("OCR处理错误:")
-            print(json.dumps(error_result, indent=2, ensure_ascii=False))
+            print(json.dumps(error_callback_data, indent=2, ensure_ascii=False))
+
+            # 发送错误回调请求到Go后端
+            if callback_url:
+                try:
+                    callback_response = requests.post(
+                        "http://localhost:8081" + callback_url,
+                        json=error_callback_data,
+                        headers={"Content-Type": "application/json"},
+                        timeout=30
+                    )
+                    print(f"错误回调请求状态码: {callback_response.status_code}")
+                    print(f"错误回调响应: {callback_response.text}")
+                except Exception as callback_error:
+                    print(f"发送错误回调请求失败: {str(callback_error)}")
 
             # 清理临时文件
             try:
