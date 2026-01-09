@@ -43,6 +43,24 @@ def encode_image_to_base64(image_path):
         return base64.b64encode(image_file.read()).decode('utf-8')
 
 
+def classify_expense(image_path):
+    """
+    从图片中提取发票字段信息
+
+    Args:
+        image_path (str): 图片文件路径
+
+    Returns:
+        dict: 包含发票字段的字典
+    """
+    # 首先进行OCR识别获取文本内容
+    from ocr_module import ocr_image
+    ocr_result = ocr_image(image_path)
+    
+    # 调用OpenAI API提取发票字段
+    return extract_invoice_fields_with_openai(image_path, ocr_result)
+
+
 def extract_invoice_fields_with_openai(image_path, ocr_result):
     """
     使用OpenAI API，通过图片提取发票字段

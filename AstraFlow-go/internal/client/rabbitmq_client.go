@@ -106,7 +106,7 @@ func (c *RabbitMQOCRClient) AddTask(fileID int64, filePath string, callbackURL *
 	task := OCRQueueTask{
 		TaskID:      taskID,
 		FileID:      fileID,
-		FilePath:    filePath, // 使用Go服务端的文件路径格式，如 "/uploads/filename"
+		FilePath:    "." + filePath,
 		CallbackURL: callbackURL,
 		CreatedAt:   float64(time.Now().Unix()),
 	}

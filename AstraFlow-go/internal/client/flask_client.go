@@ -20,9 +20,9 @@ func SendFileToFlask(fileID int64, filePath string) ([]byte, error) {
 	} else if strings.HasPrefix(filePath, "uploads/") {
 		localPath = "./" + filePath
 	} else if strings.HasPrefix(filePath, "./uploads/") {
-		localPath = filePath // 已经是正确的本地路径格式
+		localPath = filePath  // 已经是正确的本地路径格式
 	}
-
+	
 	file, err := os.Open(localPath)
 	if err != nil {
 		return nil, err
