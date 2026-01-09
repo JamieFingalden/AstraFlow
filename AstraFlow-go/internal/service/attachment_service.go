@@ -20,6 +20,7 @@ type AttachmentService interface {
 	GetAttachmentsByInvoiceID(invoiceID int64) ([]*model.Attachment, error)
 	DeleteAttachment(id int64) error
 	ValidateFile(file *multipart.FileHeader) error
+	UpdateAttachmentInvoiceID(fileID, invoiceID int64) error
 }
 
 type attachmentService struct {
@@ -142,4 +143,8 @@ func (s *attachmentService) ValidateFile(file *multipart.FileHeader) error {
 	}
 
 	return nil
+}
+
+func (s *attachmentService) UpdateAttachmentInvoiceID(fileID, invoiceID int64) error {
+	return s.repo.UpdateInvoiceID(fileID, invoiceID)
 }

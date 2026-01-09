@@ -16,6 +16,7 @@ type AttachmentRepository interface {
 	Delete(id int64) error
 	GetByInvoiceID(invoiceID int64) ([]*model.Attachment, error)
 	GetByFilePath(filePath string) (*model.Attachment, error)
+	UpdateInvoiceID(fileID, invoiceID int64) error
 }
 
 type attachmentRepository struct {
@@ -83,4 +84,8 @@ func (r *attachmentRepository) GetByFilePath(filePath string) (*model.Attachment
 		return nil, err
 	}
 	return &attachment, nil
+}
+
+func (r *attachmentRepository) UpdateInvoiceID(fileID, invoiceID int64) error {
+	return r.db.Model(&model.Attachment{}).Where("id = ?", fileID).Update("invoice_id", invoiceID).Error
 }

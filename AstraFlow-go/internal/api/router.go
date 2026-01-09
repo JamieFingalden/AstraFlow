@@ -61,6 +61,9 @@ func InitRouter() *gin.Engine {
 			protected.GET("/attachments/invoice/:invoice_id", attachmentHandler.GetAttachmentsByInvoiceID) // 根据发票ID获取附件列表
 			protected.DELETE("/attachments/:id", attachmentHandler.DeleteAttachment)                       // 删除附件
 
+			// OCR结果回调接口 - 不需要认证，由Python端直接调用
+			v1.POST("/callback/ocr-result", attachmentHandler.HandleOCRResultCallback) // 处理OCR结果回调
+
 			invoiceHandler := handler.NewInvoiceHandler()
 			protected.POST("/invoices", invoiceHandler.CreateInvoice)                      // 创建发票
 			protected.GET("/invoices", invoiceHandler.GetAllInvoicePage)                   // 分页获取发票列表
