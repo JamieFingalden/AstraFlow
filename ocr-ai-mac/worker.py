@@ -75,8 +75,9 @@ class OCRWorker:
             if not ocr_text.strip():
                 raise ValueError("未能识别出图片中的文字")
 
-            # 使用AI模块进行发票信息提取
-            invoice_info = extract_invoice_info(image_path, use_ai=True)
+            # 使用AI模块进行发票信息提取，传递OCR结果以避免重复识别
+            from ocr_module import extract_invoice_info
+            invoice_info = extract_invoice_info(image_path, use_ai=True, ocr_text=ocr_text)
             category = invoice_info["extracted_fields"]
 
             # 准备结果并打印

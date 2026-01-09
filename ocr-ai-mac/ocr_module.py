@@ -68,19 +68,21 @@ def ocr_image(image_path):
     return '\n'.join(texts)
 
 
-def extract_invoice_info(image_path, use_ai=True):
+def extract_invoice_info(image_path, use_ai=True, ocr_text=None):
     """
     完整的发票信息提取流程：先进行OCR识别，然后使用AI提取结构化字段
 
     Args:
         image_path (str): 图片文件路径
         use_ai (bool): 是否使用AI模型进行字段提取，如果为False则只返回OCR文本
+        ocr_text (str, optional): 已经进行OCR识别的结果，如果未提供则自行识别
 
     Returns:
         dict: 包含OCR文本和提取的结构化字段
     """
-    # 首先执行OCR识别
-    ocr_text = ocr_image(image_path)
+    # 如果OCR文本未提供，则执行OCR识别
+    if ocr_text is None:
+        ocr_text = ocr_image(image_path)
 
     result = {
         "ocr_text": ocr_text,
