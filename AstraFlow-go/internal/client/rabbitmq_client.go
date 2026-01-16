@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/rabbitmq/amqp091-go"
@@ -15,9 +14,6 @@ import (
 type RabbitMQOCRClient struct {
 	conn    *amqp091.Connection
 	channel *amqp091.Channel
-	// 用于存储等待结果的回调
-	resultCallbacks map[string]chan *OCRQueueResult
-	callbackMutex   sync.RWMutex
 }
 
 // OCRQueueTask OCR 队列任务结构
@@ -89,13 +85,9 @@ func NewRabbitMQOCRClient() (*RabbitMQOCRClient, error) {
 	}
 
 	client := &RabbitMQOCRClient{
-		conn:            conn,
-		channel:         channel,
-		resultCallbacks: make(map[string]chan *OCRQueueResult),
+		conn:    conn,
+		channel: channel,
 	}
-
-	// 启动结果监听器
-	go client.listenForResults()
 
 	return client, nil
 }
@@ -116,12 +108,6 @@ func (c *RabbitMQOCRClient) AddTask(fileID int64, filePath string, callbackURL *
 		return "", fmt.Errorf("序列化任务失败: %v", err)
 	}
 
-	// 创建结果通道用于等待结果
-	resultChan := make(chan *OCRQueueResult, 1)
-	c.callbackMutex.Lock()
-	c.resultCallbacks[taskID] = resultChan
-	c.callbackMutex.Unlock()
-
 	// 发布消息到队列
 	err = c.channel.Publish(
 		"",          // exchange
@@ -135,11 +121,6 @@ func (c *RabbitMQOCRClient) AddTask(fileID int64, filePath string, callbackURL *
 		},
 	)
 	if err != nil {
-		// 清理结果通道
-		c.callbackMutex.Lock()
-		delete(c.resultCallbacks, taskID)
-		c.callbackMutex.Unlock()
-		close(resultChan)
 		return "", fmt.Errorf("发布任务消息失败: %v", err)
 	}
 
@@ -147,78 +128,7 @@ func (c *RabbitMQOCRClient) AddTask(fileID int64, filePath string, callbackURL *
 	return taskID, nil
 }
 
-// GetResult 等待并获取 OCR 任务结果
-func (c *RabbitMQOCRClient) GetResult(taskID string, timeout int) (*OCRQueueResult, error) {
-	c.callbackMutex.RLock()
-	resultChan, exists := c.resultCallbacks[taskID]
-	c.callbackMutex.RUnlock()
 
-	if !exists {
-		return nil, fmt.Errorf("任务ID不存在: %s", taskID)
-	}
-
-	// 等待结果或超时
-	select {
-	case result := <-resultChan:
-		// 清理结果通道
-		c.callbackMutex.Lock()
-		delete(c.resultCallbacks, taskID)
-		c.callbackMutex.Unlock()
-		close(resultChan)
-		return result, nil
-	case <-time.After(time.Duration(timeout) * time.Second):
-		// 清理结果通道
-		c.callbackMutex.Lock()
-		delete(c.resultCallbacks, taskID)
-		c.callbackMutex.Unlock()
-		close(resultChan)
-		return nil, fmt.Errorf("获取结果超时，任务ID: %s", taskID)
-	}
-}
-
-// listenForResults 监听结果队列
-func (c *RabbitMQOCRClient) listenForResults() {
-	msgs, err := c.channel.Consume(
-		"ocr_results", // 队列名
-		"",            // consumer
-		true,          // auto-ack
-		false,         // exclusive
-		false,         // no-local
-		false,         // no-wait
-		nil,           // args
-	)
-	if err != nil {
-		log.Printf("监听结果队列失败: %v", err)
-		return
-	}
-
-	log.Println("开始监听结果队列...")
-	for msg := range msgs {
-		var result OCRQueueResult
-		if err := json.Unmarshal(msg.Body, &result); err != nil {
-			log.Printf("解析结果消息失败: %v", err)
-			continue
-		}
-
-		// 查找对应的任务回调
-		c.callbackMutex.RLock()
-		resultChan, exists := c.resultCallbacks[result.TaskID]
-		c.callbackMutex.RUnlock()
-
-		if exists {
-			// 发送结果到对应的通道
-			select {
-			case resultChan <- &result:
-				// 成功发送结果
-			default:
-				// 通道已满或已关闭，忽略
-				log.Printf("结果通道已满或已关闭，任务ID: %s", result.TaskID)
-			}
-		} else {
-			log.Printf("未找到对应的任务回调，任务ID: %s", result.TaskID)
-		}
-	}
-}
 
 // ConsumeTasks 消费任务队列，处理传入的 OCR 任务
 func (c *RabbitMQOCRClient) ConsumeTasks(processFunc func(OCRQueueTask) error) error {

@@ -1,4 +1,5 @@
 import request from '../request'
+import { API_URLS } from '../apiUrls'
 
 /**
  * 附件相关API
@@ -18,7 +19,7 @@ export const attachmentApi = {
     }
 
     return request({
-      url: '/attachments',
+      url: API_URLS.ATTACHMENT.UPLOAD,
       method: 'post',
       data: formData,
       headers: {
@@ -34,7 +35,7 @@ export const attachmentApi = {
    */
   getAttachmentById(id) {
     return request({
-      url: `/attachments/${id}`,
+      url: API_URLS.ATTACHMENT.DETAIL(id),
       method: 'get'
     })
   },
@@ -45,7 +46,7 @@ export const attachmentApi = {
    */
   getAttachmentsByUser() {
     return request({
-      url: '/attachments',
+      url: API_URLS.ATTACHMENT.LIST,
       method: 'get'
     })
   },
@@ -56,7 +57,7 @@ export const attachmentApi = {
    */
   getAttachmentsByTenant() {
     return request({
-      url: '/attachments/tenant',
+      url: API_URLS.ATTACHMENT.LIST_BY_TENANT,
       method: 'get'
     })
   },
@@ -68,7 +69,7 @@ export const attachmentApi = {
    */
   getAttachmentsByInvoice(invoiceId) {
     return request({
-      url: `/attachments/invoice/${invoiceId}`,
+      url: API_URLS.ATTACHMENT.LIST_BY_INVOICE(invoiceId),
       method: 'get'
     })
   },
@@ -80,7 +81,7 @@ export const attachmentApi = {
    */
   deleteAttachment(id) {
     return request({
-      url: `/attachments/${id}`,
+      url: API_URLS.ATTACHMENT.DELETE(id),
       method: 'delete'
     })
   }

@@ -62,6 +62,16 @@ export const API_URLS = {
     },
   },
 
+  // 附件相关
+  ATTACHMENT: {
+    UPLOAD: '/v1/attachments',
+    LIST: '/v1/attachments',
+    LIST_BY_TENANT: '/v1/attachments/tenant',
+    LIST_BY_INVOICE: (invoiceId) => `/v1/attachments/invoice/${invoiceId}`,
+    DETAIL: (id) => `/v1/attachments/${id}`,
+    DELETE: (id) => `/v1/attachments/${id}`,
+  },
+
   // 设置相关
   SETTINGS: {
     USER: '/v1/settings',

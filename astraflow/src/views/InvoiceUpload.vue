@@ -221,6 +221,7 @@ import {
 import { useTheme } from '../composables/useTheme'
 import PageHeader from '../components/ui/PageHeader.vue'
 import PageFooter from '../components/ui/PageFooter.vue'
+import { attachmentApi } from '../services/api/attachmentApi'
 
 const router = useRouter()
 const { theme, toggleTheme, isDark } = useTheme()
@@ -233,10 +234,6 @@ const uploadProgress = ref(0)
 const progressText = ref('')
 const uploadResult = ref(null)
 const fileInput = ref(null)
-
-// API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-const OCR_ENDPOINT = '/api/ocr/upload'
 
 // Supported file types
 const SUPPORTED_TYPES = {
@@ -329,67 +326,42 @@ const handleDrop = (event) => {
   }
 }
 
-// API Upload Function (for future Flask OCR integration)
+// API Upload Function (actual Go backend API)
 const uploadToOCR = async (file) => {
   try {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('fileType', getFileType(file))
-
-    // Future: Replace with actual API call
-    // const response = await axios.post(`${API_BASE_URL}${OCR_ENDPOINT}`, formData, {
-    //   headers: {
-    //     'Content-Type': 'multipart/form-data',
-    //   },
-    //   onUploadProgress: (progressEvent) => {
-    //     const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-    //     uploadProgress.value = Math.min(progress, 90) // Keep some room for processing
-    //   }
-    // })
-
-    // Mock API response for development
-    await mockAPICall()
-
-    // Mock response structure that Flask OCR should return
-    const mockApiResponse = {
-      amount: (Math.random() * 500 + 20).toFixed(2), // Random amount between 20-520
-      date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
-      category: ['餐饮', '交通', '办公', '住宿', '其他'][Math.floor(Math.random() * 5)],
-      source: detectPaymentSource(file.name), // Detect payment source
-      confidence: Math.floor(Math.random() * 15) + 85 // 85-99%
+    const uploadData = {
+      file: file
     }
 
-    return { success: true, data: mockApiResponse }
+    // Call the actual backend API
+    const response = await attachmentApi.uploadFile(uploadData)
 
+    // Check if the API response is successful
+    if (response.data && response.data.code === 200) {
+      // Return a structure that matches what the frontend expects
+      // For now, we return a placeholder since the actual OCR result will come later via callback
+      const result = {
+        amount: '待OCR处理...', // Will be filled in later when callback updates the invoice
+        date: '待OCR处理...',
+        category: '待OCR处理...',
+        source: '待OCR处理...',
+        confidence: 0 // Initial confidence is 0, will be updated when OCR completes
+      }
+
+      return { success: true, data: result }
+    } else {
+      throw new Error(response.data?.message || '上传失败')
+    }
   } catch (error) {
     console.error('OCR Upload Error:', error)
     return {
       success: false,
-      error: error.response?.data?.message || '上传失败，请重试'
+      error: error.response?.data?.message || error.message || '上传失败，请重试'
     }
   }
 }
 
-// Mock API call function (simulates network delay)
-const mockAPICall = () => {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 2000 + Math.random() * 2000) // 2-4 seconds delay
-  })
-}
 
-// Detect payment source from filename (mock implementation)
-const detectPaymentSource = (filename) => {
-  const name = filename.toLowerCase()
-
-  if (name.includes('wechat') || name.includes('微信')) return '微信支付'
-  if (name.includes('alipay') || name.includes('支付宝')) return '支付宝'
-  if (name.includes('didi') || name.includes('滴滴')) return '滴滴出行'
-  if (name.includes('meituan') || name.includes('美团')) return '美团'
-  if (name.includes('starbucks') || name.includes('星巴克')) return '星巴克'
-
-  const sources = ['微信支付', '支付宝', '银联支付', '现金', '其他']
-  return sources[Math.floor(Math.random() * sources.length)]
-}
 
 const processFile = async (file) => {
   // Validate file first
@@ -423,7 +395,7 @@ const processFile = async (file) => {
   }, 600)
 
   try {
-    // Call OCR API (currently mocked)
+    // Call actual OCR API
     const result = await uploadToOCR(file)
 
     // Clear any remaining progress interval
@@ -431,7 +403,7 @@ const processFile = async (file) => {
 
     if (result.success) {
       uploadProgress.value = 100
-      progressText.value = '识别完成！'
+      progressText.value = '文件上传成功，OCR识别中...'
       completeUpload(file, result.data)
     } else {
       throw new Error(result.error)
@@ -444,23 +416,23 @@ const processFile = async (file) => {
 }
 
 const completeUpload = (file, apiResult) => {
-  // Use API result or fallback to mock data
+  // Use API result with proper handling for pending OCR results
   uploadResult.value = {
-    amount: `¥${apiResult.amount}`,
+    amount: apiResult.amount !== '待OCR处理...' ? `¥${apiResult.amount}` : apiResult.amount,
     date: apiResult.date,
     category: apiResult.category,
     source: apiResult.source,
-    confidence: Math.round(apiResult.confidence * 100) // Convert decimal to percentage
+    confidence: apiResult.confidence || 0
   }
 
   // Add to history
   uploadHistory.value.unshift({
     id: Date.now(),
     name: file.name.replace(/\.[^/.]+$/, ""),
-    category: uploadResult.value.category,
-    amount: uploadResult.value.amount,
-    source: uploadResult.value.source,
-    status: 'success',
+    category: uploadResult.value.category !== '待OCR处理...' ? uploadResult.value.category : 'OCR识别中',
+    amount: uploadResult.value.amount !== '待OCR处理...' ? uploadResult.value.amount : '待OCR处理',
+    source: uploadResult.value.source !== '待OCR处理...' ? uploadResult.value.source : 'OCR识别中',
+    status: 'processing', // Mark as processing since OCR is still running
     time: '刚刚'
   })
 

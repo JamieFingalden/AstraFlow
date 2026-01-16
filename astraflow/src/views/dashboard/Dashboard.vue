@@ -15,8 +15,8 @@
       :show-theme-toggle="true"
     />
 
-    <!-- User Info Container -->
-    <div class="user-info-container">
+    <!-- User Info Container 
+        <div class="user-info-container">
       <div class="user-info">
         <div class="user-avatar">
           <UserCircle :size="20" class="user-icon" />
@@ -24,6 +24,9 @@
         <span class="user-name">{{ userStore.user.name || '用户' }}</span>
       </div>
     </div>
+
+    -->
+
 
     <!-- Main Content -->
     <main class="main-content">
