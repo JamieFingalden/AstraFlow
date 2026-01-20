@@ -21,6 +21,8 @@ type AttachmentService interface {
 	DeleteAttachment(id int64) error
 	ValidateFile(file *multipart.FileHeader) error
 	UpdateAttachmentInvoiceID(fileID, invoiceID int64) error
+	GetAttachmentsByStatus(status model.AttachmentStatus) ([]*model.Attachment, error)
+	UpdateAttachmentStatus(fileID int64, status model.AttachmentStatus) error
 }
 
 type attachmentService struct {
@@ -76,6 +78,7 @@ func (s *attachmentService) UploadFile(file *multipart.FileHeader, userID int64,
 		FileURL:  "/uploads/" + filename,
 		FileType: &fileType,
 		FileSize: &file.Size,
+		Status:   model.AttachmentStatusPending, // 默认为识别中状态
 	}
 
 	if err := s.repo.Create(attachment); err != nil {
@@ -147,4 +150,12 @@ func (s *attachmentService) ValidateFile(file *multipart.FileHeader) error {
 
 func (s *attachmentService) UpdateAttachmentInvoiceID(fileID, invoiceID int64) error {
 	return s.repo.UpdateInvoiceID(fileID, invoiceID)
+}
+
+func (s *attachmentService) GetAttachmentsByStatus(status model.AttachmentStatus) ([]*model.Attachment, error) {
+	return s.repo.GetByStatus(status)
+}
+
+func (s *attachmentService) UpdateAttachmentStatus(fileID int64, status model.AttachmentStatus) error {
+	return s.repo.UpdateStatus(fileID, status)
 }

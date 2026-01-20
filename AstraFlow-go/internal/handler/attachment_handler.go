@@ -2,6 +2,7 @@ package handler
 
 import (
 	"AstraFlow-go/internal/client"
+	"AstraFlow-go/internal/model"
 	"AstraFlow-go/internal/service"
 	"fmt"
 	"log"
@@ -259,6 +260,52 @@ func (h *AttachmentHandler) DeleteAttachment(c *gin.Context) {
 	c.JSON(http.StatusOK, Response{
 		Code:    200,
 		Message: "附件删除成功",
+	})
+}
+
+// GetAttachmentsByStatus 根据状态获取附件列表
+func (h *AttachmentHandler) GetAttachmentsByStatus(c *gin.Context) {
+	status := c.Query("status")
+	if status == "" {
+		c.JSON(http.StatusBadRequest, Response{
+			Code:    400,
+			Message: "状态参数不能为空",
+		})
+		return
+	}
+
+	// 验证状态参数是否有效
+	var attachmentStatus model.AttachmentStatus
+	switch status {
+	case "pending":
+		attachmentStatus = model.AttachmentStatusPending
+	case "success":
+		attachmentStatus = model.AttachmentStatusSuccess
+	case "failed":
+		attachmentStatus = model.AttachmentStatusFailed
+	case "duplicate":
+		attachmentStatus = model.AttachmentStatusDuplicate
+	default:
+		c.JSON(http.StatusBadRequest, Response{
+			Code:    400,
+			Message: "无效的附件状态值",
+		})
+		return
+	}
+
+	attachments, err := h.service.GetAttachmentsByStatus(attachmentStatus)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Response{
+			Code:    500,
+			Message: "获取附件列表失败",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, Response{
+		Code:    200,
+		Message: "获取附件列表成功",
+		Data:    attachments,
 	})
 }
 

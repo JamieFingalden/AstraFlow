@@ -3,6 +3,7 @@ package worker
 import (
 	"AstraFlow-go/internal/client"
 	"AstraFlow-go/internal/database"
+	"AstraFlow-go/internal/model"
 	"AstraFlow-go/internal/repository"
 	"AstraFlow-go/internal/service"
 	"encoding/json"
@@ -20,6 +21,19 @@ func ProcessOCRTask(fileID int64, filePath string) error {
 	resp, err := client.SendFileToFlask(fileID, filePath)
 	if err != nil {
 		log.Printf("调用 Flask 服务失败: %v", err)
+
+		// 更新附件状态为失败
+		attachmentRepo := repository.NewAttachmentRepository()
+		attachment, getErr := attachmentRepo.GetByID(fileID)
+		if getErr != nil {
+			log.Printf("获取附件信息失败: %v", getErr)
+		} else {
+			attachment.Status = model.AttachmentStatusFailed // 设置为识别失败状态
+			if updateErr := attachmentRepo.Update(attachment); updateErr != nil {
+				log.Printf("更新附件状态失败: %v", updateErr)
+			}
+		}
+
 		return err
 	}
 
@@ -32,7 +46,20 @@ func ProcessOCRTask(fileID int64, filePath string) error {
 
 	if ocrResult["status"] != "success" {
 		log.Printf("OCR 处理失败: %v", ocrResult["message"])
-		return nil
+
+		// 更新附件状态为失败
+		attachmentRepo := repository.NewAttachmentRepository()
+		attachment, err := attachmentRepo.GetByID(fileID)
+		if err != nil {
+			log.Printf("获取附件信息失败: %v", err)
+		} else {
+			attachment.Status = model.AttachmentStatusFailed // 设置为识别失败状态
+			if updateErr := attachmentRepo.Update(attachment); updateErr != nil {
+				log.Printf("更新附件状态失败: %v", updateErr)
+			}
+		}
+
+		return fmt.Errorf("OCR 处理失败: %v", ocrResult["message"])
 	}
 
 	fmt.Printf("OCR 结果: %v\n", ocrResult["data"])
@@ -120,8 +147,9 @@ func ProcessOCRTask(fileID int64, filePath string) error {
 		return err
 	}
 
-	// 7. 更新附件信息，关联到创建的发票
+	// 7. 更新附件信息，关联到创建的发票并更新状态
 	attachment.InvoiceID = &invoice.ID
+	attachment.Status = model.AttachmentStatusSuccess // 设置为识别成功状态
 	if err := attachmentRepo.Update(attachment); err != nil {
 		log.Printf("更新附件信息失败: %v", err)
 		return err

@@ -17,6 +17,8 @@ type AttachmentRepository interface {
 	GetByInvoiceID(invoiceID int64) ([]*model.Attachment, error)
 	GetByFilePath(filePath string) (*model.Attachment, error)
 	UpdateInvoiceID(fileID, invoiceID int64) error
+	GetByStatus(status model.AttachmentStatus) ([]*model.Attachment, error)
+	UpdateStatus(fileID int64, status model.AttachmentStatus) error
 }
 
 type attachmentRepository struct {
@@ -88,4 +90,17 @@ func (r *attachmentRepository) GetByFilePath(filePath string) (*model.Attachment
 
 func (r *attachmentRepository) UpdateInvoiceID(fileID, invoiceID int64) error {
 	return r.db.Model(&model.Attachment{}).Where("id = ?", fileID).Update("invoice_id", invoiceID).Error
+}
+
+func (r *attachmentRepository) GetByStatus(status model.AttachmentStatus) ([]*model.Attachment, error) {
+	var attachments []*model.Attachment
+	err := r.db.Where("status = ?", status).Find(&attachments).Error
+	if err != nil {
+		return nil, err
+	}
+	return attachments, nil
+}
+
+func (r *attachmentRepository) UpdateStatus(fileID int64, status model.AttachmentStatus) error {
+	return r.db.Model(&model.Attachment{}).Where("id = ?", fileID).Update("status", status).Error
 }

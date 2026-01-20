@@ -59,6 +59,7 @@ func InitRouter() *gin.Engine {
 			protected.GET("/attachments", attachmentHandler.GetAttachmentsByUserID)                        // 获取用户附件列表
 			protected.GET("/attachments/tenant", attachmentHandler.GetAttachmentsByTenantID)               // 获取租户附件列表
 			protected.GET("/attachments/invoice/:invoice_id", attachmentHandler.GetAttachmentsByInvoiceID) // 根据发票ID获取附件列表
+			protected.GET("/attachments/status", attachmentHandler.GetAttachmentsByStatus)                 // 根据状态获取附件列表
 			protected.DELETE("/attachments/:id", attachmentHandler.DeleteAttachment)                       // 删除附件
 
 			// OCR结果回调接口 - 不需要认证，由Python端直接调用
