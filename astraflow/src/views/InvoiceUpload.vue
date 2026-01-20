@@ -111,50 +111,24 @@
               </div>
 
               <!-- Success Message -->
-              <h3 class="result-title">
-                识别完成！
+              <h3 class="result-title" :class="{ 'processing-title': uploadResult.amount === '处理中...' }">
+                {{ uploadResult.amount === '处理中...' ? '文件已上传' : '识别完成！' }}
               </h3>
 
               <!-- Recognition Results -->
-              <div class="result-grid">
-                <div class="result-item">
-                  <p class="result-label">发票金额</p>
-                  <p class="result-value">{{ uploadResult.amount }}</p>
-                </div>
-                <div class="result-item">
-                  <p class="result-label">发票日期</p>
-                  <p class="result-value">{{ uploadResult.date }}</p>
-                </div>
-                <div class="result-item">
-                  <p class="result-label">发票类别</p>
-                  <p class="result-value">{{ uploadResult.category }}</p>
-                </div>
-                <div class="result-item">
-                  <p class="result-label">支付来源</p>
-                  <p class="result-value">{{ uploadResult.source }}</p>
-                </div>
+              <div class="result-notification">
+                <p>发票识别后将会在下方列表展示</p>
               </div>
 
-              <!-- Confidence Score -->
-              <div class="confidence-section">
-                <p class="confidence-label">AI 识别置信度</p>
-                <div class="confidence-bar-container">
-                  <div class="confidence-bar-bg">
-                    <div
-                      class="confidence-bar-fill"
-                      :class="getConfidenceClass(uploadResult.confidence)"
-                      :style="{ width: `${uploadResult.confidence}%` }"
-                    ></div>
-                  </div>
-                  <span class="confidence-text" :class="getConfidenceClass(uploadResult.confidence)">
-                    {{ uploadResult.confidence }}%
-                  </span>
-                </div>
+              <!-- Processing notification -->
+              <div v-if="uploadResult.amount === '处理中...'" class="processing-notification">
+                <p>发票识别正在进行中，结果将在处理完成后自动更新。</p>
+                <p>您也可以前往账单管理页面查看最新识别结果。</p>
               </div>
 
               <!-- Action Buttons -->
               <div class="action-buttons">
-                <button @click="viewAnalysis" class="btn btn-primary">
+                <button v-if="uploadResult.amount !== '处理中...'" @click="viewAnalysis" class="btn btn-primary">
                   查看分析结果
                 </button>
                 <button @click="resetUpload" class="btn btn-secondary">
@@ -344,8 +318,7 @@ const uploadToOCR = async (file) => {
         amount: '待OCR处理...', // Will be filled in later when callback updates the invoice
         date: '待OCR处理...',
         category: '待OCR处理...',
-        source: '待OCR处理...',
-        confidence: 0 // Initial confidence is 0, will be updated when OCR completes
+        source: '待OCR处理...'
       }
 
       return { success: true, data: result }
@@ -403,7 +376,7 @@ const processFile = async (file) => {
 
     if (result.success) {
       uploadProgress.value = 100
-      progressText.value = '文件上传成功，OCR识别中...'
+      progressText.value = '文件上传成功，OCR识别中...结果将在完成后显示'
       completeUpload(file, result.data)
     } else {
       throw new Error(result.error)
@@ -418,20 +391,19 @@ const processFile = async (file) => {
 const completeUpload = (file, apiResult) => {
   // Use API result with proper handling for pending OCR results
   uploadResult.value = {
-    amount: apiResult.amount !== '待OCR处理...' ? `¥${apiResult.amount}` : apiResult.amount,
-    date: apiResult.date,
-    category: apiResult.category,
-    source: apiResult.source,
-    confidence: apiResult.confidence || 0
+    amount: apiResult.amount !== '待OCR处理...' ? `¥${apiResult.amount}` : '处理中...',
+    date: apiResult.date !== '待OCR处理...' ? apiResult.date : '处理中...',
+    category: apiResult.category !== '待OCR处理...' ? apiResult.category : '处理中...',
+    source: apiResult.source !== '待OCR处理...' ? apiResult.source : '处理中...'
   }
 
   // Add to history
   uploadHistory.value.unshift({
     id: Date.now(),
     name: file.name.replace(/\.[^/.]+$/, ""),
-    category: uploadResult.value.category !== '待OCR处理...' ? uploadResult.value.category : 'OCR识别中',
-    amount: uploadResult.value.amount !== '待OCR处理...' ? uploadResult.value.amount : '待OCR处理',
-    source: uploadResult.value.source !== '待OCR处理...' ? uploadResult.value.source : 'OCR识别中',
+    category: uploadResult.value.category !== '处理中...' ? uploadResult.value.category : 'OCR识别中',
+    amount: uploadResult.value.amount !== '处理中...' ? uploadResult.value.amount : '处理中',
+    source: uploadResult.value.source !== '处理中...' ? uploadResult.value.source : 'OCR识别中',
     status: 'processing', // Mark as processing since OCR is still running
     time: '刚刚'
   })
@@ -458,12 +430,6 @@ const viewAnalysis = () => {
   router.push('/analysis')
 }
 
-// Helper methods for dynamic classes
-const getConfidenceClass = (confidence) => {
-  if (confidence >= 90) return 'confidence-high'
-  if (confidence >= 70) return 'confidence-medium'
-  return 'confidence-low'
-}
 
 const getStatusClass = (status) => {
   if (status === 'success') return 'status-success'
@@ -1117,79 +1083,6 @@ const getStatusIcon = (status) => {
   color: #1f2937;
 }
 
-/* Confidence Section */
-.confidence-section {
-  margin-bottom: 2rem;
-}
-
-.confidence-label {
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
-  transition: color 0.3s ease;
-}
-
-.app-container[data-theme="dark"] .confidence-label {
-  color: #9ca3af;
-}
-
-.app-container[data-theme="light"] .confidence-label {
-  color: #4b5563;
-}
-
-.confidence-bar-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.confidence-bar-bg {
-  height: 0.75rem;
-  border-radius: 9999px;
-  overflow: hidden;
-  max-width: 12rem;
-}
-
-.app-container[data-theme="dark"] .confidence-bar-bg {
-  background-color: #374151;
-}
-
-.app-container[data-theme="light"] .confidence-bar-bg {
-  background-color: #e5e7eb;
-}
-
-.confidence-bar-fill {
-  height: 100%;
-  transition: width 1s ease;
-}
-
-.confidence-high {
-  background-color: #10b981;
-}
-
-.confidence-medium {
-  background-color: #eab308;
-}
-
-.confidence-low {
-  background-color: #ef4444;
-}
-
-.confidence-text {
-  font-weight: 700;
-}
-
-.confidence-high {
-  color: #10b981;
-}
-
-.confidence-medium {
-  color: #eab308;
-}
-
-.confidence-low {
-  color: #ef4444;
-}
 
 /* Action Buttons */
 .action-buttons {
@@ -1429,5 +1322,42 @@ const getStatusIcon = (status) => {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Processing title styles */
+.result-title.processing-title {
+  color: #f59e0b !important; /* 橙色表示处理中 */
+}
+
+/* Result notification styles */
+.result-notification {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: #e0f2fe; /* 浅蓝色背景 */
+  border: 1px solid #7dd3fc;
+  text-align: center;
+}
+
+.result-notification p {
+  margin: 0;
+  font-size: 1rem;
+  color: #0369a1; /* 深蓝色文字 */
+  font-weight: 500;
+}
+
+.processing-notification {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: #fef3c7; /* 黄色背景提示 */
+  border: 1px solid #fbbf24;
+}
+
+.processing-notification p {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+  color: #92400e; /* 深黄色文字 */
+  text-align: center;
 }
 </style>
