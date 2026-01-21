@@ -143,34 +143,62 @@
         </transition>
 
         <!-- Upload History -->
-        <div v-if="uploadHistory.length > 0" class="upload-history">
+        <div class="upload-history">
           <h3 class="history-title">
             最近上传记录
           </h3>
-          <div class="history-grid">
+          
+          <div v-if="historyLoading" class="loading-history">
+             <div class="spinner-bg" style="width: 2rem; height: 2rem; margin: 2rem auto;"></div>
+          </div>
+          
+          <div v-else-if="uploadHistory.length === 0" class="no-history">
+            暂无上传记录
+          </div>
+
+          <div v-else class="history-list">
             <div
               v-for="record in uploadHistory"
               :key="record.id"
-              class="history-item"
+              class="history-list-item"
             >
-              <div class="history-item-header">
+              <div class="item-left">
                 <div class="status-icon" :class="getStatusClass(record.status)">
                   <component
                     :is="getStatusIcon(record.status)"
-                    :size="20"
+                    :size="24"
                   />
                 </div>
-                <span class="history-time">
-                  {{ record.time }}
-                </span>
+                <div class="item-info">
+                  <h4 class="history-item-title">
+                    {{ record.name }}
+                  </h4>
+                  <div class="history-item-meta">
+                    <span class="meta-type">{{ record.type }}</span>
+                    <span class="meta-dot">·</span>
+                    <span class="meta-size">{{ record.size }}</span>
+                    <span class="meta-dot">·</span>
+                    <span class="meta-time">{{ record.time }}</span>
+                  </div>
+                </div>
               </div>
-              <h4 class="history-item-title">
-                {{ record.name }}
-              </h4>
-              <p class="history-item-description">
-                {{ record.category }} · {{ record.amount }} · {{ record.source }}
-              </p>
+              
+              <div class="item-right">
+                <div class="history-status-badge" :class="getStatusClass(record.status, true)">
+                    {{ record.statusText }}
+                </div>
+              </div>
             </div>
+          </div>
+
+          <!-- Pagination -->
+          <div v-if="pagination.itemCount > 0" class="pagination-container">
+            <n-pagination
+              v-model:page="pagination.page"
+              v-model:page-size="pagination.pageSize"
+              :item-count="pagination.itemCount"
+              @update:page="handlePageChange"
+            />
           </div>
         </div>
       </div>
@@ -182,13 +210,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   UploadIcon,
   CheckCircleIcon,
   ClockIcon,
   XCircleIcon,
+  AlertCircleIcon,
   SunIcon,
   MoonIcon
 } from 'lucide-vue-next'
@@ -196,6 +225,7 @@ import { useTheme } from '../composables/useTheme'
 import PageHeader from '../components/ui/PageHeader.vue'
 import PageFooter from '../components/ui/PageFooter.vue'
 import { attachmentApi } from '../services/api/attachmentApi'
+import { NPagination } from 'naive-ui'
 
 const router = useRouter()
 const { theme, toggleTheme, isDark } = useTheme()
@@ -208,6 +238,15 @@ const uploadProgress = ref(0)
 const progressText = ref('')
 const uploadResult = ref(null)
 const fileInput = ref(null)
+
+// History state
+const uploadHistory = ref([])
+const historyLoading = ref(false)
+const pagination = reactive({
+  page: 1,
+  pageSize: 10, // List layout
+  itemCount: 0
+})
 
 // Supported file types
 const SUPPORTED_TYPES = {
@@ -240,36 +279,98 @@ const validateFile = (file) => {
   return true
 }
 
-// Upload history
-const uploadHistory = ref([
-  {
-    id: 1,
-    name: '星巴克咖啡发票',
-    category: '餐饮',
-    amount: '¥128.50',
-    source: '微信支付',
-    status: 'success',
-    time: '2小时前'
-  },
-  {
-    id: 2,
-    name: '滴滴出行账单',
-    category: '交通',
-    amount: '¥45.00',
-    source: '支付宝',
-    status: 'success',
-    time: '1天前'
-  },
-  {
-    id: 3,
-    name: '京东办公用品',
-    category: '办公',
-    amount: '¥299.90',
-    source: '银联支付',
-    status: 'processing',
-    time: '2天前'
+// Format helpers
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const now = new Date()
+  const diff = now - date
+  
+  // If less than 24 hours, show relative time
+  if (diff < 24 * 60 * 60 * 1000) {
+    if (diff < 60 * 60 * 1000) {
+      const minutes = Math.max(1, Math.floor(diff / (60 * 1000)))
+      return `${minutes}分钟前`
+    }
+    const hours = Math.floor(diff / (60 * 60 * 1000))
+    return `${hours}小时前`
   }
-])
+  
+  return date.toLocaleDateString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+// Fetch history
+const fetchHistory = async () => {
+  historyLoading.value = true
+  try {
+    const response = await attachmentApi.getAttachmentsByTenant({
+      page: pagination.page,
+      page_size: pagination.pageSize
+    })
+    
+    if (response.data && response.code === 200) {
+      const { attachments, total } = response.data
+      pagination.itemCount = total
+      
+      uploadHistory.value = (attachments || []).map(item => {
+        // Map status int to string for UI logic
+        let status = 'pending'
+        let statusText = '识别中'
+        
+        // Backend status: 0=pending, 1=success, 2=failed, 3=duplicate
+        if (item.status === 1) {
+            status = 'success'
+            statusText = '识别成功'
+        } else if (item.status === 2) {
+            status = 'failed'
+            statusText = '识别失败'
+        } else if (item.status === 3) {
+            status = 'duplicate'
+            statusText = '重复上传'
+        } else {
+            status = 'processing' // 0 or default
+            statusText = '识别中'
+        }
+        
+        return {
+          id: item.id,
+          name: item.file_name || '未命名文件', // Prioritize file_name, fallback to URL parsing
+          type: item.file_type || 'Unknown',
+          size: formatFileSize(item.file_size || 0),
+          status: status,
+          statusText: statusText,
+          time: formatDate(item.created_at)
+        }
+      })
+    }
+  } catch (error) {
+    console.error('Failed to fetch upload history:', error)
+  } finally {
+    historyLoading.value = false
+  }
+}
+
+const handlePageChange = (page) => {
+  pagination.page = page
+  fetchHistory()
+}
+
+onMounted(() => {
+  fetchHistory()
+})
 
 
 // File upload functions
@@ -311,7 +412,7 @@ const uploadToOCR = async (file) => {
     const response = await attachmentApi.uploadFile(uploadData)
 
     // Check if the API response is successful
-    if (response.data && response.data.code === 200) {
+    if (response.code === 200) {
       // Return a structure that matches what the frontend expects
       // For now, we return a placeholder since the actual OCR result will come later via callback
       const result = {
@@ -323,7 +424,7 @@ const uploadToOCR = async (file) => {
 
       return { success: true, data: result }
     } else {
-      throw new Error(response.data?.message || '上传失败')
+      throw new Error(response.message || '上传失败')
     }
   } catch (error) {
     console.error('OCR Upload Error:', error)
@@ -378,6 +479,8 @@ const processFile = async (file) => {
       uploadProgress.value = 100
       progressText.value = '文件上传成功，OCR识别中...结果将在完成后显示'
       completeUpload(file, result.data)
+      // Refresh history after upload
+      setTimeout(() => fetchHistory(), 1000)
     } else {
       throw new Error(result.error)
     }
@@ -396,22 +499,8 @@ const completeUpload = (file, apiResult) => {
     category: apiResult.category !== '待OCR处理...' ? apiResult.category : '处理中...',
     source: apiResult.source !== '待OCR处理...' ? apiResult.source : '处理中...'
   }
-
-  // Add to history
-  uploadHistory.value.unshift({
-    id: Date.now(),
-    name: file.name.replace(/\.[^/.]+$/, ""),
-    category: uploadResult.value.category !== '处理中...' ? uploadResult.value.category : 'OCR识别中',
-    amount: uploadResult.value.amount !== '处理中...' ? uploadResult.value.amount : '处理中',
-    source: uploadResult.value.source !== '处理中...' ? uploadResult.value.source : 'OCR识别中',
-    status: 'processing', // Mark as processing since OCR is still running
-    time: '刚刚'
-  })
-
-  // Keep only last 3 records
-  if (uploadHistory.value.length > 3) {
-    uploadHistory.value = uploadHistory.value.slice(0, 3)
-  }
+  
+  // Note: Local history update removed in favor of fetchHistory() refresh
 
   isUploading.value = false
 }
@@ -431,15 +520,23 @@ const viewAnalysis = () => {
 }
 
 
-const getStatusClass = (status) => {
+const getStatusClass = (status, isText = false) => {
+  if (isText) {
+      if (status === 'success') return 'text-green-600 dark:text-green-400'
+      if (status === 'processing') return 'text-yellow-600 dark:text-yellow-400'
+      if (status === 'duplicate') return 'text-purple-600 dark:text-purple-400'
+      return 'text-red-600 dark:text-red-400'
+  }
   if (status === 'success') return 'status-success'
   if (status === 'processing') return 'status-processing'
+  if (status === 'duplicate') return 'status-duplicate'
   return 'status-error'
 }
 
 const getStatusIcon = (status) => {
   if (status === 'success') return CheckCircleIcon
   if (status === 'processing') return ClockIcon
+  if (status === 'duplicate') return AlertCircleIcon
   return XCircleIcon
 }
 </script>
@@ -1181,56 +1278,61 @@ const getStatusIcon = (status) => {
   color: #1f2937;
 }
 
-.history-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-@media (min-width: 768px) {
-  .history-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.history-item {
-  padding: 1.5rem;
+.history-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
   border-radius: 0.75rem;
   border: 1px solid;
   backdrop-filter: blur(12px);
   transition: all 0.3s ease;
 }
 
-.app-container[data-theme="dark"] .history-item {
+.app-container[data-theme="dark"] .history-list-item {
   background-color: rgba(31, 41, 55, 0.5);
   border-color: rgba(55, 65, 81, 0.5);
 }
 
-.app-container[data-theme="dark"] .history-item:hover {
+.app-container[data-theme="dark"] .history-list-item:hover {
   border-color: rgba(6, 189, 212, 0.3);
   box-shadow: 0 10px 15px -3px rgba(6, 189, 212, 0.1);
 }
 
-.app-container[data-theme="light"] .history-item {
+.app-container[data-theme="light"] .history-list-item {
   background-color: rgba(255, 255, 255, 0.5);
   border-color: rgba(229, 231, 235, 0.5);
 }
 
-.app-container[data-theme="light"] .history-item:hover {
+.app-container[data-theme="light"] .history-list-item:hover {
   border-color: rgba(34, 211, 238, 0.3);
   box-shadow: 0 10px 15px -3px rgba(34, 211, 238, 0.1);
 }
 
-.history-item-header {
+.item-left {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 1rem;
+  align-items: center;
+  gap: 1rem;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .status-icon {
-  padding: 0.5rem;
+  padding: 0.25rem;
   border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .status-success {
@@ -1248,22 +1350,15 @@ const getStatusIcon = (status) => {
   color: #dc2626;
 }
 
-.history-time {
-  font-size: 0.75rem;
-  transition: color 0.3s ease;
-}
-
-.app-container[data-theme="dark"] .history-time {
-  color: #9ca3af;
-}
-
-.app-container[data-theme="light"] .history-time {
-  color: #6b7280;
+.status-duplicate {
+  background-color: #f3e8ff;
+  color: #9333ea;
 }
 
 .history-item-title {
-  font-weight: 500;
-  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
   transition: color 0.3s ease;
 }
 
@@ -1275,17 +1370,30 @@ const getStatusIcon = (status) => {
   color: #1f2937;
 }
 
-.history-item-description {
+.history-item-meta {
+  display: flex;
+  align-items: center;
   font-size: 0.875rem;
   transition: color 0.3s ease;
 }
 
-.app-container[data-theme="dark"] .history-item-description {
+.meta-dot {
+  margin: 0 0.5rem;
+}
+
+.app-container[data-theme="dark"] .history-item-meta {
   color: #9ca3af;
 }
 
-.app-container[data-theme="light"] .history-item-description {
-  color: #4b5563;
+.app-container[data-theme="light"] .history-item-meta {
+  color: #6b7280;
+}
+
+.history-status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 
@@ -1359,5 +1467,17 @@ const getStatusIcon = (status) => {
   font-size: 0.875rem;
   color: #92400e; /* 深黄色文字 */
   text-align: center;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.no-history {
+    text-align: center;
+    padding: 3rem;
+    color: #9ca3af;
 }
 </style>

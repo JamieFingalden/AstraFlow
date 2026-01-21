@@ -1,4 +1,4 @@
-import request from '../request'
+import { request } from '../request'
 import { API_URLS } from '../apiUrls'
 
 /**
@@ -53,12 +53,14 @@ export const attachmentApi = {
 
   /**
    * 获取租户附件列表
+   * @param {Object} params - 查询参数 {page, page_size}
    * @returns {Promise}
    */
-  getAttachmentsByTenant() {
+  getAttachmentsByTenant(params = {}) {
     return request({
       url: API_URLS.ATTACHMENT.LIST_BY_TENANT,
-      method: 'get'
+      method: 'get',
+      params
     })
   },
 
