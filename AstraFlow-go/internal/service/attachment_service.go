@@ -16,7 +16,7 @@ type AttachmentService interface {
 	UploadFile(file *multipart.FileHeader, userID int64, tenantID *int64) (*model.Attachment, error)
 	GetAttachmentByID(id int64) (*model.Attachment, error)
 	GetAttachmentsByUserID(userID int64) ([]*model.Attachment, error)
-	GetAttachmentsByTenantID(tenantID int64) ([]*model.Attachment, error)
+	GetAttachmentsByTenantID(tenantID int64, page, pageSize int) ([]*model.Attachment, int64, error)
 	GetAttachmentsByInvoiceID(invoiceID int64) ([]*model.Attachment, error)
 	DeleteAttachment(id int64) error
 	ValidateFile(file *multipart.FileHeader) error
@@ -98,8 +98,18 @@ func (s *attachmentService) GetAttachmentsByUserID(userID int64) ([]*model.Attac
 	return s.repo.GetByUserID(userID)
 }
 
-func (s *attachmentService) GetAttachmentsByTenantID(tenantID int64) ([]*model.Attachment, error) {
-	return s.repo.GetByTenantID(tenantID)
+func (s *attachmentService) GetAttachmentsByTenantID(tenantID int64, page, pageSize int) ([]*model.Attachment, int64, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+
+	offset := (page - 1) * pageSize
+	limit := pageSize
+
+	return s.repo.GetByTenantID(tenantID, offset, limit)
 }
 
 func (s *attachmentService) GetAttachmentsByInvoiceID(invoiceID int64) ([]*model.Attachment, error) {

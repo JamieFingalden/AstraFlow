@@ -185,6 +185,18 @@ func (h *AttachmentHandler) GetAttachmentsByUserID(c *gin.Context) {
 
 // GetAttachmentsByTenantID 根据租户ID获取附件列表
 func (h *AttachmentHandler) GetAttachmentsByTenantID(c *gin.Context) {
+	pageStr := c.DefaultQuery("page", "1")
+	pageSizeStr := c.DefaultQuery("page_size", "10")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		page = 1
+	}
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil {
+		pageSize = 10
+	}
+
 	tenantID, exists := c.Get("tenant_id")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, Response{
@@ -194,7 +206,7 @@ func (h *AttachmentHandler) GetAttachmentsByTenantID(c *gin.Context) {
 		return
 	}
 
-	attachments, err := h.service.GetAttachmentsByTenantID(*tenantID.(*int64))
+	attachments, total, err := h.service.GetAttachmentsByTenantID(*tenantID.(*int64), page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
 			Code:    500,
@@ -203,10 +215,21 @@ func (h *AttachmentHandler) GetAttachmentsByTenantID(c *gin.Context) {
 		return
 	}
 
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize > 0 {
+		totalPages++
+	}
+
 	c.JSON(http.StatusOK, Response{
 		Code:    200,
 		Message: "获取附件列表成功",
-		Data:    attachments,
+		Data: map[string]interface{}{
+			"attachments": attachments,
+			"page":        page,
+			"size":        pageSize,
+			"total":       total,
+			"totalPages":  totalPages,
+		},
 	})
 }
 

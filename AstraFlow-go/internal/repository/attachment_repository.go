@@ -11,7 +11,7 @@ type AttachmentRepository interface {
 	Create(attachment *model.Attachment) error
 	GetByID(id int64) (*model.Attachment, error)
 	GetByUserID(userID int64) ([]*model.Attachment, error)
-	GetByTenantID(tenantID int64) ([]*model.Attachment, error)
+	GetByTenantID(tenantID int64, offset, limit int) ([]*model.Attachment, int64, error)
 	Update(attachment *model.Attachment) error
 	Delete(id int64) error
 	GetByInvoiceID(invoiceID int64) ([]*model.Attachment, error)
@@ -53,16 +53,26 @@ func (r *attachmentRepository) GetByUserID(userID int64) ([]*model.Attachment, e
 	return attachments, nil
 }
 
-func (r *attachmentRepository) GetByTenantID(tenantID int64) ([]*model.Attachment, error) {
+func (r *attachmentRepository) GetByTenantID(tenantID int64, offset, limit int) ([]*model.Attachment, int64, error) {
 	var attachments []*model.Attachment
-	err := r.db.Where("tenant_id = ?", tenantID).
+	var total int64
+	var err error
+
+	err = r.db.Model(&model.Attachment{}).Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = r.db.Where("tenant_id = ?", tenantID).
+		Offset(offset).
+		Limit(limit).
 		Order("status DESC").
 		Order("created_at DESC").
 		Find(&attachments).Error
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return attachments, nil
+	return attachments, total, nil
 }
 
 func (r *attachmentRepository) Update(attachment *model.Attachment) error {
