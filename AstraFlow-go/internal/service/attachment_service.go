@@ -75,6 +75,7 @@ func (s *attachmentService) UploadFile(file *multipart.FileHeader, userID int64,
 	attachment := &model.Attachment{
 		TenantID: tenantID,
 		UserID:   userID,
+		FileName: file.Filename,
 		FileURL:  "/uploads/" + filename,
 		FileType: &fileType,
 		FileSize: &file.Size,

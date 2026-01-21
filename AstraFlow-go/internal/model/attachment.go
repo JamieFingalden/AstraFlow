@@ -23,6 +23,7 @@ type Attachment struct {
 	TenantID  *int64           `gorm:"index" json:"tenant_id,omitempty"`  // 租户ID（个人用户为 NULL）
 	UserID    int64            `gorm:"index;not null" json:"user_id"`     // 上传者 ID
 	InvoiceID *int64           `gorm:"index" json:"invoice_id,omitempty"` // 关联发票 ID，可为空（软连接）
+	FileName  string           `gorm:"size:255" json:"file_name"`         // 原始文件名
 	FileURL   string           `gorm:"size:500;not null" json:"file_url"` // 文件存储路径
 	FileType  *string          `gorm:"size:50" json:"file_type,omitempty"`
 	FileSize  *int64           `json:"file_size,omitempty"`

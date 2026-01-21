@@ -58,7 +58,7 @@ func (r *attachmentRepository) GetByTenantID(tenantID int64, offset, limit int) 
 	var total int64
 	var err error
 
-	err = r.db.Model(&model.Attachment{}).Count(&total).Error
+	err = r.db.Model(&model.Attachment{}).Where("tenant_id = ?", tenantID).Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
