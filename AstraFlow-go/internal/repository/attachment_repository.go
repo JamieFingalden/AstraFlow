@@ -55,7 +55,10 @@ func (r *attachmentRepository) GetByUserID(userID int64) ([]*model.Attachment, e
 
 func (r *attachmentRepository) GetByTenantID(tenantID int64) ([]*model.Attachment, error) {
 	var attachments []*model.Attachment
-	err := r.db.Where("tenant_id = ?", tenantID).Find(&attachments).Error
+	err := r.db.Where("tenant_id = ?", tenantID).
+		Order("status DESC").
+		Order("created_at DESC").
+		Find(&attachments).Error
 	if err != nil {
 		return nil, err
 	}
