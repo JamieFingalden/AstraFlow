@@ -254,7 +254,7 @@ export const useBillStore = defineStore('bill', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await updateInvoice(id, { status: 'confirmed' })
+      const response = await updateInvoice(id, { status: 'paid' })
 
       if (response?.data?.invoice) {
         const invoice = response.data.invoice
@@ -262,7 +262,7 @@ export const useBillStore = defineStore('bill', () => {
         if (index !== -1) {
           bills.value[index] = {
             ...bills.value[index],
-            status: invoice.status || 'confirmed'
+            status: invoice.status || 'paid'
           }
         }
         return bills.value[index]

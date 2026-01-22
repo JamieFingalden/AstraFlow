@@ -37,7 +37,7 @@ func (s *InvoiceService) CreateInvoice(tenantId, userId int64, invoiceDate time.
 		TaxID:          &taxId,
 		Category:       &category,
 		PaymentSource:  &paymentSource,
-		Status:         status,
+		Status:         model.InvoiceStatus(status),
 		ImageURL:       imageURL,
 		Description:    description,
 		IdentifyStatus: "unnecessary", // 默认值
@@ -139,7 +139,7 @@ func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount f
 	existingInvoice.TaxID = &taxId
 	existingInvoice.Category = &category
 	existingInvoice.PaymentSource = &paymentSource
-	existingInvoice.Status = status
+	existingInvoice.Status = model.InvoiceStatus(status)
 	existingInvoice.ImageURL = imageURL
 	existingInvoice.Description = description
 

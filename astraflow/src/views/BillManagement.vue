@@ -64,8 +64,8 @@
             <select v-model="selectedStatus" class="filter-select">
               <option value="">全部状态</option>
               <option value="待定/pending">待定 (pending)</option>
-              <option value="通过/recognized">通过 (recognized)</option>
-              <option value="已报销/confirmed">已报销 (confirmed)</option>
+              <option value="通过/approved">通过 (approved)</option>
+              <option value="已报销/paid">已报销 (paid)</option>
               <option value="驳回/rejected">驳回 (rejected)</option>
             </select>
           </div>
@@ -362,10 +362,10 @@ const formatStatus = (status) => {
   const statusMap = {
     'pending': '待定 (pending)',
     '待定': '待定 (pending)',
-    'recognized': '通过 (recognized)',
-    '通过': '通过 (recognized)',
-    'confirmed': '已报销 (confirmed)',
-    '已报销': '已报销 (confirmed)',
+    'approved': '通过 (approved)',
+    '通过': '通过 (approved)',
+    'paid': '已报销 (paid)',
+    '已报销': '已报销 (paid)',
     'rejected': '驳回 (rejected)',
     '驳回': '驳回 (rejected)',
     '待审批': '待定 (pending)',
@@ -467,10 +467,10 @@ const getSourceIconClass = (source) => {
 
 const getStatusClass = (status) => {
   // Map backend statuses to UI statuses
-  if (status === 'confirmed' || status === '已报销') {
+  if (status === 'paid' || status === '已报销') {
+    return 'status-paid'
+  } else if (status === 'approved' || status === '通过') {
     return 'status-approved'
-  } else if (status === 'recognized' || status === '通过') {
-    return 'status-recognized'
   } else if (status === 'pending' || status === '待审批' || status === '待定') {
     return 'status-pending'
   } else if (status === 'rejected' || status === '已拒绝' || status === '驳回') {
@@ -1322,12 +1322,12 @@ onMounted(async () => {
   font-weight: 500;
 }
 
-.status-approved {
+.status-paid {
   background-color: #dcfce7;
   color: #16a34a;
 }
 
-.app-container[data-theme="dark"] .status-approved {
+.app-container[data-theme="dark"] .status-paid {
   background-color: #15803d;
   color: #bbf7d0;
 }
@@ -1352,12 +1352,12 @@ onMounted(async () => {
   color: #fecaca;
 }
 
-.status-recognized {
+.status-approved {
   background-color: #dbeafe;
   color: #2563eb;
 }
 
-.app-container[data-theme="dark"] .status-recognized {
+.app-container[data-theme="dark"] .status-approved {
   background-color: #1e40af;
   color: #bfdbfe;
 }

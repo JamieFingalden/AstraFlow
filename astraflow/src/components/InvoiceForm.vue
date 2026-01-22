@@ -231,7 +231,8 @@ const paymentSourceOptions = [
 
 const statusOptions = [
   { label: '待处理', value: 'pending' },
-  { label: '已确认', value: 'confirmed' },
+  { label: '通过', value: 'approved' },
+  { label: '已报销', value: 'paid' },
   { label: '已拒绝', value: 'rejected' }
 ]
 
