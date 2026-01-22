@@ -47,13 +47,7 @@
         >
           可视化
         </router-link>
-        <router-link
-          to="/ai-result"
-          class="nav-link"
-          :class="{ 'nav-link-active': $route.path === '/ai-result' }"
-        >
-          AI识别
-        </router-link>
+
         <router-link
           to="/statistics"
           class="nav-link"
@@ -155,14 +149,7 @@
         >
           可视化
         </router-link>
-        <router-link
-          to="/ai-result"
-          class="mobile-nav-link"
-          :class="{ 'mobile-nav-link-active': $route.path === '/ai-result' }"
-          @click="closeMobileMenu"
-        >
-          AI识别
-        </router-link>
+
         <router-link
           to="/statistics"
           class="mobile-nav-link"

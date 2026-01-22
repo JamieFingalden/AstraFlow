@@ -4,7 +4,7 @@ import LoginView from '../views/auth/LoginView.vue'
 import LogoutView from '../views/auth/LogoutView.vue'
 import Dashboard from '../views/dashboard/Dashboard.vue'
 import InvoiceUpload from '../views/InvoiceUpload.vue'
-import AnalysisPage from '../views/AnalysisPage.vue'
+
 import BillManagement from '../views/BillManagement.vue'
 import ReimbursementStatistics from '../views/ReimbursementStatistics.vue'
 import SettingsCenter from '../views/SettingsCenter.vue'
@@ -53,12 +53,7 @@ const routes = [
     component: Dashboard,
     meta: { requiresAuth: true }
   },
-  {
-    path: '/ai-result',
-    name: 'AIResult',
-    component: AnalysisPage,
-    meta: { requiresAuth: true }
-  },
+
   {
     path: '/statistics',
     name: 'ReimbursementStatistics',

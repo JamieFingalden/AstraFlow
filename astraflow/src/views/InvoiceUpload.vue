@@ -128,9 +128,7 @@
 
               <!-- Action Buttons -->
               <div class="action-buttons">
-                <button v-if="uploadResult.amount !== '处理中...'" @click="viewAnalysis" class="btn btn-primary">
-                  查看分析结果
-                </button>
+
                 <button @click="resetUpload" class="btn btn-secondary">
                   继续上传
                 </button>
@@ -515,9 +513,7 @@ const viewDashboard = () => {
   router.push('/dashboard')
 }
 
-const viewAnalysis = () => {
-  router.push('/analysis')
-}
+
 
 
 const getStatusClass = (status, isText = false) => {
