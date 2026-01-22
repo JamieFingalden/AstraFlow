@@ -97,3 +97,5 @@ Configuration in `pkg/config/config.yml` or `.env`. Needs to point to the same R
     2.  Downloads file from Backend URL (e.g., `http://localhost:8081/uploads/...`).
     3.  Runs `ocr_module.py` (PaddleOCR) + `ai_module.py` (LLM).
     4.  POSTs result to Backend callback.
+
+不要对我的git进行任何操作，关于git部分的操作仅限查看提交记录
