@@ -3,7 +3,6 @@ package handler
 import (
 	"AstraFlow-go/internal/service"
 	typeUtils "AstraFlow-go/pkg/utils"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -29,15 +28,13 @@ func NewInvoiceHandler() *InvoiceHandler {
 type CreateInvoiceRequest struct {
 	TenantID      *int64     `json:"tenant_id,omitempty"`
 	UserId        int64      `json:"user_id"`
-	InvoiceNumber *string    `json:"invoice_number" binding:"required"`
+	AttachmentID  int64      `json:"attachment_id" binding:"required"` // Added AttachmentID
+	InvoiceNumber *string    `json:"invoice_number"`                   // Optional now? Model says index.
 	InvoiceDate   *time.Time `json:"invoice_date" binding:"required"`
 	Amount        *float64   `json:"amount" binding:"required"`
-	Vendor        string     `json:"vendor" binding:"required"` // 商户名称，必填
-	ImageURL      *string    `json:"image_url,omitempty"`       // 发票图片URL
-	Description   *string    `json:"description,omitempty"`     // 发票描述/备注
-	TaxID         *string    `json:"taxId"`
+	Vendor        string     `json:"vendor" binding:"required"`
+	Description   *string    `json:"description,omitempty"`
 	Category      *string    `json:"category" binding:"required"`
-	PaymentSource *string    `json:"payment_source"`
 	Status        string     `json:"status"`
 }
 
@@ -56,6 +53,7 @@ func (h InvoiceHandler) CreateInvoice(c *gin.Context) {
 			Code:    400,
 			Message: "请求参数错误：" + err.Error(),
 		})
+		return // Added return
 	}
 
 	userId, exists := c.Get("user_id")
@@ -91,7 +89,7 @@ func (h InvoiceHandler) CreateInvoice(c *gin.Context) {
 		}
 		tenantIdInt = tmpTenantIdInt
 	}
-	fmt.Println(tenantIdInt)
+	
 	var invoiceDate time.Time
 	if req.InvoiceDate != nil {
 		invoiceDate = *req.InvoiceDate
@@ -107,40 +105,17 @@ func (h InvoiceHandler) CreateInvoice(c *gin.Context) {
 		invoiceNumber = *req.InvoiceNumber
 	}
 
-	vendor := req.Vendor // vendor is now a required string, not a pointer
-
 	category := ""
 	if req.Category != nil {
 		category = *req.Category
 	}
 
-	var taxId = ""
-	if req.TaxID != nil {
-		taxId = *req.TaxID
-	}
-
-	var paymentSource = ""
-	if req.PaymentSource != nil {
-		paymentSource = *req.PaymentSource
-	}
-
-	var status = ""
-	if req.Status != "" {
-		status = req.Status
-	}
-
-	// Handle new fields
-	var imageURL *string
-	if req.ImageURL != nil {
-		imageURL = req.ImageURL
-	}
-
-	var description *string
+	var description = ""
 	if req.Description != nil {
-		description = req.Description
+		description = *req.Description
 	}
 
-	invoice, err := h.invoiceService.CreateInvoice(tenantIdInt, UserIdInt, invoiceDate, amount, invoiceNumber, vendor, taxId, category, paymentSource, status, imageURL, description)
+	invoice, err := h.invoiceService.CreateInvoice(tenantIdInt, UserIdInt, req.AttachmentID, invoiceDate, amount, invoiceNumber, req.Vendor, category, description)
 	if err != nil {
 		c.JSON(http.StatusConflict, InvoiceResponse{
 			Code:    409,
@@ -329,7 +304,6 @@ func (h InvoiceHandler) UpdateInvoice(c *gin.Context) {
 
 	var req CreateInvoiceRequest
 	if err = c.ShouldBindJSON(&req); err != nil {
-		fmt.Println(req)
 		c.JSON(http.StatusBadRequest, InvoiceResponse{
 			Code:    400,
 			Message: "请求参数错误：" + err.Error(),
@@ -337,30 +311,14 @@ func (h InvoiceHandler) UpdateInvoice(c *gin.Context) {
 		return
 	}
 
-	var taxId = ""
-	if req.TaxID != nil {
-		taxId = *req.TaxID
-	}
-
-	var paymentSource = ""
-	if req.PaymentSource != nil {
-		paymentSource = *req.PaymentSource
-	}
-
 	var status = ""
 	if req.Status != "" {
 		status = req.Status
 	}
 
-	// Handle new fields
-	var imageURL *string
-	if req.ImageURL != nil {
-		imageURL = req.ImageURL
-	}
-
-	var description *string
+	var description = ""
 	if req.Description != nil {
-		description = req.Description
+		description = *req.Description
 	}
 
 	var invoiceDate time.Time
@@ -383,7 +341,7 @@ func (h InvoiceHandler) UpdateInvoice(c *gin.Context) {
 		category = *req.Category
 	}
 
-	invoice, err := h.invoiceService.UpdateInvoice(id, invoiceDate, amount, invoiceNumber, req.Vendor, taxId, category, paymentSource, status, imageURL, description)
+	invoice, err := h.invoiceService.UpdateInvoice(id, invoiceDate, amount, invoiceNumber, req.Vendor, category, description, status)
 	if err != nil {
 		c.JSON(http.StatusConflict, InvoiceResponse{
 			Code:    409,
@@ -422,8 +380,12 @@ func (h InvoiceHandler) DeleteInvoice(c *gin.Context) {
 	}
 
 	tenantId, exists := c.Get("tenant_id")
-	if !exists || tenantId.(*int64) == nil {
-		tenantId = 0
+	var tenantIdInt int64
+	if !exists || tenantId == nil {
+		tenantIdInt = 0
+	} else {
+		// Use type assertion carefully or cast
+		tenantIdInt = cast.ToInt64(tenantId)
 	}
 
 	invoice, err := h.invoiceService.FindInvoiceInfoById(id)
@@ -435,10 +397,12 @@ func (h InvoiceHandler) DeleteInvoice(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(userId, tenantId)
-
-	if !(invoice.UserID == userId.(int64)) {
-		if invoice.TenantID != nil && *invoice.TenantID != tenantId {
+	// Permission check
+	if invoice.UserID != userId.(int64) {
+		// If not owner, check if tenant admin? 
+		// For now, if invoice has tenantID, check if user matches tenantID?
+		// Existing logic:
+		if invoice.TenantID != nil && *invoice.TenantID != tenantIdInt {
 			c.JSON(http.StatusForbidden, InvoiceResponse{
 				Code:    403,
 				Message: "您没有权限删除该发票",

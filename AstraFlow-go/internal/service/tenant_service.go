@@ -13,6 +13,7 @@ import (
 type TenantService struct {
 	tenantRepo *repository.TenantRepository // 租户数据访问仓库
 	userRepo   *repository.UserRepository   // 用户数据访问仓库
+	roleRepo   *repository.RoleRepository   // 角色数据访问仓库
 }
 
 // NewTenantService 创建租户服务实例
@@ -21,6 +22,7 @@ func NewTenantService() *TenantService {
 	return &TenantService{
 		tenantRepo: repository.NewTenantRepository(),
 		userRepo:   repository.NewUserRepository(),
+		roleRepo:   repository.NewRoleRepository(),
 	}
 }
 
@@ -44,6 +46,12 @@ func (s *TenantService) CreateTenant(tenantName, username, email, password strin
 		return nil, nil, errors.New("用户名已存在")
 	}
 
+	// Find Admin Role
+	role, err := s.roleRepo.FindByKey(model.RoleKeyAdmin)
+	if err != nil {
+		return nil, nil, errors.New("admin role not found")
+	}
+
 	// 创建租户
 	tenant := &model.Tenant{
 		Name:         tenantName,
@@ -65,13 +73,16 @@ func (s *TenantService) CreateTenant(tenantName, username, email, password strin
 		TenantID: &tenant.ID,
 		Username: username,
 		Password: string(hashedPassword),
-		Role:     "admin",
+		RoleID:   role.ID, // Set RoleID
+		Status:   model.UserStatusActive,
 	}
 
 	err = s.userRepo.Create(user)
 	if err != nil {
 		return nil, nil, err
 	}
+	
+	user.Role = role // Preload for return
 
 	return tenant, user, nil
 }

@@ -1,8 +1,8 @@
 package handler
 
 import (
+	"AstraFlow-go/internal/model"
 	"AstraFlow-go/internal/service"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,42 +10,36 @@ import (
 )
 
 type UserHandler struct {
-	userService *service.UserService // 用户服务实例
+	userService *service.UserService
 }
 
-// NewUserHandler 创建用户处理器实例
-// 初始化用户处理器
 func NewUserHandler() *UserHandler {
 	return &UserHandler{
 		userService: service.NewUserService(),
 	}
 }
 
-// UserRequest 用户请求结构体
-type UserRequest struct {
+// CreateUserRequest 添加员工请求体
+type CreateUserRequest struct {
 	Username string `json:"username" binding:"required"`
-	Password string `json:"password"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
-	Role     bool   `json:"role"`
+	Password string `json:"password" binding:"required"`
+	Name     string `json:"name" binding:"required"`
+	RoleKey  string `json:"role_key" binding:"required"` // "admin", "auditor", "employee"
 }
 
-// UserResponse 用户响应结构体
-type UserResponse struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+// UpdateUserRequest 更新用户请求体
+type UpdateUserRequest struct {
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	Phone   string `json:"phone"`
+	RoleKey string `json:"role_key"`
 }
 
-// 获取用户列表
+// GetUserList 获取用户列表
 func (h *UserHandler) GetUserList(c *gin.Context) {
 	tenantId, exists := c.Get("tenant_id")
-	fmt.Println(tenantId, exists)
 	if !exists {
-		c.JSON(http.StatusUnauthorized, UserResponse{
-			Code:    401,
-			Message: "无权限",
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"code": 401, "message": "无权限"})
 		return
 	}
 
@@ -53,247 +47,147 @@ func (h *UserHandler) GetUserList(c *gin.Context) {
 
 	userList, err := h.userService.GetUserList(tenantIdInt64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, UserResponse{
-			Code:    500,
-			Message: "获取用户列表失败：" + err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "获取用户列表失败：" + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, UserResponse{
-		Code:    200,
-		Message: "获取用户列表成功",
-		Data:    userList,
+	// Hide passwords
+	for _, u := range userList {
+		u.Password = ""
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    200,
+		"message": "获取用户列表成功",
+		"data":    userList,
 	})
 }
 
-// 添加用户
+// CreateUser 添加员工 (Internal Invite)
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	var req UserRequest
+	var req CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, UserResponse{
-			Code:    400,
-			Message: "请求参数错误：" + err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "请求参数错误：" + err.Error()})
 		return
 	}
 
+	// 1. Check Permissions (Must be Admin)
+	roleKey := c.GetString("role")
+	if roleKey != model.RoleKeyAdmin {
+		c.JSON(http.StatusForbidden, gin.H{"code": 403, "message": "只有管理员可以添加员工"})
+		return
+	}
+
+	// 2. Get Tenant ID
 	tenantId, exists := c.Get("tenant_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, UserResponse{
-			Code:    401,
-			Message: "无权限",
-		})
+	if !exists || tenantId == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "无法确定当前租户"})
 		return
 	}
-
-	userId, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, UserResponse{
-			Code:    401,
-			Message: "无权限",
-		})
-		return
-	}
-
-	userIdInt64 := cast.ToInt64(userId)
-	role, err := h.userService.FindUserRoleByUserId(userIdInt64)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, UserResponse{
-			Code:    500,
-			Message: "获取用户角色失败：" + err.Error(),
-		})
-		return
-	}
-	if role != "admin" {
-		c.JSON(http.StatusUnauthorized, UserResponse{
-			Code:    401,
-			Message: "无权限",
-		})
-		return
-	}
-
 	tenantIdInt64 := cast.ToInt64(tenantId)
-	role = "normal"
-	if req.Role {
-		role = "admin"
-	}
 
-	if req.Password == "" {
-		req.Password = "123456"
-	}
-
-	user, err := h.userService.CreateUser(tenantIdInt64, req.Username, req.Password, req.Email, req.Phone, role)
+	// 3. Create User via Service
+	user, err := h.userService.CreateUser(
+		tenantIdInt64,
+		req.Username,
+		req.Password,
+		req.Name,
+		req.RoleKey,
+	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, UserResponse{
-			Code:    500,
-			Message: "创建用户失败：" + err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "创建用户失败：" + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, UserResponse{
-		Code:    200,
-		Message: "创建用户成功",
-		Data:    user,
+	c.JSON(http.StatusOK, gin.H{
+		"code":    200,
+		"message": "添加员工成功",
+		"data":    user,
 	})
 }
 
-// 更新用户
+// UpdateUser 更新用户
 func (h *UserHandler) UpdateUser(c *gin.Context) {
-	var req UserRequest
+	var req UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, UserResponse{
-			Code:    400,
-			Message: "请求参数错误：" + err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "请求参数错误：" + err.Error()})
 		return
 	}
 
-	userId, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, UserResponse{
-			Code:    401,
-			Message: "无权限",
-		})
+	// Check Admin Perms
+	roleKey := c.GetString("role")
+	if roleKey != model.RoleKeyAdmin {
+		c.JSON(http.StatusForbidden, gin.H{"code": 403, "message": "无权限"})
 		return
-	}
-
-	userIdInt64 := cast.ToInt64(userId)
-	role, err := h.userService.FindUserRoleByUserId(userIdInt64)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, UserResponse{
-			Code:    500,
-			Message: "获取用户角色失败：" + err.Error(),
-		})
-		return
-	}
-	if role != "admin" {
-		c.JSON(http.StatusUnauthorized, UserResponse{
-			Code:    401,
-			Message: "无权限",
-		})
-		return
-	}
-
-	role = "normal"
-	if req.Role {
-		role = "admin"
 	}
 
 	idStr := c.Param("id")
 	idInt64 := cast.ToInt64(idStr)
 
-	err = h.userService.UpdateUser(idInt64, req.Username, req.Password, req.Email, req.Phone, role)
+	err := h.userService.UpdateUser(idInt64, "", "", req.Email, req.Phone, req.RoleKey)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, UserResponse{
-			Code:    500,
-			Message: "更新用户失败：" + err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "更新用户失败：" + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, UserResponse{
-		Code:    200,
-		Message: "更新用户成功",
-	})
+	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "更新用户成功"})
 }
 
-// 删除用户
+// DeleteUser 删除用户
 func (h *UserHandler) DeleteUser(c *gin.Context) {
-	userId, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, UserResponse{
-			Code:    401,
-			Message: "无权限",
-		})
-		return
-	}
-
-	userIdInt64 := cast.ToInt64(userId)
-	role, err := h.userService.FindUserRoleByUserId(userIdInt64)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, UserResponse{
-			Code:    500,
-			Message: "获取用户角色失败：" + err.Error(),
-		})
-		return
-	}
-	if role != "admin" {
-		c.JSON(http.StatusUnauthorized, UserResponse{
-			Code:    401,
-			Message: "无权限",
-		})
+	// Check Admin Perms
+	roleKey := c.GetString("role")
+	if roleKey != model.RoleKeyAdmin {
+		c.JSON(http.StatusForbidden, gin.H{"code": 403, "message": "无权限"})
 		return
 	}
 
 	idStr := c.Param("id")
 	idInt64 := cast.ToInt64(idStr)
 
-	err = h.userService.DeleteUser(idInt64)
+	err := h.userService.DeleteUser(idInt64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, UserResponse{
-			Code:    500,
-			Message: "删除用户失败：" + err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "删除用户失败：" + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, UserResponse{
-		Code:    200,
-		Message: "删除用户成功",
-	})
+	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除用户成功"})
 }
 
-// 获取用户详情
+// GetUserById 获取用户详情
 func (h *UserHandler) GetUserById(c *gin.Context) {
-	// Get the authenticated user ID (current user)
-	authUserId, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, UserResponse{
-			Code:    401,
-			Message: "无权限",
-		})
-		return
-	}
+	authUserId := cast.ToInt64(c.GetString("user_id")) // Wait, middleware sets int64? Check casting
+	// Context Get returns interface{}. Middleware set it as int64.
+	// cast.ToInt64 handles interface{} well.
+	
+	// Better check:
+	val, _ := c.Get("user_id")
+	authUserId = cast.ToInt64(val)
 
-	authUserIdInt64 := cast.ToInt64(authUserId)
-
-	// Get the requested user ID from the URL parameter
 	requestedUserIdStr := c.Param("id")
 	requestedUserIdInt64 := cast.ToInt64(requestedUserIdStr)
 
-	// Check if the authenticated user has permission to access the requested user
-	authUserRole, err := h.userService.FindUserRoleByUserId(authUserIdInt64)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, UserResponse{
-			Code:    500,
-			Message: "获取当前用户角色失败：" + err.Error(),
-		})
-		return
-	}
+	roleKey := c.GetString("role")
 
-	// Allow access if it's the same user or if current user is admin
-	if requestedUserIdInt64 != authUserIdInt64 && authUserRole != "admin" {
-		c.JSON(http.StatusUnauthorized, UserResponse{
-			Code:    401,
-			Message: "无权限",
-		})
+	// Perms: Admin OR Self
+	if requestedUserIdInt64 != authUserId && roleKey != model.RoleKeyAdmin {
+		c.JSON(http.StatusForbidden, gin.H{"code": 403, "message": "无权限"})
 		return
 	}
 
 	user, err := h.userService.FindUserById(requestedUserIdInt64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, UserResponse{
-			Code:    500,
-			Message: "获取用户详情失败：" + err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "获取用户详情失败：" + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, UserResponse{
-		Code:    200,
-		Message: "获取用户详情成功",
-		Data:    user,
+	if user != nil {
+		user.Password = ""
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":    200,
+		"message": "获取用户详情成功",
+		"data":    user,
 	})
 }

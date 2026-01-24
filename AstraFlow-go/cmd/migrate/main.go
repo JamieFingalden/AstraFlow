@@ -9,21 +9,20 @@ import (
 )
 
 func main() {
-	// 初始化配置
+	// 1. 初始化配置
 	config.InitConfig()
 
-	// 初始化数据库
+	// 2. 初始化数据库
 	database.InitDB()
 
-	// 自动迁移数据库表 - 包括所有模型（使用默认复数表名）
+	// 3. 自动迁移数据库表结构
+	fmt.Println("正在同步数据库表结构...")
 	err := database.DB.AutoMigrate(
-		&model.User{},
 		&model.Role{},
 		&model.Tenant{},
+		&model.User{},
 		&model.Invoice{},
-
 		&model.Attachment{},
-
 	)
 	if err != nil {
 		log.Fatalf("数据库迁移失败: %v", err)

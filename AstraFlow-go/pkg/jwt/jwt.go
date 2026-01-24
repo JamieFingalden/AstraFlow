@@ -13,7 +13,7 @@ import (
 type Claims struct {
 	UserID               int64  `json:"user_id"`  // 用户ID
 	Username             string `json:"username"` // 用户名
-	Role                 string `json:"role"`     // 用户角色
+	Role                 string `json:"role"`     // 用户角色 (Key)
 	TenantID             *int64 `json:"tenant_id,omitempty"`
 	jwt.RegisteredClaims        // JWT标准声明
 }
@@ -24,10 +24,15 @@ func GenerateToken(user *model.User) (string, error) {
 	// 设置过期时间（24小时）
 	expirationTime := time.Now().Add(24 * time.Hour)
 
+	roleKey := ""
+	if user.Role != nil {
+		roleKey = user.Role.Key
+	}
+
 	claims := &Claims{
 		UserID:   user.ID,
 		Username: user.Username,
-		Role:     user.RoleName,
+		Role:     roleKey,
 		TenantID: user.TenantID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
@@ -65,10 +70,15 @@ func GenerateRefreshToken(user *model.User) (string, error) {
 	// 设置过期时间（7天）
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)
 
+	roleKey := ""
+	if user.Role != nil {
+		roleKey = user.Role.Key
+	}
+
 	claims := &Claims{
 		UserID:   user.ID,
 		Username: user.Username,
-		Role:     user.RoleName,
+		Role:     roleKey,
 		TenantID: user.TenantID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),

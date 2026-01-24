@@ -71,14 +71,11 @@ func (s *attachmentService) UploadFile(file *multipart.FileHeader, userID int64,
 	}
 
 	// 创建附件记录
-	fileType := extension
 	attachment := &model.Attachment{
 		TenantID: tenantID,
 		UserID:   userID,
 		FileName: file.Filename,
 		FileURL:  "/uploads/" + filename,
-		FileType: &fileType,
-		FileSize: &file.Size,
 		Status:   model.AttachmentStatusPending, // 默认为识别中状态
 	}
 

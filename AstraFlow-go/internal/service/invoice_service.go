@@ -18,32 +18,33 @@ func NewInvoiceService() *InvoiceService {
 }
 
 // CreateInvoice 创建发票
-func (s *InvoiceService) CreateInvoice(tenantId, userId int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, taxId, category, paymentSource, status string, imageURL, description *string) (*model.Invoice, error) {
-	existingInvoice, err := s.invoiceRepo.FindByInvoiceNumber(invoiceNumber)
-	if err != nil {
-		return nil, err
-	}
-	if existingInvoice != nil {
-		return nil, errors.New("该发票已存在, 请勿重复上传")
+// Refactored to match new Invoice model
+func (s *InvoiceService) CreateInvoice(tenantId, userId int64, attachmentID int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, category, description string) (*model.Invoice, error) {
+	// Check for duplicate invoice number if provided
+	if invoiceNumber != "" {
+		existingInvoice, err := s.invoiceRepo.FindByInvoiceNumber(invoiceNumber)
+		if err != nil {
+			return nil, err
+		}
+		if existingInvoice != nil {
+			return nil, errors.New("该发票已存在, 请勿重复上传")
+		}
 	}
 
 	invoice := &model.Invoice{
-		TenantID:       &tenantId,
-		UserID:         userId,
-		InvoiceNumber:  &invoiceNumber,
-		InvoiceDate:    &invoiceDate,
-		Amount:         &amount,
-		Vendor:         vendor,
-		TaxID:          &taxId,
-		Category:       &category,
-		PaymentSource:  &paymentSource,
-		Status:         model.InvoiceStatus(status),
-		ImageURL:       imageURL,
-		Description:    description,
-		IdentifyStatus: "unnecessary", // 默认值
+		TenantID:      &tenantId,
+		UserID:        userId,
+		AttachmentID:  attachmentID,
+		InvoiceNumber: invoiceNumber,
+		InvoiceDate:   invoiceDate,
+		Amount:        amount,
+		Vendor:        vendor,
+		Category:      category,
+		Description:   description,
+		Status:        model.StatusPending,
 	}
 
-	err = s.invoiceRepo.Create(invoice)
+	err := s.invoiceRepo.Create(invoice)
 	if err != nil {
 		return nil, err
 	}
@@ -119,29 +120,29 @@ func (s *InvoiceService) GetAllInvoicePageByTenantId(page, pageSize int, tenantI
 	return invoices, total, nil
 }
 
-func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, taxId, category, paymentSource, status string, imageURL, description *string) (*model.Invoice, error) {
+func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, category, description, status string) (*model.Invoice, error) {
 	existingInvoice, err := s.invoiceRepo.FindById(id)
 	if err != nil {
 		return nil, err
 	}
 
-	if invoiceNumber != *existingInvoice.InvoiceNumber {
+	if invoiceNumber != existingInvoice.InvoiceNumber {
 		_, err := s.invoiceRepo.FindByInvoiceNumber(invoiceNumber)
-		if err != nil && err.Error() != "record not found" { // Only error if there's a different issue than record not found
+		if err != nil && err.Error() != "record not found" {
 			return nil, errors.New("该发票号已存在")
 		}
 	}
 
-	existingInvoice.InvoiceNumber = &invoiceNumber
-	existingInvoice.InvoiceDate = &invoiceDate
-	existingInvoice.Amount = &amount
-	existingInvoice.Vendor = vendor // Vendor is now a required string, not a pointer
-	existingInvoice.TaxID = &taxId
-	existingInvoice.Category = &category
-	existingInvoice.PaymentSource = &paymentSource
-	existingInvoice.Status = model.InvoiceStatus(status)
-	existingInvoice.ImageURL = imageURL
+	existingInvoice.InvoiceNumber = invoiceNumber
+	existingInvoice.InvoiceDate = invoiceDate
+	existingInvoice.Amount = amount
+	existingInvoice.Vendor = vendor
+	existingInvoice.Category = category
 	existingInvoice.Description = description
+	
+	if status != "" {
+		existingInvoice.Status = model.InvoiceStatus(status)
+	}
 
 	err = s.invoiceRepo.Update(existingInvoice)
 	if err != nil {

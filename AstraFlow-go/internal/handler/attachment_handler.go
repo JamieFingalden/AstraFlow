@@ -33,11 +33,6 @@ func NewAttachmentHandler() *AttachmentHandler {
 }
 
 // UploadFile 上传发票文件并识别发票信息
-//  1. 用户上传文件
-//  2. Go 保存文件到本地
-//  3. Go 插入 attachment 表（记录文件信息）
-//  4. Go 发送 OCR 任务到队列（Python 端消费者处理）
-//  5. Python 端处理完成后，通过回调函数更新结果
 func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 	// 获取当前用户信息
 	userID, exists := c.Get("user_id")
@@ -50,12 +45,12 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 	}
 
 	tenantID, exists := c.Get("tenant_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, Response{
-			Code:    401,
-			Message: "未授权",
-		})
-		return
+	// Handle nil tenantID
+	var tenantIDPtr *int64
+	if exists && tenantID != nil {
+		if tid, ok := tenantID.(*int64); ok {
+			tenantIDPtr = tid
+		}
 	}
 
 	// 获取上传的文件
@@ -78,7 +73,7 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 	}
 
 	// 调用服务层上传文件
-	attachment, err := h.service.UploadFile(file, userID.(int64), tenantID.(*int64))
+	attachment, err := h.service.UploadFile(file, userID.(int64), tenantIDPtr)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
 			Code:    500,
@@ -87,21 +82,18 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	// 创建回调URL，以便Python端处理完成后可以通知Go端更新结果
-	// 这里使用当前请求的主机信息构建回调URL
+	// 创建回调URL
 	callbackURL := fmt.Sprintf("%s://%s/api/callback/ocr-result", c.Request.URL.Scheme, c.Request.Host)
 	if c.Request.URL.Scheme == "" {
-		// 如果请求中没有协议，尝试从X-Forwarded-Proto头获取
 		proto := c.GetHeader("X-Forwarded-Proto")
 		if proto != "" {
 			callbackURL = fmt.Sprintf("%s://%s/api/callback/ocr-result", proto, c.Request.Host)
 		} else {
-			// 默认使用http
 			callbackURL = fmt.Sprintf("http://%s/api/callback/ocr-result", c.Request.Host)
 		}
 	}
 
-	// 发布 OCR 任务到 RabbitMQ 队列，由 Python 端消费者处理
+	// 发布 OCR 任务
 	rabbitmqClient, err := client.NewRabbitMQOCRClient()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
@@ -112,7 +104,6 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 	}
 	defer rabbitmqClient.Close()
 
-	// 发送任务到队列，包含回调URL以便Python端处理完成后通知Go端
 	_, err = rabbitmqClient.AddTask(attachment.ID, attachment.FileURL, &callbackURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
@@ -198,15 +189,24 @@ func (h *AttachmentHandler) GetAttachmentsByTenantID(c *gin.Context) {
 	}
 
 	tenantID, exists := c.Get("tenant_id")
-	if !exists {
+	if !exists || tenantID == nil {
 		c.JSON(http.StatusUnauthorized, Response{
 			Code:    401,
 			Message: "未授权",
 		})
 		return
 	}
+	
+	tenantIDPtr, ok := tenantID.(*int64)
+	if !ok || tenantIDPtr == nil {
+		c.JSON(http.StatusUnauthorized, Response{
+			Code:    401,
+			Message: "未授权或租户ID无效",
+		})
+		return
+	}
 
-	attachments, total, err := h.service.GetAttachmentsByTenantID(*tenantID.(*int64), page, pageSize)
+	attachments, total, err := h.service.GetAttachmentsByTenantID(*tenantIDPtr, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
 			Code:    500,
@@ -306,8 +306,6 @@ func (h *AttachmentHandler) GetAttachmentsByStatus(c *gin.Context) {
 		attachmentStatus = model.AttachmentStatusSuccess
 	case "failed":
 		attachmentStatus = model.AttachmentStatusFailed
-	case "duplicate":
-		attachmentStatus = model.AttachmentStatusDuplicate
 	default:
 		c.JSON(http.StatusBadRequest, Response{
 			Code:    400,
@@ -333,7 +331,6 @@ func (h *AttachmentHandler) GetAttachmentsByStatus(c *gin.Context) {
 }
 
 // HandleOCRResultCallback 处理OCR结果的回调
-// Python端处理完成后，会向此接口发送请求
 func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 	// 从请求体获取OCR结果
 	var result client.OCRQueueResult
@@ -374,10 +371,9 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 		vendor, _ := result.Data["vendor"].(string)
 		description, _ := result.Data["description"].(string)
 		amountFloat, _ := result.Data["amount"].(float64)
-		amount := amountFloat // 直接使用float64类型，不需要指针
+		amount := amountFloat
 		category, _ := result.Data["category"].(string)
-		paymentSource, _ := result.Data["payment_source"].(string)
-		taxId, _ := result.Data["tax_id"].(string)
+		// Ignored: paymentSource, taxId
 
 		// 处理日期
 		var invoiceDate time.Time
@@ -385,28 +381,28 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 			if parsedDate, err := time.Parse("2006-01-02", dateStr); err == nil {
 				invoiceDate = parsedDate
 			} else {
-				// 如果日期解析失败，使用当前时间
 				invoiceDate = time.Now()
 			}
 		} else {
-			// 如果没有日期信息，使用当前时间
 			invoiceDate = time.Now()
+		}
+		
+		var tenantId int64
+		if attachment.TenantID != nil {
+			tenantId = *attachment.TenantID
 		}
 
 		// 创建发票记录
 		invoice, err := h.invoiceService.CreateInvoice(
-			*attachment.TenantID, // 使用附件的租户ID
-			attachment.UserID,    // 使用附件的用户ID
-			invoiceDate,          // 使用从OCR结果解析的日期
-			amount,               // 从OCR结果获取的金额
-			invoiceNumber,        // 发票号码
-			vendor,               // 商户名称
-			taxId,                // 税号
-			category,             // 分类
-			paymentSource,        // 支付方式
-			"recognized",         // 状态
-			&attachment.FileURL,  // 发票图片URL
-			&description,         // 描述
+			tenantId, 
+			attachment.UserID, 
+			attachment.ID, // Pass AttachmentID
+			invoiceDate, 
+			amount, 
+			invoiceNumber, 
+			vendor, 
+			category, 
+			description,
 		)
 		if err != nil {
 			log.Printf("创建发票失败，文件ID: %d, 错误: %v", int64(fileID), err)
@@ -422,8 +418,10 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 		if err != nil {
 			log.Printf("更新附件InvoiceID失败，文件ID: %d, 发票ID: %d, 错误: %v",
 				int64(fileID), invoice.ID, err)
-			// 这里不返回错误，因为发票已经创建成功，只是更新附件关联失败
 		}
+		
+		// Also update status
+		h.service.UpdateAttachmentStatus(int64(fileID), model.AttachmentStatusSuccess)
 
 		log.Printf("OCR任务处理成功，发票ID: %d，文件ID: %d", invoice.ID, int64(fileID))
 
@@ -432,24 +430,12 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 			Message: "OCR结果处理成功",
 		})
 	} else {
-		// OCR处理失败，更新附件状态为失败
+		// OCR处理失败
 		fileID, ok := result.Data["file_id"].(float64)
 		if ok {
-			// 尝试获取附件并记录失败信息
-			attachment, err := h.service.GetAttachmentByID(int64(fileID))
-			if err == nil {
-				// 可以考虑在这里更新附件的状态或添加错误信息
-				log.Printf("OCR任务处理失败，文件ID: %d, 文件路径: %s, 错误: %s",
-					int64(fileID), attachment.FileURL, result.ErrorMsg)
-			} else {
-				log.Printf("OCR任务处理失败，文件ID: %d, 但无法获取附件信息: %v", int64(fileID), err)
-			}
-		} else {
-			log.Printf("OCR任务处理失败，但回调数据中缺少文件ID，任务ID: %s, 错误: %s",
-				result.TaskID, result.ErrorMsg)
+			h.service.UpdateAttachmentStatus(int64(fileID), model.AttachmentStatusFailed)
+			log.Printf("OCR任务处理失败，文件ID: %d, 错误: %s", int64(fileID), result.ErrorMsg)
 		}
-
-		log.Printf("OCR任务处理失败: %s, 错误: %s", result.TaskID, result.ErrorMsg)
 		c.JSON(http.StatusOK, Response{
 			Code:    200,
 			Message: "OCR结果处理失败，已记录错误状态",

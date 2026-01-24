@@ -6,28 +6,25 @@ import (
 	"gorm.io/gorm"
 )
 
-// AttachmentStatus 附件识别状态
+// AttachmentStatus 附件状态枚举
 type AttachmentStatus int
 
 const (
-	AttachmentStatusPending   AttachmentStatus = 0 // 识别中
-	AttachmentStatusSuccess   AttachmentStatus = 1 // 识别成功
-	AttachmentStatusFailed    AttachmentStatus = 2 // 识别失败
-	AttachmentStatusDuplicate AttachmentStatus = 3 // 重复识别
+	AttachmentStatusPending AttachmentStatus = 0 // Uploaded, waiting for AI
+	AttachmentStatusSuccess AttachmentStatus = 1 // AI processed, Invoice created
+	AttachmentStatusFailed  AttachmentStatus = 2 // OCR failed
 )
 
 // Attachment 附件模型
-// 定义了发票照片/支付截图等附件信息
+// Represents the uploaded file and holds the InvoiceID once created
 type Attachment struct {
 	ID        int64            `gorm:"primaryKey;autoIncrement" json:"id"`
-	TenantID  *int64           `gorm:"index" json:"tenant_id,omitempty"`  // 租户ID（个人用户为 NULL）
+	TenantID  *int64           `gorm:"index" json:"tenant_id,omitempty"`  // 租户ID
 	UserID    int64            `gorm:"index;not null" json:"user_id"`     // 上传者 ID
-	InvoiceID *int64           `gorm:"index" json:"invoice_id,omitempty"` // 关联发票 ID，可为空（软连接）
+	InvoiceID *int64           `gorm:"index" json:"invoice_id,omitempty"` // 关联发票 ID (Foreign Key)
 	FileName  string           `gorm:"size:255" json:"file_name"`         // 原始文件名
 	FileURL   string           `gorm:"size:500;not null" json:"file_url"` // 文件存储路径
-	FileType  *string          `gorm:"size:50" json:"file_type,omitempty"`
-	FileSize  *int64           `json:"file_size,omitempty"`
-	Status    AttachmentStatus `gorm:"default:0" json:"status"` // 识别状态：0-识别中, 1-识别成功, 2-识别失败, 3-重复识别
+	Status    AttachmentStatus `gorm:"default:0" json:"status"`           // 状态
 	CreatedAt time.Time        `json:"created_at"`
 	UpdatedAt time.Time        `json:"updated_at"`
 	DeletedAt gorm.DeletedAt   `gorm:"index" json:"-"` // 软删除时间戳
