@@ -21,3 +21,4 @@ ocr-ai-mac/.idea/ocr-ai-mac.iml
 ocr-ai-mac/.idea/vcs.xml
 ocr-ai-mac/.idea/inspectionProfiles/profiles_settings.xml
 ocr-ai-mac/.idea/misc.xml
+ocr-ai-mac/__pycache__/*
