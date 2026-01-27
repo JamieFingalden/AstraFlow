@@ -16,8 +16,8 @@ const (
 // Refactored to use RoleID and Status, with Role association for Preloading
 type User struct {
 	ID        int64          `gorm:"primaryKey;autoIncrement" json:"id"`
-	TenantID  *int64         `gorm:"index" json:"tenant_id,omitempty"` // 租户ID，NULL 表示个人用户
-	RoleID    int64          `gorm:"index;not null" json:"role_id"`    // 角色ID
+	TenantID  *int64         `gorm:"index" json:"tenant_id,omitempty"`        // 租户ID，NULL 表示个人用户
+	RoleID    int64          `gorm:"index;not null" json:"role_id"`           // 角色ID
 	Role      *Role          `gorm:"foreignKey:RoleID" json:"role,omitempty"` // Association for easy access
 	Username  string         `gorm:"uniqueIndex;size:50;not null" json:"username"`
 	Password  string         `gorm:"size:255;not null" json:"-"` // 密码字段，JSON序列化时忽略

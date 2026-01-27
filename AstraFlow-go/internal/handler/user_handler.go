@@ -159,7 +159,7 @@ func (h *UserHandler) GetUserById(c *gin.Context) {
 	authUserId := cast.ToInt64(c.GetString("user_id")) // Wait, middleware sets int64? Check casting
 	// Context Get returns interface{}. Middleware set it as int64.
 	// cast.ToInt64 handles interface{} well.
-	
+
 	// Better check:
 	val, _ := c.Get("user_id")
 	authUserId = cast.ToInt64(val)
