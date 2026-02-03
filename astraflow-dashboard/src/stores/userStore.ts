@@ -39,7 +39,7 @@ export const useUserStore = defineStore('user', () => {
         setToken(data.token)
         
         // Handle user_info (snake_case from API vs potential camelCase in frontend)
-        const user = data.user_info || data.userInfo || {}
+        const user = data.user_info || data.userInfo || data.user || {}
         setUserInfo(user)
         
         return data

@@ -21,51 +21,48 @@
           text-color="#94a3b8"
           active-text-color="#ffffff"
           background-color="transparent"
+          unique-opened
           router
         >
-          <div class="px-4 mb-2 mt-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Overview
-          </div>
-
+          <!-- Dashboard -->
           <el-menu-item index="/dashboard" class="menu-item-override">
             <el-icon><Odometer /></el-icon>
-            <span>Dashboard</span>
+            <span>仪表盘</span>
           </el-menu-item>
 
-          <!-- Audit Section -->
-          <template v-if="isAuditor || isAdmin">
-             <div class="px-4 mb-2 mt-6 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Finance Operations
-             </div>
-             <el-menu-item index="/audit" class="menu-item-override">
-                <el-icon><DocumentChecked /></el-icon>
-                <span>Task Pool</span>
-             </el-menu-item>
-             <el-menu-item index="/audit/settlement" class="menu-item-override">
-                <el-icon><Wallet /></el-icon>
-                <span>Settlement</span>
-             </el-menu-item>
-          </template>
+          <!-- Audit Center (Auditor Only) -->
+          <el-sub-menu index="audit-center" v-if="isAuditor">
+            <template #title>
+              <el-icon><DocumentChecked /></el-icon>
+              <span>审核中心</span>
+            </template>
+            <el-menu-item index="/audit/tasks" class="menu-item-override">
+              <el-icon><Monitor /></el-icon>
+              <span>审核任务池</span>
+            </el-menu-item>
+            <el-menu-item index="/audit/settlement" class="menu-item-override">
+              <el-icon><Wallet /></el-icon>
+              <span>结算中心</span>
+            </el-menu-item>
+          </el-sub-menu>
 
-          <!-- Data & Archive -->
-          <div class="px-4 mb-2 mt-6 text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Records
-          </div>
+          <!-- System Management (Admin Only) -->
+          <el-sub-menu index="system-mgmt" v-if="isAdmin">
+            <template #title>
+              <el-icon><User /></el-icon>
+              <span>系统管理</span>
+            </template>
+            <el-menu-item index="/system/employees" class="menu-item-override">
+              <el-icon><User /></el-icon>
+              <span>员工管理</span>
+            </el-menu-item>
+          </el-sub-menu>
+
+          <!-- Archive -->
           <el-menu-item index="/archive" class="menu-item-override">
             <el-icon><Collection /></el-icon>
-            <span>Archive</span>
+            <span>历史归档</span>
           </el-menu-item>
-
-          <!-- Admin Section -->
-          <template v-if="isAdmin">
-             <div class="px-4 mb-2 mt-6 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Administration
-             </div>
-             <el-menu-item index="/system/employees" class="menu-item-override">
-                <el-icon><User /></el-icon>
-                <span>Team Management</span>
-             </el-menu-item>
-          </template>
         </el-menu>
       </el-scrollbar>
 
@@ -104,8 +101,8 @@
                 </span>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item command="profile">Profile</el-dropdown-item>
-                    <el-dropdown-item divided command="logout" class="text-rose-500">Logout</el-dropdown-item>
+                    <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+                    <el-dropdown-item divided command="logout" class="text-rose-500">退出登录</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
              </el-dropdown>
@@ -145,11 +142,7 @@ const router = useRouter()
 const userStore = useUserStore()
 
 // Route States
-const activeRoute = computed(() => {
-    // Handle nested routes like /audit/tasks/:id highlighting /audit
-    if (route.path.startsWith('/audit')) return '/audit'
-    return route.path
-})
+const activeRoute = computed(() => route.path)
 
 const routeTitle = computed(() => (route.meta.title as string) || 'Dashboard')
 

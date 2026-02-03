@@ -8,7 +8,7 @@ const router = createRouter({
       path: '/login',
       name: 'Login',
       component: () => import('../views/login/index.vue'),
-      meta: { title: 'Login' }
+      meta: { title: '登录' }
     },
     {
       path: '/',
@@ -19,40 +19,40 @@ const router = createRouter({
           path: 'dashboard',
           name: 'Dashboard',
           component: () => import('../views/dashboard/index.vue'),
-          meta: { title: 'Executive Dashboard' }
+          meta: { title: '仪表盘' }
         },
         // Audit Module
         {
-          path: 'audit',
+          path: 'audit/tasks',
           name: 'Audit',
           component: () => import('../views/audit/task-pool/index.vue'),
-          meta: { title: 'Audit Task Pool' }
+          meta: { title: '审核任务池' }
         },
         {
           path: 'audit/tasks/:id',
           name: 'AuditDetail',
           component: () => import('../views/audit/task-pool/detail.vue'),
-          meta: { title: 'Invoice Audit', hideMenu: true }
+          meta: { title: '发票审核', hideMenu: true }
         },
         {
           path: 'audit/settlement',
           name: 'Settlement',
           component: () => import('../views/audit/settlement/index.vue'),
-          meta: { title: 'Finance Settlement' }
+          meta: { title: '结算中心' }
         },
         // Archive Module
         {
           path: 'archive',
           name: 'Archive',
           component: () => import('../views/archive/index.vue'),
-          meta: { title: 'Invoice Archive' }
+          meta: { title: '历史归档' }
         },
         // System Management
         {
           path: 'system/employees',
           name: 'System',
           component: () => import('../views/system/employee/index.vue'),
-          meta: { title: 'Team Management' }
+          meta: { title: '员工管理' }
         }
       ]
     }

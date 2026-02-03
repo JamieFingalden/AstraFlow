@@ -3,18 +3,18 @@
     <!-- Header -->
     <div class="flex justify-between items-center">
         <div>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Executive Dashboard</h1>
-            <p class="text-slate-500 mt-1 text-sm">Real-time overview of reimbursement operations.</p>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">管理驾驶舱</h1>
+            <p class="text-slate-500 mt-1 text-sm">报销业务实时概览。</p>
         </div>
         <div class="text-right">
-             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">System Status</span>
+             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">系统状态</span>
              <div class="flex items-center gap-2 mt-1">
                  <span class="relative flex h-3 w-3">
                     <span v-if="stats.aiStatus === 'online'" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-3 w-3" :class="stats.aiStatus === 'online' ? 'bg-emerald-500' : 'bg-rose-500'"></span>
                  </span>
                  <span class="text-sm font-medium" :class="stats.aiStatus === 'online' ? 'text-slate-700' : 'text-rose-600'">
-                    AI Worker {{ stats.aiStatus === 'online' ? 'Online' : 'Offline' }}
+                    AI 服务 {{ stats.aiStatus === 'online' ? '运行中' : '离线' }}
                  </span>
              </div>
         </div>
@@ -28,11 +28,11 @@
                 <div class="p-2 bg-amber-50 rounded-lg text-amber-600">
                     <el-icon :size="20"><Timer /></el-icon>
                 </div>
-                <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">Action Req.</span>
+                <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">需处理</span>
             </div>
             <div>
                 <div class="text-3xl font-bold text-slate-900">{{ stats.pendingCount }}</div>
-                <div class="text-sm text-slate-500 font-medium">Pending Approval</div>
+                <div class="text-sm text-slate-500 font-medium">待审核单据</div>
             </div>
         </div>
 
@@ -45,7 +45,7 @@
             </div>
             <div>
                 <div class="text-3xl font-bold text-slate-900">{{ stats.todayCount }}</div>
-                <div class="text-sm text-slate-500 font-medium">Processed Today</div>
+                <div class="text-sm text-slate-500 font-medium">今日处理</div>
             </div>
         </div>
 
@@ -57,8 +57,8 @@
                 </div>
             </div>
             <div>
-                <div class="text-3xl font-bold text-slate-900">${{ stats.totalAmount.toLocaleString() }}</div>
-                <div class="text-sm text-slate-500 font-medium">Total Disbursed</div>
+                <div class="text-3xl font-bold text-slate-900">¥{{ stats.totalAmount.toLocaleString() }}</div>
+                <div class="text-sm text-slate-500 font-medium">累计报销金额</div>
             </div>
         </div>
 
@@ -72,7 +72,7 @@
             </div>
             <div>
                 <div class="text-3xl font-bold text-slate-900">{{ stats.aiAccuracy }}%</div>
-                <div class="text-sm text-slate-500 font-medium">AI Accuracy Rate</div>
+                <div class="text-sm text-slate-500 font-medium">AI 识别准确率</div>
             </div>
         </div>
     </div>
@@ -81,20 +81,20 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- System Health Panel -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 lg:col-span-1">
-            <h3 class="text-lg font-bold text-slate-900 mb-6">System Health</h3>
+            <h3 class="text-lg font-bold text-slate-900 mb-6">系统状态</h3>
             
             <div class="space-y-6">
                 <!-- RabbitMQ Status -->
                 <div>
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-slate-600">Message Queue Depth</span>
+                        <span class="text-sm font-medium text-slate-600">消息队列积压</span>
                         <span class="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-600">{{ stats.rabbitMqStatus.queueDepth }} msgs</span>
                     </div>
                     <!-- CSS Bar Chart / Progress -->
                     <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
                          <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" :style="{ width: Math.min(stats.rabbitMqStatus.queueDepth * 5, 100) + '%' }"></div>
                     </div>
-                    <p class="text-xs text-slate-400 mt-2">Optimal range: 0-20 pending tasks.</p>
+                    <p class="text-xs text-slate-400 mt-2">正常范围: 0-20 待处理任务。</p>
                 </div>
 
                 <div class="h-px bg-slate-100"></div>
@@ -104,24 +104,24 @@
                      <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                            <span class="text-sm text-slate-700">API Gateway</span>
+                            <span class="text-sm text-slate-700">API 网关</span>
                         </div>
-                        <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium">Healthy</span>
+                        <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium">运行正常</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                            <span class="text-sm text-slate-700">Database (MySQL)</span>
+                            <span class="text-sm text-slate-700">数据库 (MySQL)</span>
                         </div>
-                        <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium">Healthy</span>
+                        <span class="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium">运行正常</span>
                     </div>
                      <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 rounded-full" :class="stats.aiStatus === 'online' ? 'bg-emerald-500' : 'bg-rose-500'"></div>
-                            <span class="text-sm text-slate-700">OCR Engine</span>
+                            <span class="text-sm text-slate-700">OCR 引擎</span>
                         </div>
                         <span class="text-xs px-2 py-0.5 rounded font-medium" :class="stats.aiStatus === 'online' ? 'text-emerald-600 bg-emerald-50' : 'text-rose-600 bg-rose-50'">
-                            {{ stats.aiStatus === 'online' ? 'Active' : 'Degraded' }}
+                            {{ stats.aiStatus === 'online' ? '运行中' : '服务降级' }}
                         </span>
                     </div>
                 </div>
@@ -131,16 +131,16 @@
         <!-- Recent Activity -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-0 lg:col-span-2 flex flex-col">
             <div class="p-6 border-b border-slate-100">
-                <h3 class="text-lg font-bold text-slate-900">Recent Activity</h3>
+                <h3 class="text-lg font-bold text-slate-900">近期活动</h3>
             </div>
             <div class="flex-1 overflow-auto p-0">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-slate-50 text-slate-500 font-medium">
                         <tr>
-                            <th class="px-6 py-3">User</th>
-                            <th class="px-6 py-3">Action</th>
-                            <th class="px-6 py-3">Time</th>
-                            <th class="px-6 py-3">Status</th>
+                            <th class="px-6 py-3">用户</th>
+                            <th class="px-6 py-3">操作</th>
+                            <th class="px-6 py-3">时间</th>
+                            <th class="px-6 py-3">状态</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -151,7 +151,7 @@
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium" 
                                     :class="log.status === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'">
-                                    {{ log.status === 'success' ? 'Completed' : 'Pending' }}
+                                    {{ log.status === 'success' ? '已完成' : '进行中' }}
                                 </span>
                             </td>
                         </tr>
@@ -164,8 +164,8 @@
     <!-- Bottom Row: Chart Placeholder -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex-1 min-h-[300px]">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-lg font-bold text-slate-900">Monthly Expense Trend</h3>
-            <el-select placeholder="This Year" size="small" class="!w-32">
+            <h3 class="text-lg font-bold text-slate-900">月度报销趋势</h3>
+            <el-select placeholder="今年" size="small" class="!w-32">
                 <el-option label="2023" value="2023" />
             </el-select>
         </div>
