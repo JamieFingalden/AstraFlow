@@ -26,11 +26,26 @@ export const getEmployeeList = (params?: any) => {
   })
 }
 
-export const inviteEmployee = (data: CreateUserParams) => {
+export const createUser = (data: CreateUserParams) => {
   return request({
     url: '/users',
     method: 'post',
     data
+  })
+}
+
+export const deleteUser = (id: number) => {
+  return request({
+    url: `/users/${id}`,
+    method: 'delete'
+  })
+}
+
+export const resetUserPassword = (id: number, password: string) => {
+  return request({
+    url: `/users/${id}/reset-password`,
+    method: 'patch',
+    data: { password }
   })
 }
 

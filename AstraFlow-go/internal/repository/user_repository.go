@@ -114,3 +114,7 @@ func (r *UserRepository) Update(user *model.User) error {
 func (r *UserRepository) Delete(id int64) error {
 	return r.db.Delete(&model.User{}, id).Error
 }
+
+func (r *UserRepository) ResetPassword(id int64) error {
+	return r.db.Model(&model.User{}).Where("id = ?", id).Update("password", "123456").Error
+}

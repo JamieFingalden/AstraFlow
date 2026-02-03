@@ -63,7 +63,7 @@ func (s *UserService) CreateUser(tenantId int64, username, password, name, roleK
 		return nil, err
 	}
 
-	user.Role = role // Preload for response
+	user.Role = role   // Preload for response
 	user.Password = "" // Clear password
 
 	return user, nil
@@ -86,7 +86,7 @@ func (s *UserService) UpdateUser(userId int64, username, password, email, phone,
 		// Wait, original code updated username? Usually immutable.
 		// Let's stick to updating auxiliary fields or Role.
 	}
-	
+
 	if roleKey != "" {
 		role, err := s.roleRepo.FindByKey(roleKey)
 		if err != nil {
@@ -94,18 +94,22 @@ func (s *UserService) UpdateUser(userId int64, username, password, email, phone,
 		}
 		user.RoleID = role.ID
 	}
-	
+
 	// Password update logic if needed (not requested in prompt but good to have safety)
 	if password != "" {
 		hashed, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		user.Password = string(hashed)
 	}
-	
+
 	return s.userRepo.Update(user)
 }
 
 func (s *UserService) DeleteUser(userId int64) error {
 	return s.userRepo.Delete(userId)
+}
+
+func (s *UserService) ResetPassword(userId int64) error {
+	return s.userRepo.ResetPassword(userId)
 }
 
 func (s *UserService) FindUserById(userId int64) (*model.User, error) {

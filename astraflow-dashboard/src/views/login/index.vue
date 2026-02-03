@@ -28,7 +28,7 @@
           <label class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
           <el-input 
             v-model="loginForm.username" 
-            placeholder="admin / auditor"
+            placeholder="Enter your username"
             class="!h-10 custom-input"
           >
              <template #prefix>
@@ -83,7 +83,7 @@ const loginFormRef = ref()
 const loading = ref(false)
 
 const loginForm = reactive({
-  username: 'admin',
+  username: '',
   password: ''
 })
 
@@ -102,8 +102,9 @@ const handleLogin = async () => {
         await userStore.login(loginForm)
         ElMessage.success('Welcome back!')
         router.push('/dashboard')
-      } catch (error) {
-        ElMessage.error('Login failed')
+      } catch (error: any) {
+        console.error('Login error:', error)
+        ElMessage.error(error.message || 'Login failed. Please check your credentials.')
       } finally {
         loading.value = false
       }

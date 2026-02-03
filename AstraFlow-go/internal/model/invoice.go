@@ -22,7 +22,7 @@ type Invoice struct {
 	ID            int64          `gorm:"primaryKey;autoIncrement" json:"id"`
 	TenantID      *int64         `gorm:"index" json:"tenant_id,omitempty"`
 	UserID        int64          `gorm:"index;not null" json:"user_id"`
-	AttachmentID  int64          `gorm:"index;not null" json:"attachment_id"` // Linked Source File
+	AttachmentID  int64          `gorm:"index;" json:"attachment_id"` // Linked Source File
 	InvoiceNumber string         `gorm:"size:100;index" json:"invoice_number"`
 	InvoiceDate   time.Time      `json:"invoice_date"`
 	Amount        float64        `json:"amount"`

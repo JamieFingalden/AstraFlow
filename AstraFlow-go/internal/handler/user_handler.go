@@ -154,15 +154,28 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除用户成功"})
 }
 
+func (h *UserHandler) ResetPassword(c *gin.Context) {
+	roleKey := c.GetString("role")
+	if roleKey != model.RoleKeyAdmin {
+		c.JSON(http.StatusForbidden, gin.H{"code": 403, "message": "无权限"})
+		return
+	}
+
+	idStr := c.Param("id")
+	idInt64 := cast.ToInt64(idStr)
+
+	err := h.userService.ResetPassword(idInt64)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "重置密码失败：" + err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "重置密码成功"})
+}
+
 // GetUserById 获取用户详情
 func (h *UserHandler) GetUserById(c *gin.Context) {
-	authUserId := cast.ToInt64(c.GetString("user_id")) // Wait, middleware sets int64? Check casting
-	// Context Get returns interface{}. Middleware set it as int64.
-	// cast.ToInt64 handles interface{} well.
-
-	// Better check:
 	val, _ := c.Get("user_id")
-	authUserId = cast.ToInt64(val)
+	authUserId := cast.ToInt64(val)
 
 	requestedUserIdStr := c.Param("id")
 	requestedUserIdInt64 := cast.ToInt64(requestedUserIdStr)

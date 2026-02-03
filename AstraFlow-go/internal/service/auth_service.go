@@ -107,7 +107,7 @@ func (s *AuthService) Login(username, email, password string) (*model.User, erro
 	if username != "" {
 		user, err = s.userRepo.FindByUsername(username)
 	}
-	
+
 	if (user == nil || err != nil) && email != "" {
 		user, err = s.userRepo.FindByEmail(email)
 	}

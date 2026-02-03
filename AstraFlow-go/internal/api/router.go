@@ -40,11 +40,12 @@ func InitRouter() *gin.Engine {
 
 			// 用户管理相关接口
 			userHandler := handler.NewUserHandler()
-			protected.GET("/users", userHandler.GetUserList)       // 获取用户列表
-			protected.POST("/users", userHandler.CreateUser)       // 创建用户 添加员工
-			protected.PUT("/users/:id", userHandler.UpdateUser)    // 更新用户 更新员工
-			protected.DELETE("/users/:id", userHandler.DeleteUser) // 删除用户
-			protected.GET("/users/:id", userHandler.GetUserById)   // 获取用户详情
+			protected.GET("/users", userHandler.GetUserList)                        // 获取用户列表 获取员工列表
+			protected.POST("/users", userHandler.CreateUser)                        // 创建用户 添加员工
+			protected.PUT("/users/:id", userHandler.UpdateUser)                     // 更新用户 更新员工
+			protected.DELETE("/users/:id", userHandler.DeleteUser)                  // 删除用户 停用或删除员工
+			protected.PATCH("/users/:id/reset-password", userHandler.ResetPassword) // 重置员工密码
+			protected.GET("/users/:id", userHandler.GetUserById)                    // 获取用户详情
 
 			// 租户相关接口
 			protected.GET("/tenants", tenantHandler.GetTenantList)       // 获取租户列表
