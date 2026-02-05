@@ -18,11 +18,10 @@ type RabbitMQOCRClient struct {
 
 // OCRQueueTask OCR 队列任务结构
 type OCRQueueTask struct {
-	TaskID      string  `json:"task_id"`
-	FileID      int64   `json:"file_id"`
-	FilePath    string  `json:"file_path"`
-	CallbackURL *string `json:"callback_url,omitempty"`
-	CreatedAt   float64 `json:"created_at"`
+	TaskID    string  `json:"task_id"`
+	FileID    int64   `json:"file_id"`
+	FilePath  string  `json:"file_path"`
+	CreatedAt float64 `json:"created_at"`
 }
 
 // OCRQueueResult OCR 队列结果结构
@@ -93,14 +92,13 @@ func NewRabbitMQOCRClient() (*RabbitMQOCRClient, error) {
 }
 
 // AddTask 添加 OCR 任务到队列
-func (c *RabbitMQOCRClient) AddTask(fileID int64, filePath string, callbackURL *string) (string, error) {
+func (c *RabbitMQOCRClient) AddTask(fileID int64, filePath string) (string, error) {
 	taskID := generateUUID()
 	task := OCRQueueTask{
-		TaskID:      taskID,
-		FileID:      fileID,
-		FilePath:    "." + filePath,
-		CallbackURL: callbackURL,
-		CreatedAt:   float64(time.Now().Unix()),
+		TaskID:    taskID,
+		FileID:    fileID,
+		FilePath:  "." + filePath,
+		CreatedAt: float64(time.Now().Unix()),
 	}
 
 	taskJSON, err := json.Marshal(task)

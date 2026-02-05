@@ -4,7 +4,6 @@ import (
 	"AstraFlow-go/internal/client"
 	"AstraFlow-go/internal/model"
 	"AstraFlow-go/internal/service"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -82,17 +81,6 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	// 创建回调URL
-	callbackURL := fmt.Sprintf("%s://%s/api/callback/ocr-result", c.Request.URL.Scheme, c.Request.Host)
-	if c.Request.URL.Scheme == "" {
-		proto := c.GetHeader("X-Forwarded-Proto")
-		if proto != "" {
-			callbackURL = fmt.Sprintf("%s://%s/api/callback/ocr-result", proto, c.Request.Host)
-		} else {
-			callbackURL = fmt.Sprintf("http://%s/api/callback/ocr-result", c.Request.Host)
-		}
-	}
-
 	// 发布 OCR 任务
 	rabbitmqClient, err := client.NewRabbitMQOCRClient()
 	if err != nil {
@@ -104,7 +92,7 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 	}
 	defer rabbitmqClient.Close()
 
-	_, err = rabbitmqClient.AddTask(attachment.ID, attachment.FileURL, &callbackURL)
+	_, err = rabbitmqClient.AddTask(attachment.ID, attachment.FileURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
 			Code:    500,
@@ -196,7 +184,7 @@ func (h *AttachmentHandler) GetAttachmentsByTenantID(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	tenantIDPtr, ok := tenantID.(*int64)
 	if !ok || tenantIDPtr == nil {
 		c.JSON(http.StatusUnauthorized, Response{
@@ -386,7 +374,7 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 		} else {
 			invoiceDate = time.Now()
 		}
-		
+
 		var tenantId int64
 		if attachment.TenantID != nil {
 			tenantId = *attachment.TenantID
@@ -394,14 +382,14 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 
 		// 创建发票记录
 		invoice, err := h.invoiceService.CreateInvoice(
-			tenantId, 
-			attachment.UserID, 
+			tenantId,
+			attachment.UserID,
 			attachment.ID, // Pass AttachmentID
-			invoiceDate, 
-			amount, 
-			invoiceNumber, 
-			vendor, 
-			category, 
+			invoiceDate,
+			amount,
+			invoiceNumber,
+			vendor,
+			category,
 			description,
 		)
 		if err != nil {
@@ -419,7 +407,7 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 			log.Printf("更新附件InvoiceID失败，文件ID: %d, 发票ID: %d, 错误: %v",
 				int64(fileID), invoice.ID, err)
 		}
-		
+
 		// Also update status
 		h.service.UpdateAttachmentStatus(int64(fileID), model.AttachmentStatusSuccess)
 
