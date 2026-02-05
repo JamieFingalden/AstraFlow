@@ -20,6 +20,7 @@ type RabbitMQOCRClient struct {
 type OCRQueueTask struct {
 	TaskID    string  `json:"task_id"`
 	FileID    int64   `json:"file_id"`
+	InvoiceID int64   `json:"invoice_id"`
 	FilePath  string  `json:"file_path"`
 	CreatedAt float64 `json:"created_at"`
 }
@@ -92,11 +93,12 @@ func NewRabbitMQOCRClient() (*RabbitMQOCRClient, error) {
 }
 
 // AddTask 添加 OCR 任务到队列
-func (c *RabbitMQOCRClient) AddTask(fileID int64, filePath string) (string, error) {
+func (c *RabbitMQOCRClient) AddTask(fileID int64, invoiceID int64, filePath string) (string, error) {
 	taskID := generateUUID()
 	task := OCRQueueTask{
 		TaskID:    taskID,
 		FileID:    fileID,
+		InvoiceID: invoiceID,
 		FilePath:  "." + filePath,
 		CreatedAt: float64(time.Now().Unix()),
 	}

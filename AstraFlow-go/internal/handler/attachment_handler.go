@@ -81,6 +81,23 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
+	// 创建一个空发票记录
+	invoice, err := h.invoiceService.CreateEmptyInvoice(tenantIDPtr, userID.(int64), attachment.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Response{
+			Code:    500,
+			Message: "创建发票记录失败: " + err.Error(),
+		})
+		return
+	}
+
+	// 更新附件记录的InvoiceID字段，关联到新创建的发票
+	err = h.service.UpdateAttachmentInvoiceID(attachment.ID, invoice.ID)
+	if err != nil {
+		log.Printf("更新附件InvoiceID失败，文件ID: %d, 发票ID: %d, 错误: %v",
+			attachment.ID, invoice.ID, err)
+	}
+
 	// 发布 OCR 任务
 	rabbitmqClient, err := client.NewRabbitMQOCRClient()
 	if err != nil {
@@ -92,7 +109,7 @@ func (h *AttachmentHandler) UploadFile(c *gin.Context) {
 	}
 	defer rabbitmqClient.Close()
 
-	_, err = rabbitmqClient.AddTask(attachment.ID, attachment.FileURL)
+	_, err = rabbitmqClient.AddTask(attachment.ID, invoice.ID, attachment.FileURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
 			Code:    500,
@@ -332,93 +349,79 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 
 	log.Printf("接收到OCR结果回调，任务ID: %s，状态: %s", result.TaskID, result.Status)
 
-	if result.Status == "success" {
-		// 从result.Data中获取文件ID和其他OCR识别的数据
-		fileID, ok := result.Data["file_id"].(float64) // JSON解析会将整数转换为float64
-		if !ok {
-			c.JSON(http.StatusBadRequest, Response{
-				Code:    400,
-				Message: "回调数据中缺少文件ID",
-			})
-			return
-		}
-
-		// 获取附件信息
-		attachment, err := h.service.GetAttachmentByID(int64(fileID))
-		if err != nil {
-			log.Printf("获取附件信息失败，文件ID: %d, 错误: %v", int64(fileID), err)
-			c.JSON(http.StatusInternalServerError, Response{
-				Code:    500,
-				Message: "获取附件信息失败",
-			})
-			return
-		}
-
-		// 从OCR结果中提取发票信息
-		invoiceNumber, _ := result.Data["invoice_number"].(string)
-		vendor, _ := result.Data["vendor"].(string)
-		description, _ := result.Data["description"].(string)
-		amountFloat, _ := result.Data["amount"].(float64)
-		amount := amountFloat
-		category, _ := result.Data["category"].(string)
-		// Ignored: paymentSource, taxId
-
-		// 处理日期
-		var invoiceDate time.Time
-		if dateStr, ok := result.Data["invoice_date"].(string); ok && dateStr != "" {
-			if parsedDate, err := time.Parse("2006-01-02", dateStr); err == nil {
-				invoiceDate = parsedDate
+		if result.Status == "success" {
+			// 从result.Data中获取文件ID和其他OCR识别的数据
+			fileID, ok := result.Data["file_id"].(float64) // JSON解析会将整数转换为float64
+			if !ok {
+				c.JSON(http.StatusBadRequest, Response{
+					Code:    400,
+					Message: "回调数据中缺少文件ID",
+				})
+				return
+			}
+	
+			// 获取发票ID
+			invoiceIDFloat, ok := result.Data["invoice_id"].(float64)
+			if !ok {
+				c.JSON(http.StatusBadRequest, Response{
+					Code:    400,
+					Message: "回调数据中缺少发票ID",
+				})
+				return
+			}
+			invoiceID := int64(invoiceIDFloat)
+	
+			// 从OCR结果中提取发票信息
+			invoiceNumber, _ := result.Data["invoice_number"].(string)
+			vendor, _ := result.Data["vendor"].(string)
+			description, _ := result.Data["description"].(string)
+			amountFloat, _ := result.Data["amount"].(float64)
+			amount := amountFloat
+			category, _ := result.Data["category"].(string)
+			// Ignored: paymentSource, taxId
+	
+			// 处理日期
+			var invoiceDate time.Time
+			if dateStr, ok := result.Data["invoice_date"].(string); ok && dateStr != "" {
+				if parsedDate, err := time.Parse("2006-01-02", dateStr); err == nil {
+					invoiceDate = parsedDate
+				} else {
+					invoiceDate = time.Now()
+				}
 			} else {
 				invoiceDate = time.Now()
 			}
-		} else {
-			invoiceDate = time.Now()
-		}
-
-		var tenantId int64
-		if attachment.TenantID != nil {
-			tenantId = *attachment.TenantID
-		}
-
-		// 创建发票记录
-		invoice, err := h.invoiceService.CreateInvoice(
-			tenantId,
-			attachment.UserID,
-			attachment.ID, // Pass AttachmentID
-			invoiceDate,
-			amount,
-			invoiceNumber,
-			vendor,
-			category,
-			description,
-		)
-		if err != nil {
-			log.Printf("创建发票失败，文件ID: %d, 错误: %v", int64(fileID), err)
-			c.JSON(http.StatusInternalServerError, Response{
-				Code:    500,
-				Message: "创建发票失败: " + err.Error(),
+			
+			// 更新发票记录
+			_, err := h.invoiceService.UpdateInvoice(
+				invoiceID, 
+				invoiceDate, 
+				amount, 
+				invoiceNumber, 
+				vendor, 
+				category, 
+				description,
+				string(model.StatusPending), // Keep as pending for review, or use appropriate status
+			)
+			if err != nil {
+				log.Printf("更新发票失败，发票ID: %d, 错误: %v", invoiceID, err)
+				c.JSON(http.StatusInternalServerError, Response{
+					Code:    500,
+					Message: "更新发票失败: " + err.Error(),
+				})
+				return
+			}
+			
+			// Also update status
+			h.service.UpdateAttachmentStatus(int64(fileID), model.AttachmentStatusSuccess)
+	
+			log.Printf("OCR任务处理成功，发票ID: %d，文件ID: %d", invoiceID, int64(fileID))
+	
+			c.JSON(http.StatusOK, Response{
+				Code:    200,
+				Message: "OCR结果处理成功",
 			})
-			return
-		}
-
-		// 更新附件记录的InvoiceID字段，关联到新创建的发票
-		err = h.service.UpdateAttachmentInvoiceID(int64(fileID), invoice.ID)
-		if err != nil {
-			log.Printf("更新附件InvoiceID失败，文件ID: %d, 发票ID: %d, 错误: %v",
-				int64(fileID), invoice.ID, err)
-		}
-
-		// Also update status
-		h.service.UpdateAttachmentStatus(int64(fileID), model.AttachmentStatusSuccess)
-
-		log.Printf("OCR任务处理成功，发票ID: %d，文件ID: %d", invoice.ID, int64(fileID))
-
-		c.JSON(http.StatusOK, Response{
-			Code:    200,
-			Message: "OCR结果处理成功",
-		})
-	} else {
-		// OCR处理失败
+		} else {		// OCR处理失败
 		fileID, ok := result.Data["file_id"].(float64)
 		if ok {
 			h.service.UpdateAttachmentStatus(int64(fileID), model.AttachmentStatusFailed)

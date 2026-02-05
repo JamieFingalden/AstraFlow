@@ -52,6 +52,24 @@ func (s *InvoiceService) CreateInvoice(tenantId, userId int64, attachmentID int6
 	return invoice, nil
 }
 
+// CreateEmptyInvoice 创建一个初始的空发票记录
+func (s *InvoiceService) CreateEmptyInvoice(tenantId *int64, userId int64, attachmentID int64) (*model.Invoice, error) {
+	invoice := &model.Invoice{
+		TenantID:     tenantId,
+		UserID:       userId,
+		AttachmentID: attachmentID,
+		Status:       model.StatusPending,
+		// 其他字段留空或默认值
+	}
+
+	err := s.invoiceRepo.Create(invoice)
+	if err != nil {
+		return nil, err
+	}
+
+	return invoice, nil
+}
+
 // GetAllInvoicePage 分页获取所有发票
 func (s *InvoiceService) GetAllInvoicePage(page, pageSize int) ([]*model.Invoice, int64, error) {
 	if page < 1 {
