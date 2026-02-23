@@ -518,7 +518,21 @@ const handleInvoiceSubmit = async (formData) => {
       }
     } else {
       // Create new invoice
-      const response = await createInvoice(formData)
+      let response
+      if (formData.file) {
+        // Use FormData for file upload
+        const fd = new FormData()
+        Object.keys(formData).forEach(key => {
+          if (formData[key] !== null && formData[key] !== undefined) {
+            fd.append(key, formData[key])
+          }
+        })
+        response = await createInvoice(fd)
+      } else {
+        // Use JSON for normal submission
+        response = await createInvoice(formData)
+      }
+
       if (response?.data?.invoice) {
         const newInvoice = response.data.invoice
         // Add the new invoice to local state

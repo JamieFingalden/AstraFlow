@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"AstraFlow-go/internal/model"
 	"AstraFlow-go/internal/service"
 	typeUtils "AstraFlow-go/pkg/utils"
 	"net/http"
@@ -14,28 +15,30 @@ import (
 
 // InvoiceHandler 发票处理器
 type InvoiceHandler struct {
-	invoiceService *service.InvoiceService // 发票服务实例
+	invoiceService    *service.InvoiceService   // 发票服务实例
+	attachmentService service.AttachmentService // 附件服务实例
 }
 
 // NewInvoiceHandler 创建发票处理器实例
 func NewInvoiceHandler() *InvoiceHandler {
 	return &InvoiceHandler{
-		invoiceService: service.NewInvoiceService(),
+		invoiceService:    service.NewInvoiceService(),
+		attachmentService: service.NewAttachmentService(),
 	}
 }
 
 // CreateInvoiceRequest 创建发票请求体
 type CreateInvoiceRequest struct {
-	TenantID      *int64     `json:"tenant_id,omitempty"`
-	UserId        int64      `json:"user_id"`
-	AttachmentID  int64      `json:"attachment_id" binding:"required"` // Added AttachmentID
-	InvoiceNumber *string    `json:"invoice_number"`                   // Optional now? Model says index.
-	InvoiceDate   *time.Time `json:"invoice_date" binding:"required"`
-	Amount        *float64   `json:"amount" binding:"required"`
-	Vendor        string     `json:"vendor" binding:"required"`
-	Description   *string    `json:"description,omitempty"`
-	Category      *string    `json:"category" binding:"required"`
-	Status        string     `json:"status"`
+	TenantID      *int64     `json:"tenant_id,omitempty" form:"tenant_id"`
+	UserId        int64      `json:"user_id" form:"user_id"`
+	AttachmentID  int64      `json:"attachment_id" form:"attachment_id"` // Optional if file is provided
+	InvoiceNumber *string    `json:"invoice_number" form:"invoice_number"`
+	InvoiceDate   *time.Time `json:"invoice_date" form:"invoice_date" time_format:"2006-01-02T15:04:05Z07:00"`
+	Amount        *float64   `json:"amount" form:"amount"`
+	Vendor        string     `json:"vendor" form:"vendor" binding:"required"`
+	Description   *string    `json:"description,omitempty" form:"description"`
+	Category      *string    `json:"category" form:"category" binding:"required"`
+	Status        string     `json:"status" form:"status"`
 }
 
 // InvoiceResponse 发票响应体
@@ -48,12 +51,13 @@ type InvoiceResponse struct {
 // CreateInvoice 创建发票接口
 func (h InvoiceHandler) CreateInvoice(c *gin.Context) {
 	var req CreateInvoiceRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	// Support both JSON and Form data
+	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, InvoiceResponse{
 			Code:    400,
 			Message: "请求参数错误：" + err.Error(),
 		})
-		return // Added return
+		return
 	}
 
 	userId, exists := c.Get("user_id")
@@ -76,20 +80,35 @@ func (h InvoiceHandler) CreateInvoice(c *gin.Context) {
 
 	tenantId, exists := c.Get("tenant_id")
 	var tenantIdInt int64
-	if !exists {
-		tenantId = int64(0)
+	var tenantIdPtr *int64
+	if !exists || tenantId == nil {
+		tenantIdInt = 0
 	} else {
-		tmpTenantIdInt, ok := tenantId.(int64)
-		if ok {
+		tenantIdInt = cast.ToInt64(tenantId)
+		tenantIdPtr = &tenantIdInt
+	}
+
+	// Handle file upload if present
+	file, err := c.FormFile("file")
+	var attachmentID = req.AttachmentID
+	if err == nil && file != nil {
+		// Upload file without OCR
+		attachment, err := h.attachmentService.UploadFile(file, UserIdInt, tenantIdPtr)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, InvoiceResponse{
 				Code:    500,
-				Message: "tenant_id类型转换错误",
+				Message: "文件上传失败: " + err.Error(),
 			})
 			return
 		}
-		tenantIdInt = tmpTenantIdInt
+		attachmentID = attachment.ID
+		// Update status to success since we are manually filling it or just storing it
+		h.attachmentService.UpdateAttachmentStatus(attachment.ID, model.AttachmentStatusSuccess)
 	}
-	
+
+	// If no file and no attachmentID, we might still allow it but usually it needs one or the other
+	// for manual entry without file, attachmentID might be 0.
+
 	var invoiceDate time.Time
 	if req.InvoiceDate != nil {
 		invoiceDate = *req.InvoiceDate
@@ -115,7 +134,7 @@ func (h InvoiceHandler) CreateInvoice(c *gin.Context) {
 		description = *req.Description
 	}
 
-	invoice, err := h.invoiceService.CreateInvoice(tenantIdInt, UserIdInt, req.AttachmentID, invoiceDate, amount, invoiceNumber, req.Vendor, category, description)
+	invoice, err := h.invoiceService.CreateInvoice(tenantIdInt, UserIdInt, attachmentID, invoiceDate, amount, invoiceNumber, req.Vendor, category, description)
 	if err != nil {
 		c.JSON(http.StatusConflict, InvoiceResponse{
 			Code:    409,
@@ -123,6 +142,12 @@ func (h InvoiceHandler) CreateInvoice(c *gin.Context) {
 		})
 		return
 	}
+
+	// If we created a new attachment, link it to the invoice
+	if attachmentID != req.AttachmentID && attachmentID != 0 {
+		h.attachmentService.UpdateAttachmentInvoiceID(attachmentID, invoice.ID)
+	}
+
 	c.JSON(http.StatusOK, InvoiceResponse{
 		Code:    200,
 		Message: "发票创建成功",
@@ -399,7 +424,7 @@ func (h InvoiceHandler) DeleteInvoice(c *gin.Context) {
 
 	// Permission check
 	if invoice.UserID != userId.(int64) {
-		// If not owner, check if tenant admin? 
+		// If not owner, check if tenant admin?
 		// For now, if invoice has tenantID, check if user matches tenantID?
 		// Existing logic:
 		if invoice.TenantID != nil && *invoice.TenantID != tenantIdInt {

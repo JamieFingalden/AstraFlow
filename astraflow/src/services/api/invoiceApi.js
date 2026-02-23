@@ -60,24 +60,16 @@ export const getInvoiceById = async (id) => {
 
 /**
  * 创建新发票
- * @param {Object} invoiceData - 发票数据
- * @param {string} invoiceData.invoice_number - 发票号码（必填）
- * @param {string} invoiceData.invoice_date - 发票日期（必填）
- * @param {number} invoiceData.amount - 金额（必填）
- * @param {string} invoiceData.vendor - 供应商/商户名称（必填）
- * @param {string} [invoiceData.image_url] - 发票图片URL（选填）
- * @param {string} [invoiceData.description] - 发票描述/备注（选填）
- * @param {string} [invoiceData.taxId] - 税号（选填）
- * @param {string} invoiceData.category - 分类（必填）
- * @param {string} [invoiceData.payment_source] - 支付来源（选填）
- * @param {string} [invoiceData.status] - 状态（选填，默认pending）
+ * @param {Object|FormData} invoiceData - 发票数据或包含文件的FormData
  * @returns {Promise<Object>} 创建发票响应
  */
 export const createInvoice = async (invoiceData) => {
+    const isFormData = invoiceData instanceof FormData
     return request({
         url: API_URLS.INVOICE.CREATE,
         method: 'POST',
-        data: invoiceData
+        data: invoiceData,
+        headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }
     })
 }
 

@@ -90,6 +90,19 @@
           />
         </n-form-item-gi>
 
+        <!-- 发票文件上传 -->
+        <n-form-item-gi :span="1" label="上传发票文件" path="file">
+          <n-upload
+            ref="uploadRef"
+            :max="1"
+            @change="handleFileChange"
+            @remove="handleFileRemove"
+            :default-upload="false"
+          >
+            <n-button>选择文件</n-button>
+          </n-upload>
+        </n-form-item-gi>
+
         <!-- 图片URL -->
         <n-form-item-gi :span="1" label="发票图片URL" path="imageUrl">
           <n-input
@@ -141,7 +154,7 @@
 <script setup>
 import { ref, watch, defineProps, defineEmits, computed } from 'vue'
 import { useTheme } from '../composables/useTheme'
-import { NForm, NFormItemGi, NGrid, NInput, NDatePicker, NInputNumber, NSelect, NButton, NSpace, NAlert } from 'naive-ui'
+import { NForm, NFormItemGi, NGrid, NInput, NDatePicker, NInputNumber, NSelect, NButton, NSpace, NAlert, NUpload } from 'naive-ui'
 
 // Props
 const props = defineProps({
@@ -172,14 +185,29 @@ const formData = ref({
   paymentSource: '',
   status: 'pending',
   imageUrl: '',
-  description: ''
+  description: '',
+  file: null
 })
 
 // Form reference for validation
 const formRef = ref()
+const uploadRef = ref()
 
 // Check if in edit mode
 const isEditMode = computed(() => !!props.invoice)
+
+// File handling
+const handleFileChange = (data) => {
+  if (data.fileList.length > 0) {
+    formData.value.file = data.fileList[0].file
+  } else {
+    formData.value.file = null
+  }
+}
+
+const handleFileRemove = () => {
+  formData.value.file = null
+}
 
 // Form rules for validation
 const rules = {
@@ -303,7 +331,8 @@ const submitForm = async () => {
       payment_source: formData.value.paymentSource,
       status: formData.value.status,
       image_url: formData.value.imageUrl || null,
-      description: formData.value.description || null
+      description: formData.value.description || null,
+      file: formData.value.file
     }
 
     emit('submit', submitData)
