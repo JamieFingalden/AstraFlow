@@ -616,3 +616,98 @@ func (h InvoiceHandler) DeleteInvoice(c *gin.Context) {
 		Message: "发票删除成功",
 	})
 }
+
+// ConfirmInvoice 确认发票信息
+func (h InvoiceHandler) ConfirmInvoice(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "发票ID格式错误",
+		})
+		return
+	}
+
+	var req CreateInvoiceRequest
+	if err = c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "请求参数错误：" + err.Error(),
+		})
+		return
+	}
+
+	var description = ""
+	if req.Description != nil {
+		description = *req.Description
+	}
+
+	var invoiceDate time.Time
+	if req.InvoiceDate != nil {
+		invoiceDate = *req.InvoiceDate
+	}
+
+	amount := 0.0
+	if req.Amount != nil {
+		amount = *req.Amount
+	}
+
+	invoiceNumber := ""
+	if req.InvoiceNumber != nil {
+		invoiceNumber = *req.InvoiceNumber
+	}
+
+	category := ""
+	if req.Category != nil {
+		category = *req.Category
+	}
+
+	invoice, err := h.invoiceService.ConfirmInvoice(id, invoiceDate, amount, invoiceNumber, req.Vendor, category, description)
+	if err != nil {
+		c.JSON(http.StatusConflict, InvoiceResponse{
+			Code:    409,
+			Message: "确认失败：" + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, InvoiceResponse{
+		Code:    200,
+		Message: "发票已确认并移入草稿箱",
+		Data: map[string]interface{}{
+			"invoice": invoice,
+		},
+	})
+}
+
+type PublishInvoicesRequest struct {
+	IDs []int64 `json:"ids" binding:"required,min=1"`
+}
+
+// PublishInvoices 发布发票（待发布 -> 待审核）
+func (h InvoiceHandler) PublishInvoices(c *gin.Context) {
+	var req PublishInvoicesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "请求参数错误：" + err.Error(),
+		})
+		return
+	}
+
+	err := h.invoiceService.PublishInvoices(req.IDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "发布失败：" + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, InvoiceResponse{
+		Code:    200,
+		Message: "发布成功，已提交审核",
+	})
+}
+

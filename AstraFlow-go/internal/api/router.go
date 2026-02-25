@@ -71,7 +71,9 @@ func InitRouter() *gin.Engine {
 			// Invoice submission
 			protected.POST("/invoices/upload-ocr", invoiceHandler.UploadOCR)       // 智能识别上传
 			protected.POST("/invoices/upload-manual", invoiceHandler.UploadManual) // 手动提单上传
-			
+			protected.PUT("/invoices/:id/confirm", invoiceHandler.ConfirmInvoice)  // 确认发票（待确认->待发布）
+			protected.POST("/invoices/publish", invoiceHandler.PublishInvoices)    // 批量发布（待发布->待审核）
+
 			// Original invoice routes
 			protected.GET("/invoices/my-invoices", invoiceHandler.GetMyInvoices)               // 获取我的发票列表（可按状态筛选）
 			protected.POST("/invoices", invoiceHandler.CreateInvoice)                      // 创建发票

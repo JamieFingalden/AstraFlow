@@ -215,7 +215,7 @@ func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount f
 	existingInvoice.Vendor = vendor
 	existingInvoice.Category = category
 	existingInvoice.Description = description
-	
+
 	if status != "" {
 		existingInvoice.Status = model.InvoiceStatus(status)
 	}
@@ -258,4 +258,59 @@ func (s *InvoiceService) FindInvoiceInfoById(id int64) (*model.Invoice, error) {
 	}
 
 	return invoice, nil
+}
+
+func (s *InvoiceService) ConfirmInvoice(id int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, category, description string) (*model.Invoice, error) {
+	existingInvoice, err := s.invoiceRepo.FindById(id)
+	if err != nil {
+		return nil, err
+	}
+	if existingInvoice == nil {
+		return nil, errors.New("发票不存在")
+	}
+
+	if invoiceNumber != "" && invoiceNumber != existingInvoice.InvoiceNumber {
+		found, err := s.invoiceRepo.FindByInvoiceNumber(invoiceNumber)
+		if err != nil && err.Error() != "record not found" {
+			return nil, err
+		}
+		if found != nil && found.ID != id {
+			return nil, errors.New("该发票号已存在")
+		}
+	}
+
+	existingInvoice.InvoiceNumber = invoiceNumber
+	if !invoiceDate.IsZero() {
+		existingInvoice.InvoiceDate = &invoiceDate
+	}
+	existingInvoice.Amount = amount
+	existingInvoice.Vendor = vendor
+	existingInvoice.Category = category
+	existingInvoice.Description = description
+
+	// Update status from unconfirmed to draft
+	if existingInvoice.Status == model.StatusUnconfirmed {
+		existingInvoice.Status = model.StatusDraft
+	}
+
+	err = s.invoiceRepo.Update(existingInvoice)
+	if err != nil {
+		return nil, err
+	}
+
+	return existingInvoice, nil
+}
+
+func (s *InvoiceService) PublishInvoices(ids []int64) error {
+	for _, id := range ids {
+		invoice, err := s.invoiceRepo.FindById(id)
+		if err != nil || invoice == nil {
+			continue
+		}
+		if invoice.Status == model.StatusDraft {
+			invoice.Status = model.StatusPending
+			_ = s.invoiceRepo.Update(invoice)
+		}
+	}
+	return nil
 }

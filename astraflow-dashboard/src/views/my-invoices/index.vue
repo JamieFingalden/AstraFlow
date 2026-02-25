@@ -8,16 +8,16 @@
       
       <el-tabs v-model="activeTab" class="flex-1 flex flex-col -mb-px">
         <el-tab-pane :label="`待识别 (${counts.recognizing})`" name="recognizing" class="h-full" lazy>
-           <InvoiceTable v-if="activeTab === 'recognizing'" :status="activeTab" />
+           <InvoiceTable v-if="activeTab === 'recognizing'" :status="activeTab" @refresh-counts="fetchCounts" />
         </el-tab-pane>
         <el-tab-pane :label="`待确认 (${counts.unconfirmed})`" name="unconfirmed" class="h-full" lazy>
-            <InvoiceTable v-if="activeTab === 'unconfirmed'" :status="activeTab" />
+            <InvoiceTable v-if="activeTab === 'unconfirmed'" :status="activeTab" @refresh-counts="fetchCounts" />
         </el-tab-pane>
         <el-tab-pane :label="`待发布 (${counts.draft})`" name="draft" class="h-full" lazy>
-            <InvoiceTable v-if="activeTab === 'draft'" :status="activeTab" />
+            <InvoiceTable v-if="activeTab === 'draft'" :status="activeTab" @refresh-counts="fetchCounts" />
         </el-tab-pane>
          <el-tab-pane :label="`已提交 (${counts.submitted})`" name="submitted" class="h-full" lazy>
-            <InvoiceTable v-if="activeTab === 'submitted'" :status="activeTab" />
+            <InvoiceTable v-if="activeTab === 'submitted'" :status="activeTab" @refresh-counts="fetchCounts" />
         </el-tab-pane>
       </el-tabs>
     </div>

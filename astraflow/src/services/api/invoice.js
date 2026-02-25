@@ -36,3 +36,16 @@ export const publishInvoices = (ids) => {
         data: { ids },
     });
 };
+
+/**
+ * 更新发票信息
+ * @param {number} id 发票ID
+ * @param {object} data 更新的数据
+ */
+export const updateInvoice = (id, data) => {
+  return request({
+    url: `/invoices/${id}`,
+    method: 'put',
+    data,
+  });
+};

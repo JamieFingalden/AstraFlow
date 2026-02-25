@@ -59,3 +59,41 @@ export const getMyInvoices = (params: any) => {
     params,
   });
 };
+
+/**
+ * 员工确认动作
+ * @param id 发票ID
+ * @param data 确认的数据
+ */
+export const confirmInvoice = (id: number, data: any) => {
+  return request({
+    url: `/invoices/${id}/confirm`,
+    method: 'put',
+    data,
+  });
+};
+
+/**
+ * 正式发布
+ * @param ids 发票ID数组
+ */
+export const publishInvoices = (ids: number[]) => {
+  return request({
+    url: `/invoices/publish`,
+    method: 'post',
+    data: { ids },
+  });
+};
+
+/**
+ * 更新发票信息
+ * @param id 发票ID
+ * @param data 更新的数据
+ */
+export const updateInvoice = (id: number, data: any) => {
+  return request({
+    url: `/invoices/${id}`,
+    method: 'put',
+    data,
+  });
+};
