@@ -29,6 +29,18 @@
             <el-icon><Odometer /></el-icon>
             <span>仪表盘</span>
           </el-menu-item>
+          
+          <!-- Upload -->
+          <el-menu-item index="/upload" class="menu-item-override">
+            <el-icon><Upload /></el-icon>
+            <span>上传单据</span>
+          </el-menu-item>
+
+          <!-- My Invoices -->
+          <el-menu-item index="/my-invoices" class="menu-item-override">
+            <el-icon><FolderOpened /></el-icon>
+            <span>我的票夹</span>
+          </el-menu-item>
 
           <!-- Audit Center (Auditor Only) -->
           <el-sub-menu index="audit-center" v-if="isAuditor">
@@ -134,7 +146,9 @@ import {
     Bell, 
     ArrowDown,
     Wallet,
-    Collection
+    Collection,
+    Upload,
+    FolderOpened
 } from '@element-plus/icons-vue'
 
 const route = useRoute()

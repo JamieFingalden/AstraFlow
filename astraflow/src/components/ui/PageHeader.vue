@@ -25,6 +25,16 @@
         </div>
 
         <div class="header-right">
+          <!-- 我的票夹链接 -->
+          <router-link
+            v-if="showMyInvoicesLink"
+            to="/my-invoices"
+            :class="'theme-toggle-btn ' + (isDark ? 'dark-theme' : 'light-theme')"
+            title="我的票夹"
+          >
+            <BookUser :size="20" />
+          </router-link>
+
           <!-- 主题切换按钮 -->
           <button
             v-if="showThemeToggle"
@@ -43,7 +53,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { useTheme } from '../../composables/useTheme'
-import { SunIcon, MoonIcon } from 'lucide-vue-next'
+import { SunIcon, MoonIcon, BookUser } from 'lucide-vue-next'
 
 const props = defineProps({
   title: {
@@ -73,6 +83,10 @@ const props = defineProps({
   showThemeToggle: {
     type: Boolean,
     default: true
+  },
+  showMyInvoicesLink: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -211,6 +225,10 @@ const { isDark, toggleTheme } = useTheme()
   transition: all 0.2s ease;
   border: none;
   cursor: pointer;
+  display: flex; /* Ensure the link behaves like a button */
+  align-items: center;
+  justify-content: center;
+  text-decoration: none; /* Remove underline from router-link */
 }
 
 .theme-toggle-btn.dark-theme {

@@ -13,6 +13,7 @@
       :show-back-button="true"
       back-to="/"
       :show-theme-toggle="true"
+      :show-my-invoices-link="true"
     />
 
     <!-- User Info Container 

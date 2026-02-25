@@ -21,6 +21,18 @@ const router = createRouter({
           component: () => import('../views/dashboard/index.vue'),
           meta: { title: '仪表盘' }
         },
+        {
+          path: 'upload',
+          name: 'Upload',
+          component: () => import('../views/upload/index.vue'),
+          meta: { title: '上传单据' }
+        },
+        {
+          path: 'my-invoices',
+          name: 'MyInvoices',
+          component: () => import('../views/my-invoices/index.vue'),
+          meta: { title: '我的票夹' }
+        },
         // Audit Module
         {
           path: 'audit/tasks',

@@ -1,5 +1,6 @@
 import axios from 'axios'
 import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios'
+import { useUserStore } from '../stores/userStore'
 
 const service = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1',
@@ -8,11 +9,11 @@ const service = axios.create({
 
 service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Add token here when available
-    // const token = useUserStore().token
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`
-    // }
+    // 动态获取 Pinia store
+    const userStore = useUserStore()
+    if (userStore.token) {
+      config.headers.Authorization = `Bearer ${userStore.token}`
+    }
     return config
   },
   (error: any) => {
