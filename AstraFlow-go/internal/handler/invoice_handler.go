@@ -223,6 +223,47 @@ func (h InvoiceHandler) UploadOCR(c *gin.Context) {
 	})
 }
 
+// GetMyInvoices [GET] /api/v1/invoices/my-invoices
+// 获取当前用户自己的发票列表（可根据状态筛选）
+func (h InvoiceHandler) GetMyInvoices(c *gin.Context) {
+	// 从认证中间件获取用户ID
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, InvoiceResponse{
+			Code:    401,
+			Message: "无法获取用户信息，请重新登录",
+		})
+		return
+	}
+	userIdInt := cast.ToInt64(userId)
+
+	// 获取查询参数
+	status := c.Query("status") // 'recognizing', 'unconfirmed', 'draft'
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
+
+	invoices, total, err := h.invoiceService.GetInvoicesByUserIDAndStatus(page, pageSize, userIdInt, status)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "获取发票列表失败: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, InvoiceResponse{
+		Code:    200,
+		Message: "获取成功",
+		Data: gin.H{
+			"items":      invoices,
+			"total":      total,
+			"page":       page,
+			"pageSize":   pageSize,
+			"totalPages": (total + int64(pageSize) - 1) / int64(pageSize),
+		},
+	})
+}
+
 // UploadManual [POST] /api/v1/invoices/upload-manual
 // 手动兜底流：上传图片并手动填报单据
 func (h InvoiceHandler) UploadManual(c *gin.Context) {

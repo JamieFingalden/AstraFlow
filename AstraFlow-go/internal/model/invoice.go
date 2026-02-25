@@ -35,7 +35,7 @@ type Invoice struct {
 	UserID        int64          `gorm:"index;not null" json:"user_id"`                 // 用户ID，索引，非空
 	AttachmentID  int64          `gorm:"index;" json:"attachment_id"`                   // 附件ID，索引，关联源文件
 	InvoiceNumber string         `gorm:"size:100;index" json:"invoice_number"`          // 发票号码，大小100，索引
-	InvoiceDate   time.Time      `json:"invoice_date"`                                  // 发票日期
+	InvoiceDate   *time.Time     `json:"invoice_date"`                                  // 发票日期
 	Amount        float64        `json:"amount"`                                        // 金额
 	Vendor        string         `gorm:"size:255" json:"vendor"`                        // 供应商，大小255
 	Category      string         `gorm:"size:100" json:"category"`                      // 类别，大小100

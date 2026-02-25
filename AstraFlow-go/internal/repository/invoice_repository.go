@@ -83,6 +83,47 @@ func (r *InvoiceRepository) FindAllPageByTenantId(limit, offset int, tenantId in
 	return invoices, total, err
 }
 
+// FindAllPageByUserIdAndStatus 根据用户ID和状态分页查询发票
+func (r *InvoiceRepository) FindAllPageByUserIdAndStatus(limit, offset int, userId int64, status string) ([]*model.Invoice, int64, error) {
+	var invoices []*model.Invoice
+	var total int64
+
+	// 构建基础查询
+	query := r.db.Model(&model.Invoice{}).Where("user_id = ?", userId)
+	
+	// 根据状态进行筛选
+	if status != "" {
+		if status == "submitted" {
+			// "submitted" 是一个前端概念，代表所有已进入正式流程的状态
+			submittedStatuses := []string{
+				string(model.StatusPending),
+				string(model.StatusApproved),
+				string(model.StatusRejected),
+				string(model.StatusPaid),
+			}
+			query = query.Where("status IN ?", submittedStatuses)
+		} else {
+			// 查询特定状态
+			query = query.Where("status = ?", status)
+		}
+	}
+
+
+	// 计算总数
+	err := query.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 获取分页数据
+	err = query.Limit(limit).Offset(offset).Order("created_at DESC").Find(&invoices).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return invoices, total, err
+}
+
 func (r *InvoiceRepository) Update(invoice *model.Invoice) error {
 	return r.db.Save(invoice).Error
 }

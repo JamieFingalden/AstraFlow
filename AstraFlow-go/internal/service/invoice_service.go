@@ -36,7 +36,7 @@ func (s *InvoiceService) CreateInvoice(tenantId, userId int64, attachmentID int6
 		UserID:        userId,
 		AttachmentID:  attachmentID,
 		InvoiceNumber: invoiceNumber,
-		InvoiceDate:   invoiceDate,
+		InvoiceDate:   &invoiceDate,
 		Amount:        amount,
 		Vendor:        vendor,
 		Category:      category,
@@ -60,6 +60,7 @@ func (s *InvoiceService) CreateOCRInvoice(tenantId *int64, userId int64, attachm
 		AttachmentID: attachmentID,
 		Status:       model.StatusRecognizing,
 		Source:       model.SourceOCR,
+		// InvoiceDate is omitted here, so it will be NULL in the DB
 	}
 
 	err := s.invoiceRepo.Create(invoice)
@@ -77,7 +78,7 @@ func (s *InvoiceService) CreateManualInvoice(tenantId *int64, userId int64, atta
 		UserID:       userId,
 		AttachmentID: attachmentID,
 		Amount:       amount,
-		InvoiceDate:  invoiceDate,
+		InvoiceDate:  &invoiceDate,
 		Category:     category,
 		Description:  description,
 		Status:       model.StatusDraft,
@@ -178,21 +179,38 @@ func (s *InvoiceService) GetAllInvoicePageByTenantId(page, pageSize int, tenantI
 	return invoices, total, nil
 }
 
+// GetInvoicesByUserIDAndStatus 根据用户ID和状态分页获取发票
+func (s *InvoiceService) GetInvoicesByUserIDAndStatus(page, pageSize int, userId int64, status string) ([]*model.Invoice, int64, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+	return s.invoiceRepo.FindAllPageByUserIdAndStatus(pageSize, offset, userId, status)
+}
+
 func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, category, description, status string) (*model.Invoice, error) {
 	existingInvoice, err := s.invoiceRepo.FindById(id)
 	if err != nil {
 		return nil, err
 	}
 
-	if invoiceNumber != existingInvoice.InvoiceNumber {
-		_, err := s.invoiceRepo.FindByInvoiceNumber(invoiceNumber)
+	if invoiceNumber != "" && invoiceNumber != existingInvoice.InvoiceNumber {
+		found, err := s.invoiceRepo.FindByInvoiceNumber(invoiceNumber)
 		if err != nil && err.Error() != "record not found" {
+			return nil, err
+		}
+		if found != nil && found.ID != id {
 			return nil, errors.New("该发票号已存在")
 		}
 	}
 
 	existingInvoice.InvoiceNumber = invoiceNumber
-	existingInvoice.InvoiceDate = invoiceDate
+	if !invoiceDate.IsZero() {
+		existingInvoice.InvoiceDate = &invoiceDate
+	}
 	existingInvoice.Amount = amount
 	existingInvoice.Vendor = vendor
 	existingInvoice.Category = category

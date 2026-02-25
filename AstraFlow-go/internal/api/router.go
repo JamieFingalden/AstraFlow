@@ -68,6 +68,12 @@ func InitRouter() *gin.Engine {
 			v1.POST("/callback/ocr-result", attachmentHandler.HandleOCRResultCallback) // 处理OCR结果回调
 
 			invoiceHandler := handler.NewInvoiceHandler()
+			// Invoice submission
+			protected.POST("/invoices/upload-ocr", invoiceHandler.UploadOCR)       // 智能识别上传
+			protected.POST("/invoices/upload-manual", invoiceHandler.UploadManual) // 手动提单上传
+			
+			// Original invoice routes
+			protected.GET("/invoices/my-invoices", invoiceHandler.GetMyInvoices)               // 获取我的发票列表（可按状态筛选）
 			protected.POST("/invoices", invoiceHandler.CreateInvoice)                      // 创建发票
 			protected.GET("/invoices", invoiceHandler.GetAllInvoicePage)                   // 分页获取发票列表
 			protected.GET("/invoicesByUser", invoiceHandler.GetAllInvoicePageByUserId)     // 根据用户id分页获取发票列表
