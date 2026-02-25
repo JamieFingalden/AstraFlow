@@ -128,6 +128,21 @@ func (c *RabbitMQOCRClient) AddTask(fileID int64, invoiceID int64, filePath stri
 	return taskID, nil
 }
 
+// PublishOCRTask 封装好的即插即用 OCR 任务发布方法
+func PublishOCRTask(fileID, invoiceID int64, fileURL string) error {
+	rabbitmqClient, err := NewRabbitMQOCRClient()
+	if err != nil {
+		return fmt.Errorf("RabbitMQ 客户端初始化失败: %v", err)
+	}
+	defer rabbitmqClient.Close()
+
+	_, err = rabbitmqClient.AddTask(fileID, invoiceID, fileURL)
+	if err != nil {
+		return fmt.Errorf("发送 OCR 任务失败: %v", err)
+	}
+	return nil
+}
+
 
 
 // ConsumeTasks 消费任务队列，处理传入的 OCR 任务

@@ -52,6 +52,46 @@ func (s *InvoiceService) CreateInvoice(tenantId, userId int64, attachmentID int6
 	return invoice, nil
 }
 
+// CreateOCRInvoice 创建 AI OCR 发票记录（待识别状态）
+func (s *InvoiceService) CreateOCRInvoice(tenantId *int64, userId int64, attachmentID int64) (*model.Invoice, error) {
+	invoice := &model.Invoice{
+		TenantID:     tenantId,
+		UserID:       userId,
+		AttachmentID: attachmentID,
+		Status:       model.StatusRecognizing,
+		Source:       model.SourceOCR,
+	}
+
+	err := s.invoiceRepo.Create(invoice)
+	if err != nil {
+		return nil, err
+	}
+
+	return invoice, nil
+}
+
+// CreateManualInvoice 创建手动填报的发票记录（待发布草稿状态）
+func (s *InvoiceService) CreateManualInvoice(tenantId *int64, userId int64, attachmentID int64, amount float64, invoiceDate time.Time, category, description string) (*model.Invoice, error) {
+	invoice := &model.Invoice{
+		TenantID:     tenantId,
+		UserID:       userId,
+		AttachmentID: attachmentID,
+		Amount:       amount,
+		InvoiceDate:  invoiceDate,
+		Category:     category,
+		Description:  description,
+		Status:       model.StatusDraft,
+		Source:       model.SourceManual,
+	}
+
+	err := s.invoiceRepo.Create(invoice)
+	if err != nil {
+		return nil, err
+	}
+
+	return invoice, nil
+}
+
 // CreateEmptyInvoice 创建一个初始的空发票记录
 func (s *InvoiceService) CreateEmptyInvoice(tenantId *int64, userId int64, attachmentID int64) (*model.Invoice, error) {
 	invoice := &model.Invoice{

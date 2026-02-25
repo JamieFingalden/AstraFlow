@@ -10,10 +10,21 @@ import (
 type InvoiceStatus string
 
 const (
-	StatusPending  InvoiceStatus = "pending"  // Waiting for audit
-	StatusApproved InvoiceStatus = "approved" // Ready for reimbursement
-	StatusRejected InvoiceStatus = "rejected" // Sent back to user
-	StatusPaid     InvoiceStatus = "paid"     // Archived
+	StatusRecognizing InvoiceStatus = "recognizing" // AI OCR in progress
+	StatusUnconfirmed InvoiceStatus = "unconfirmed" // AI OCR finished, waiting for user confirmation
+	StatusDraft       InvoiceStatus = "draft"       // Manual entry or confirmed OCR, ready to publish
+	StatusPending     InvoiceStatus = "pending"     // Waiting for audit
+	StatusApproved    InvoiceStatus = "approved"    // Ready for reimbursement
+	StatusRejected    InvoiceStatus = "rejected"    // Sent back to user
+	StatusPaid        InvoiceStatus = "paid"        // Archived
+)
+
+// InvoiceSource 发票来源
+type InvoiceSource string
+
+const (
+	SourceOCR    InvoiceSource = "ocr"
+	SourceManual InvoiceSource = "manual"
 )
 
 // Invoice 发票模型
@@ -30,6 +41,7 @@ type Invoice struct {
 	Category      string         `gorm:"size:100" json:"category"`                      // 类别，大小100
 	Description   string         `gorm:"size:500" json:"description"`                   // 描述，大小500
 	Status        InvoiceStatus  `gorm:"size:50;default:'pending';index" json:"status"` // 状态，大小50，默认'pending'，索引
+	Source        InvoiceSource  `gorm:"size:20;index" json:"source"`                   // 来源：ocr 或 manual
 	ReviewerID    *int64         `gorm:"index" json:"reviewer_id,omitempty"`            // 审核人ID，索引，可为空
 	ReviewRemarks string         `gorm:"size:255" json:"review_remarks"`                // 审核备注，大小255
 	PaidAt        *time.Time     `json:"paid_at,omitempty"`                             // 支付时间，可为空

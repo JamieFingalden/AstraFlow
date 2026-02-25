@@ -1,9 +1,10 @@
 package handler
 
 import (
-	"AstraFlow-go/internal/model"
+	"AstraFlow-go/internal/client"
 	"AstraFlow-go/internal/service"
 	typeUtils "AstraFlow-go/pkg/utils"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -103,7 +104,7 @@ func (h InvoiceHandler) CreateInvoice(c *gin.Context) {
 		}
 		attachmentID = attachment.ID
 		// Update status to success since we are manually filling it or just storing it
-		h.attachmentService.UpdateAttachmentStatus(attachment.ID, model.AttachmentStatusSuccess)
+		h.attachmentService.UpdateAttachmentStatus(attachment.ID, 1) // 1 corresponds to AttachmentStatusSuccess
 	}
 
 	// If no file and no attachmentID, we might still allow it but usually it needs one or the other
@@ -153,6 +154,130 @@ func (h InvoiceHandler) CreateInvoice(c *gin.Context) {
 		Message: "发票创建成功",
 		Data: map[string]interface{}{
 			"invoice": invoice,
+		},
+	})
+}
+
+// UploadOCR [POST] /api/v1/invoices/upload-ocr
+// AI 智能流：上传图片并发布 OCR 任务到队列
+func (h InvoiceHandler) UploadOCR(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "请上传发票图片 (file 字段缺失)",
+		})
+		return
+	}
+
+	userId, _ := c.Get("user_id")
+	userIdInt := cast.ToInt64(userId)
+
+	tenantId, exists := c.Get("tenant_id")
+	var tenantIdPtr *int64
+	if exists && tenantId != nil {
+		id := cast.ToInt64(tenantId)
+		tenantIdPtr = &id
+	}
+
+	// 1. 保存图片到附件表
+	attachment, err := h.attachmentService.UploadFile(file, userIdInt, tenantIdPtr)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "文件保存失败: " + err.Error(),
+		})
+		return
+	}
+
+	// 2. 创建发票记录 (状态为 recognizing, 来源为 ocr)
+	invoice, err := h.invoiceService.CreateOCRInvoice(tenantIdPtr, userIdInt, attachment.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "单据初始化失败: " + err.Error(),
+		})
+		return
+	}
+
+	// 3. 发布 OCR 任务到 RabbitMQ 队列
+	// 后续由 Python AI Worker 消费并回调更新状态
+	if err := client.PublishOCRTask(attachment.ID, invoice.ID, attachment.FileURL); err != nil {
+		// 注意：此处可以根据业务决定是否需要回滚操作
+		// 暂时只记录错误，因为单据记录已创建，可由后台任务补偿
+		log.Printf("发布 OCR 任务到队列失败: %v", err)
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "发布 AI 识别任务失败，请稍后重试",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, InvoiceResponse{
+		Code:    201,
+		Message: "上传成功，已加入AI识别队列",
+		Data: map[string]interface{}{
+			"invoice_id": invoice.ID,
+			"status":     invoice.Status,
+		},
+	})
+}
+
+// UploadManual [POST] /api/v1/invoices/upload-manual
+// 手动兜底流：上传图片并手动填报单据
+func (h InvoiceHandler) UploadManual(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "请上传发票图片",
+		})
+		return
+	}
+
+	// 解析表单数据
+	amount := cast.ToFloat64(c.PostForm("amount"))
+	category := c.PostForm("category")
+	description := c.PostForm("description")
+	dateStr := c.PostForm("invoice_date")
+	invoiceDate, _ := time.Parse("2006-01-02", dateStr)
+
+	userId, _ := c.Get("user_id")
+	userIdInt := cast.ToInt64(userId)
+
+	tenantId, exists := c.Get("tenant_id")
+	var tenantIdPtr *int64
+	if exists && tenantId != nil {
+		id := cast.ToInt64(tenantId)
+		tenantIdPtr = &id
+	}
+
+	// 1. 保存图片到附件表
+	attachment, err := h.attachmentService.UploadFile(file, userIdInt, tenantIdPtr)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "文件上传失败",
+		})
+		return
+	}
+
+	// 2. 创建发票记录 (状态直接为 draft, 来源为 manual)
+	invoice, err := h.invoiceService.CreateManualInvoice(tenantIdPtr, userIdInt, attachment.ID, amount, invoiceDate, category, description)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "保存单据失败",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, InvoiceResponse{
+		Code:    201,
+		Message: "单据已存入草稿箱",
+		Data: map[string]interface{}{
+			"invoice_id": invoice.ID,
+			"status":     invoice.Status,
 		},
 	})
 }
