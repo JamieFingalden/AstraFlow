@@ -43,9 +43,17 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="invoice_date" label="发票日期" width="140" />
+        <el-table-column label="发票日期" width="140">
+          <template #default="{ row }">
+            {{ formatDate(row.invoice_date) }}
+          </template>
+        </el-table-column>
 
-        <el-table-column prop="created_at" label="提交时间" width="180" />
+        <el-table-column label="提交时间" width="180">
+          <template #default="{ row }">
+            {{ formatDateTime(row.created_at) }}
+          </template>
+        </el-table-column>
 
         <el-table-column label="操作" align="right" width="100">
           <template #default="{ row }">
@@ -84,6 +92,7 @@ import { Refresh } from '@element-plus/icons-vue'
 import { getPendingInvoices } from '../../../api/audit'
 import type { PendingInvoiceItem } from '../../../api/audit'
 import { ElMessage } from 'element-plus'
+import { formatDate, formatDateTime } from '../../../utils/datetime'
 
 const router = useRouter()
 const loading = ref(false)

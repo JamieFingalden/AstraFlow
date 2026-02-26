@@ -51,7 +51,7 @@
           <el-descriptions-item label="提交人">{{ invoiceData?.user_name || '-' }}</el-descriptions-item>
           <el-descriptions-item label="用户名">{{ invoiceData?.user_username || '-' }}</el-descriptions-item>
           <el-descriptions-item label="发票号">{{ invoiceData?.invoice_number || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="发票日期">{{ invoiceData?.invoice_date || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="发票日期">{{ formatDate(invoiceData?.invoice_date) }}</el-descriptions-item>
           <el-descriptions-item label="商家">{{ invoiceData?.vendor || '-' }}</el-descriptions-item>
           <el-descriptions-item label="分类">{{ invoiceData?.category || '-' }}</el-descriptions-item>
           <el-descriptions-item label="描述" :span="2">{{ invoiceData?.description || '-' }}</el-descriptions-item>
@@ -94,6 +94,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { getInvoiceDetail, processAudit } from '../../../api/audit'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { InvoiceDetail, ReviewInvoicePayload } from '../../../api/audit'
+import { formatDate } from '../../../utils/datetime'
 
 const route = useRoute()
 const router = useRouter()

@@ -12,20 +12,6 @@ type AxiosOrApiResponse<T> =
       data: ApiResponse<T>
     }
 
-export interface EmployeeDashboardStats {
-  unconfirmed: number
-  processing_amount: number
-  total_reimbursed_amount: number
-}
-
-export interface CompanyDashboardStats {
-  company_pending_count: number
-  monthly_paid_amount: number
-  company_to_pay_count: number
-}
-
-export type DashboardStats = EmployeeDashboardStats | CompanyDashboardStats
-
 export interface ArchiveUser {
   id: number
   username: string
@@ -73,28 +59,14 @@ const unwrapApiData = <T>(response: AxiosOrApiResponse<T>): T => {
   ) {
     return response.data.data as T
   }
+
   return (response as ApiResponse<T>).data
 }
 
 /**
- * 获取仪表盘统计数据。
- * @returns 按角色返回不同字段的统计结果。
- */
-export const getDashboardStats = async () => {
-  const response = await request<ApiResponse<DashboardStats>>({
-    url: '/dashboard/stats',
-    method: 'get'
-  })
-
-  return unwrapApiData<DashboardStats>(
-    response as AxiosOrApiResponse<DashboardStats>
-  )
-}
-
-/**
- * 获取历史归档列表。
- * @param params 分页、状态、时间范围、关键字筛选参数。
- * @returns 归档分页数据。
+ * 历史归档高级搜索。
+ * @param params 分页与筛选条件。
+ * @returns 归档分页列表。
  */
 export const getArchiveInvoices = async (params: ArchiveSearchParams) => {
   const response = await request<ApiResponse<ArchiveInvoicesPage>>({
@@ -105,6 +77,3 @@ export const getArchiveInvoices = async (params: ArchiveSearchParams) => {
 
   return unwrapApiData<ArchiveInvoicesPage>(response as AxiosOrApiResponse<ArchiveInvoicesPage>)
 }
-
-// 兼容旧调用，后续可删除
-export const getStats = getDashboardStats
