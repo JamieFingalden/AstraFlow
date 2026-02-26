@@ -68,6 +68,7 @@ func InitRouter() *gin.Engine {
 			v1.POST("/callback/ocr-result", attachmentHandler.HandleOCRResultCallback) // 处理OCR结果回调
 
 			invoiceHandler := handler.NewInvoiceHandler()
+			auditHandler := handler.NewAuditHandler()
 			// Invoice submission
 			protected.POST("/invoices/upload-ocr", invoiceHandler.UploadOCR)       // 智能识别上传
 			protected.POST("/invoices/upload-manual", invoiceHandler.UploadManual) // 手动提单上传
@@ -75,13 +76,21 @@ func InitRouter() *gin.Engine {
 			protected.POST("/invoices/publish", invoiceHandler.PublishInvoices)    // 批量发布（待发布->待审核）
 
 			// Original invoice routes
-			protected.GET("/invoices/my-invoices", invoiceHandler.GetMyInvoices)               // 获取我的发票列表（可按状态筛选）
+			protected.GET("/invoices/my-invoices", invoiceHandler.GetMyInvoices)           // 获取我的发票列表（可按状态筛选）
 			protected.POST("/invoices", invoiceHandler.CreateInvoice)                      // 创建发票
 			protected.GET("/invoices", invoiceHandler.GetAllInvoicePage)                   // 分页获取发票列表
 			protected.GET("/invoicesByUser", invoiceHandler.GetAllInvoicePageByUserId)     // 根据用户id分页获取发票列表
 			protected.GET("/invoicesByTenant", invoiceHandler.GetAllInvoicePageByTenantId) // 根据租户id分页获取发票列表
 			protected.PUT("/invoices/:id", invoiceHandler.UpdateInvoice)                   // 更新发票信息
 			protected.DELETE("/invoices/:id", invoiceHandler.DeleteInvoice)                // 删除发票
+
+			// 财务审核核心模块（Audit Core）
+			// GET  /api/v1/audit/invoices/pending      待办任务池（待审核单据）
+			// GET  /api/v1/audit/invoices/:id           单据详情（只读）
+			// PUT  /api/v1/audit/invoices/:id/review    审核批复（approve/reject）
+			protected.GET("/audit/invoices/pending", auditHandler.GetPendingInvoices)
+			protected.GET("/audit/invoices/:id", auditHandler.GetInvoiceDetail)
+			protected.PUT("/audit/invoices/:id/review", auditHandler.ReviewInvoice)
 
 			// 分析和报告相关接口
 			analyticsHandler := handler.NewAnalyticsHandler()
