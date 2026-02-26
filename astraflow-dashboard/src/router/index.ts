@@ -72,7 +72,7 @@ const router = createRouter({
 })
 
 // Simple Auth Guard (Optional logic)
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem('token')
   if (to.path !== '/login' && !token) {
     next('/login')

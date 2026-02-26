@@ -1,88 +1,78 @@
 <template>
   <div class="h-full flex flex-col">
-    <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Audit Task Pool</h1>
-        <p class="text-slate-500 mt-1 text-sm">Review pending invoices processed by AI.</p>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">审核任务池</h1>
+        <p class="text-slate-500 mt-1 text-sm">查看并处理待审核（pending）的单据。</p>
       </div>
       <el-button type="primary" class="!bg-indigo-600 !border-indigo-600 hover:!bg-indigo-700" @click="fetchData">
         <el-icon class="mr-2"><Refresh /></el-icon>
-        Refresh
+        刷新
       </el-button>
     </div>
 
-    <!-- Table Card -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex-1 overflow-hidden flex flex-col">
-      <el-table 
+      <el-table
         v-loading="loading"
-        :data="tableData" 
-        style="width: 100%" 
+        :data="tableData"
+        style="width: 100%"
         class="flex-1"
         header-cell-class-name="!bg-slate-50 !text-slate-600 !font-semibold !border-b-slate-100"
         cell-class-name="!text-slate-600 !border-b-slate-50 hover:!bg-slate-50 cursor-pointer"
         @row-click="handleRowClick"
       >
-        <!-- Trace ID -->
-        <el-table-column label="Trace ID" width="180">
-            <template #default="{ row }">
-                <span class="font-mono text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">{{ row.trace_id }}</span>
-            </template>
-        </el-table-column>
-
-        <!-- User -->
-        <el-table-column label="Submitted By" width="200">
+        <el-table-column label="单据ID" width="120">
           <template #default="{ row }">
-            <div class="flex items-center gap-3">
-              <el-avatar :size="32" :src="row.user?.avatar" class="border border-slate-200">
-                 {{ row.user?.name?.charAt(0) }}
-              </el-avatar>
-              <span class="text-slate-900 font-medium text-sm">{{ row.user?.name }}</span>
-            </div>
+            <span class="font-mono text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">#{{ row.id }}</span>
           </template>
         </el-table-column>
 
-        <!-- Vendor -->
-        <el-table-column prop="vendor" label="Vendor" min-width="180" />
-
-        <!-- Amount -->
-        <el-table-column label="Amount" width="140">
-            <template #default="{ row }">
-                <span class="font-bold text-slate-900">${{ row.amount?.toFixed(2) }}</span>
-            </template>
-        </el-table-column>
-
-        <!-- Date -->
-        <el-table-column prop="date" label="Date" width="140" />
-
-        <!-- AI Confidence -->
-        <el-table-column label="AI Confidence" width="140">
+        <el-table-column label="提交人" min-width="160">
           <template #default="{ row }">
-            <el-tag 
-              :type="row.confidence >= 0.8 ? 'success' : 'warning'" 
-              effect="light" 
-              round
-              class="!border-0 font-medium"
-            >
-              {{ (row.confidence * 100).toFixed(0) }}% {{ row.confidence >= 0.8 ? 'High' : 'Low' }}
-            </el-tag>
+            <span class="text-slate-900 font-medium text-sm">{{ row.user_name || '-' }}</span>
           </template>
         </el-table-column>
 
-        <!-- Actions -->
-        <el-table-column label="Action" align="right" width="100">
+        <el-table-column prop="invoice_number" label="发票号" min-width="170" />
+
+        <el-table-column prop="vendor" label="商家" min-width="180" />
+
+        <el-table-column label="金额" width="140">
           <template #default="{ row }">
-            <el-button 
-                link 
-                type="primary" 
+            <span class="font-bold text-slate-900">¥{{ Number(row.amount || 0).toFixed(2) }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="invoice_date" label="发票日期" width="140" />
+
+        <el-table-column prop="created_at" label="提交时间" width="180" />
+
+        <el-table-column label="操作" align="right" width="100">
+          <template #default="{ row }">
+            <el-button
+                link
+                type="primary"
                 class="!font-medium"
-                @click.stop="handleRowClick(row)"
+                @click.stop="handleRowClick(row as PendingInvoiceItem)"
             >
-                Review
+                审核
             </el-button>
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end">
+        <el-pagination
+          background
+          layout="total, prev, pager, next, sizes"
+          :current-page="page"
+          :page-size="size"
+          :page-sizes="[10, 20, 50, 100]"
+          :total="total"
+          @current-change="handlePageChange"
+          @size-change="handleSizeChange"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -92,60 +82,45 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Refresh } from '@element-plus/icons-vue'
 import { getPendingInvoices } from '../../../api/audit'
-import type { Invoice } from '../../../api/audit'
+import type { PendingInvoiceItem } from '../../../api/audit'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const loading = ref(false)
-const tableData = ref<Invoice[]>([])
-
-// Mock Data
-const mockData: Invoice[] = [
-    { 
-        id: 1, 
-        trace_id: 'TRC-928374', 
-        user: { name: 'John Doe', avatar: '' }, 
-        vendor: 'Amazon Web Services', 
-        amount: 124.50, 
-        date: '2023-10-24', 
-        confidence: 0.95, 
-        status: 'pending',
-        file_url: '' 
-    },
-    { 
-        id: 2, 
-        trace_id: 'TRC-192834', 
-        user: { name: 'Sarah Smith', avatar: '' }, 
-        vendor: 'Uber Trip', 
-        amount: 34.20, 
-        date: '2023-10-23', 
-        confidence: 0.72, 
-        status: 'pending',
-        file_url: '' 
-    }
-]
+const tableData = ref<PendingInvoiceItem[]>([])
+const page = ref(1)
+const size = ref(10)
+const total = ref(0)
 
 const fetchData = async () => {
-    loading.value = true
-    try {
-        // const res = await getPendingInvoices()
-        // tableData.value = res.data
-        
-        // Mock
-        await new Promise(r => setTimeout(r, 600))
-        tableData.value = mockData
-    } catch (e) {
-        ElMessage.error('Failed to load tasks')
-    } finally {
-        loading.value = false
-    }
+  loading.value = true
+  try {
+    const data = await getPendingInvoices({ page: page.value, size: size.value })
+    tableData.value = data.items || []
+    total.value = Number(data.total || 0)
+  } catch (e: any) {
+    ElMessage.error(e?.response?.data?.message || '加载审核任务失败')
+  } finally {
+    loading.value = false
+  }
 }
 
-const handleRowClick = (row: Invoice) => {
-    router.push(`/audit/tasks/${row.id}`)
+const handleRowClick = (row: PendingInvoiceItem) => {
+  router.push(`/audit/tasks/${row.id}`)
+}
+
+const handlePageChange = (val: number) => {
+  page.value = val
+  fetchData()
+}
+
+const handleSizeChange = (val: number) => {
+  size.value = val
+  page.value = 1
+  fetchData()
 }
 
 onMounted(() => {
-    fetchData()
+  fetchData()
 })
 </script>
