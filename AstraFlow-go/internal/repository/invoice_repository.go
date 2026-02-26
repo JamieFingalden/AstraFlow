@@ -4,6 +4,7 @@ import (
 	"AstraFlow-go/internal/database"
 	"AstraFlow-go/internal/model"
 	"errors"
+	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -55,6 +56,18 @@ type InvoiceDetail struct {
 	PaidAt        *string             `json:"paid_at,omitempty"`
 	CreatedAt     string              `json:"created_at"`
 	UpdatedAt     string              `json:"updated_at"`
+}
+
+// ArchiveSearchParams 历史归档搜索参数
+type ArchiveSearchParams struct {
+	Page      int
+	Size      int
+	Status    string
+	StartDate *time.Time
+	EndDate   *time.Time
+	Keyword   string
+	UserID    *int64
+	TenantID  *int64
 }
 
 // InvoiceRepository 封装发票的 CRUD 操作
@@ -190,6 +203,172 @@ func (r *InvoiceRepository) FindById(id int64) (*model.Invoice, error) {
 		return nil, err
 	}
 	return &invoice, err
+}
+
+// BeginTx 开启数据库事务
+func (r *InvoiceRepository) BeginTx() *gorm.DB {
+	return r.db.Begin()
+}
+
+// FindApprovedInvoices 分页查询待打款单据，预加载提交人信息并返回总数
+func (r *InvoiceRepository) FindApprovedInvoices(limit, offset int) ([]*model.Invoice, int64, error) {
+	items := make([]*model.Invoice, 0)
+	var total int64
+
+	err := r.db.Model(&model.Invoice{}).
+		Where("status = ?", model.StatusApproved).
+		Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = r.db.Model(&model.Invoice{}).
+		Preload("User").
+		Where("status = ?", model.StatusApproved).
+		Order("updated_at DESC").
+		Offset(offset).
+		Limit(limit).
+		Find(&items).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return items, total, nil
+}
+
+// BatchPayInvoices 在事务中批量打款：approved -> paid
+func (r *InvoiceRepository) BatchPayInvoices(tx *gorm.DB, invoiceIDs []int64) (int64, error) {
+	result := tx.Model(&model.Invoice{}).
+		Where("id IN ? AND status = ?", invoiceIDs, model.StatusApproved).
+		Updates(map[string]interface{}{
+			"status":  model.StatusPaid,
+			"paid_at": time.Now(),
+		})
+
+	if result.Error != nil {
+		return 0, result.Error
+	}
+
+	return result.RowsAffected, nil
+}
+
+// SearchArchiveInvoices 按条件搜索归档单据并返回分页结果
+func (r *InvoiceRepository) SearchArchiveInvoices(params ArchiveSearchParams) ([]*model.Invoice, int64, error) {
+	items := make([]*model.Invoice, 0)
+	var total int64
+
+	query := r.db.Model(&model.Invoice{}).Preload("User")
+
+	if params.TenantID != nil && *params.TenantID != 0 {
+		query = query.Where("tenant_id = ?", *params.TenantID)
+	} else {
+		query = query.Where("tenant_id IS NULL OR tenant_id = 0")
+	}
+
+	if params.UserID != nil {
+		query = query.Where("user_id = ?", *params.UserID)
+	}
+
+	if params.Status != "" {
+		query = query.Where("status = ?", params.Status)
+	}
+
+	if params.StartDate != nil && params.EndDate != nil {
+		query = query.Where("invoice_date BETWEEN ? AND ?", *params.StartDate, *params.EndDate)
+	} else if params.StartDate != nil {
+		query = query.Where("invoice_date >= ?", *params.StartDate)
+	} else if params.EndDate != nil {
+		query = query.Where("invoice_date <= ?", *params.EndDate)
+	}
+
+	if params.Keyword != "" {
+		query = query.Where("description LIKE ? OR category LIKE ?", "%"+params.Keyword+"%", "%"+params.Keyword+"%")
+	}
+
+	err := query.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	offset := (params.Page - 1) * params.Size
+	err = query.Order("created_at DESC").Offset(offset).Limit(params.Size).Find(&items).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return items, total, nil
+}
+
+// CountByStatus 按状态统计单据数量
+func (r *InvoiceRepository) CountByStatus(tenantID *int64, userID *int64, status model.InvoiceStatus) (int64, error) {
+	var total int64
+	query := r.db.Model(&model.Invoice{}).Where("status = ?", status)
+
+	if tenantID != nil && *tenantID != 0 {
+		query = query.Where("tenant_id = ?", *tenantID)
+	} else {
+		query = query.Where("tenant_id IS NULL OR tenant_id = 0")
+	}
+
+	if userID != nil {
+		query = query.Where("user_id = ?", *userID)
+	}
+
+	err := query.Count(&total).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return total, nil
+}
+
+// SumAmountByStatuses 按状态集合汇总金额
+func (r *InvoiceRepository) SumAmountByStatuses(tenantID *int64, userID *int64, statuses []model.InvoiceStatus) (float64, error) {
+	var sum float64
+	query := r.db.Model(&model.Invoice{}).Select("COALESCE(SUM(amount), 0)").Where("status IN ?", statuses)
+
+	if tenantID != nil && *tenantID != 0 {
+		query = query.Where("tenant_id = ?", *tenantID)
+	} else {
+		query = query.Where("tenant_id IS NULL OR tenant_id = 0")
+	}
+
+	if userID != nil {
+		query = query.Where("user_id = ?", *userID)
+	}
+
+	err := query.Scan(&sum).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return sum, nil
+}
+
+// SumAmountByStatusAndUpdatedRange 按状态与更新时间范围汇总金额
+func (r *InvoiceRepository) SumAmountByStatusAndUpdatedRange(tenantID *int64, userID *int64, status model.InvoiceStatus, startTime, endTime time.Time) (float64, error) {
+	var sum float64
+	query := r.db.Model(&model.Invoice{}).
+		Select("COALESCE(SUM(amount), 0)").
+		Where("status = ?", status).
+		Where("updated_at BETWEEN ? AND ?", startTime, endTime)
+
+	if tenantID != nil && *tenantID != 0 {
+		query = query.Where("tenant_id = ?", *tenantID)
+	} else {
+		query = query.Where("tenant_id IS NULL OR tenant_id = 0")
+	}
+
+	if userID != nil {
+		query = query.Where("user_id = ?", *userID)
+	}
+
+	err := query.Scan(&sum).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return sum, nil
 }
 
 // CountPendingInvoices 统计待审核单据总数

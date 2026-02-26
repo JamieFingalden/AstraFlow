@@ -33,6 +33,7 @@ type Invoice struct {
 	ID            int64          `gorm:"primaryKey;autoIncrement" json:"id"`            // 发票ID，主键，自增
 	TenantID      *int64         `gorm:"index" json:"tenant_id,omitempty"`              // 租户ID，索引，可为空
 	UserID        int64          `gorm:"index;not null" json:"user_id"`                 // 用户ID，索引，非空
+	User          *User          `gorm:"foreignKey:UserID" json:"user,omitempty"`       // 提交人信息，供预加载使用
 	AttachmentID  int64          `gorm:"index;" json:"attachment_id"`                   // 附件ID，索引，关联源文件
 	InvoiceNumber string         `gorm:"size:100;index" json:"invoice_number"`          // 发票号码，大小100，索引
 	InvoiceDate   *time.Time     `json:"invoice_date"`                                  // 发票日期

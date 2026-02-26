@@ -4,6 +4,7 @@ import (
 	"AstraFlow-go/internal/client"
 	"AstraFlow-go/internal/service"
 	typeUtils "AstraFlow-go/pkg/utils"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -685,6 +686,11 @@ type PublishInvoicesRequest struct {
 	IDs []int64 `json:"ids" binding:"required,min=1"`
 }
 
+// BatchPayInvoicesRequest 批量打款请求体
+type BatchPayInvoicesRequest struct {
+	InvoiceIDs []int64 `json:"invoice_ids" binding:"required,min=1"`
+}
+
 // PublishInvoices 发布发票（待发布 -> 待审核）
 func (h InvoiceHandler) PublishInvoices(c *gin.Context) {
 	var req PublishInvoicesRequest
@@ -711,3 +717,97 @@ func (h InvoiceHandler) PublishInvoices(c *gin.Context) {
 	})
 }
 
+// GetApprovedInvoices 获取待打款单据列表
+// 入参：Query 参数 page/size
+// 出参：统一响应结构，data 包含 items/page/size/total/total_pages
+func (h InvoiceHandler) GetApprovedInvoices(c *gin.Context) {
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil || page < 1 {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "page 参数必须为大于 0 的整数",
+		})
+		return
+	}
+
+	size, err := strconv.Atoi(c.DefaultQuery("size", "10"))
+	if err != nil || size < 1 {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "size 参数必须为大于 0 的整数",
+		})
+		return
+	}
+
+	result, err := h.invoiceService.GetApprovedInvoices(page, size)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "获取待打款单据失败: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, InvoiceResponse{
+		Code:    200,
+		Message: "获取待打款单据成功",
+		Data: map[string]interface{}{
+			"items":       result.Items,
+			"page":        result.Page,
+			"size":        result.Size,
+			"total":       result.Total,
+			"total_pages": result.TotalPages,
+		},
+	})
+}
+
+// BatchPayInvoices 批量确认打款
+// 入参：JSON 请求体 invoice_ids
+// 出参：统一响应结构，成功返回 200，失败根据业务错误返回对应状态码
+func (h InvoiceHandler) BatchPayInvoices(c *gin.Context) {
+	var req BatchPayInvoicesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "请求参数错误: " + err.Error(),
+		})
+		return
+	}
+
+	if len(req.InvoiceIDs) == 0 {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "invoice_ids 不能为空",
+		})
+		return
+	}
+
+	err := h.invoiceService.BatchPayInvoices(req.InvoiceIDs)
+	if err != nil {
+		switch {
+		case errors.Is(err, service.ErrInvalidInvoiceIDs):
+			c.JSON(http.StatusBadRequest, InvoiceResponse{
+				Code:    400,
+				Message: "invoice_ids 参数不合法",
+			})
+			return
+		case errors.Is(err, service.ErrBatchPayCountMismatch):
+			c.JSON(http.StatusBadRequest, InvoiceResponse{
+				Code:    400,
+				Message: "部分单据不存在或状态不是 approved，批量打款失败",
+			})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, InvoiceResponse{
+				Code:    500,
+				Message: "批量打款失败: " + err.Error(),
+			})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, InvoiceResponse{
+		Code:    200,
+		Message: "批量打款成功",
+	})
+}
