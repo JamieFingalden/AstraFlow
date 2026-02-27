@@ -39,6 +39,7 @@ type Invoice struct {
 	InvoiceDate   *time.Time     `json:"invoice_date"`                                  // 发票日期
 	Amount        float64        `json:"amount"`                                        // 金额
 	Vendor        string         `gorm:"size:255" json:"vendor"`                        // 供应商，大小255
+	PaymentMethod string         `gorm:"size:50" json:"payment_method"`                 // 支付方式，大小50
 	Category      string         `gorm:"size:100" json:"category"`                      // 类别，大小100
 	Description   string         `gorm:"size:500" json:"description"`                   // 描述，大小500
 	Status        InvoiceStatus  `gorm:"size:50;default:'pending';index" json:"status"` // 状态，大小50，默认'pending'，索引

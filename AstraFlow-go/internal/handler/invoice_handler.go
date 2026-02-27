@@ -2,12 +2,14 @@ package handler
 
 import (
 	"AstraFlow-go/internal/client"
+	"AstraFlow-go/internal/model"
 	"AstraFlow-go/internal/service"
 	typeUtils "AstraFlow-go/pkg/utils"
 	"errors"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cast"
@@ -279,10 +281,29 @@ func (h InvoiceHandler) UploadManual(c *gin.Context) {
 
 	// 解析表单数据
 	amount := cast.ToFloat64(c.PostForm("amount"))
-	category := c.PostForm("category")
-	description := c.PostForm("description")
+	invoiceNumber := strings.TrimSpace(c.PostForm("invoice_number"))
+	vendor := strings.TrimSpace(c.PostForm("vendor"))
+	paymentMethod := strings.TrimSpace(c.PostForm("payment_method"))
+	category := strings.TrimSpace(c.PostForm("category"))
+	description := strings.TrimSpace(c.PostForm("description"))
 	dateStr := c.PostForm("invoice_date")
 	invoiceDate, _ := time.Parse("2006-01-02", dateStr)
+
+	if invoiceNumber == "" || amount <= 0 || vendor == "" || dateStr == "" || paymentMethod == "" || category == "" {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "请完整填写：发票号码、金额、商户名称、日期、支付方式、消费类别",
+		})
+		return
+	}
+
+	if invoiceDate.IsZero() {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "发票日期格式错误，应为 YYYY-MM-DD",
+		})
+		return
+	}
 
 	userId, _ := c.Get("user_id")
 	userIdInt := cast.ToInt64(userId)
@@ -305,7 +326,18 @@ func (h InvoiceHandler) UploadManual(c *gin.Context) {
 	}
 
 	// 2. 创建发票记录 (状态直接为 draft, 来源为 manual)
-	invoice, err := h.invoiceService.CreateManualInvoice(tenantIdPtr, userIdInt, attachment.ID, amount, invoiceDate, category, description)
+	invoice, err := h.invoiceService.CreateManualInvoice(
+		tenantIdPtr,
+		userIdInt,
+		attachment.ID,
+		amount,
+		invoiceDate,
+		invoiceNumber,
+		vendor,
+		paymentMethod,
+		category,
+		description,
+	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, InvoiceResponse{
 			Code:    500,
@@ -589,8 +621,10 @@ func (h InvoiceHandler) DeleteInvoice(c *gin.Context) {
 		return
 	}
 
+	userIdInt := cast.ToInt64(userId)
+
 	// Permission check
-	if invoice.UserID != userId.(int64) {
+	if invoice.UserID != userIdInt {
 		// If not owner, check if tenant admin?
 		// For now, if invoice has tenantID, check if user matches tenantID?
 		// Existing logic:
@@ -601,6 +635,14 @@ func (h InvoiceHandler) DeleteInvoice(c *gin.Context) {
 			})
 			return
 		}
+	}
+
+	if invoice.Status != model.StatusUnconfirmed && invoice.Status != model.StatusDraft {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "仅待确认或待发布状态的发票允许删除",
+		})
+		return
 	}
 
 	err = h.invoiceService.DeleteInvoice(id)
@@ -615,6 +657,72 @@ func (h InvoiceHandler) DeleteInvoice(c *gin.Context) {
 	c.JSON(http.StatusOK, InvoiceResponse{
 		Code:    200,
 		Message: "发票删除成功",
+	})
+}
+
+// GetInvoiceDetail 获取当前用户可访问的单据详情
+func (h InvoiceHandler) GetInvoiceDetail(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, InvoiceResponse{
+			Code:    400,
+			Message: "发票ID格式错误",
+		})
+		return
+	}
+
+	userId, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, InvoiceResponse{
+			Code:    401,
+			Message: "登录过期, 请重新登录",
+		})
+		return
+	}
+	userIdInt := cast.ToInt64(userId)
+
+	tenantId, exists := c.Get("tenant_id")
+	var tenantIdInt int64
+	if !exists || tenantId == nil {
+		tenantIdInt = 0
+	} else {
+		tenantIdInt = cast.ToInt64(tenantId)
+	}
+
+	detail, err := h.invoiceService.GetInvoiceDetailForAudit(id)
+	if err != nil {
+		if errors.Is(err, service.ErrInvoiceNotFound) {
+			c.JSON(http.StatusNotFound, InvoiceResponse{
+				Code:    404,
+				Message: "发票不存在",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, InvoiceResponse{
+			Code:    500,
+			Message: "获取发票详情失败: " + err.Error(),
+		})
+		return
+	}
+
+	if detail.UserID != userIdInt {
+		if detail.TenantID == nil || *detail.TenantID != tenantIdInt {
+			c.JSON(http.StatusForbidden, InvoiceResponse{
+				Code:    403,
+				Message: "您没有权限查看该发票",
+			})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, InvoiceResponse{
+		Code:    200,
+		Message: "获取发票详情成功",
+		Data: map[string]interface{}{
+			"invoice": detail,
+		},
 	})
 }
 

@@ -80,6 +80,7 @@ func InitRouter() *gin.Engine {
 
 			// Original invoice routes
 			protected.GET("/invoices/my-invoices", invoiceHandler.GetMyInvoices)           // 获取我的发票列表（可按状态筛选）
+			protected.GET("/invoices/:id", invoiceHandler.GetInvoiceDetail)                // 获取发票详情
 			protected.POST("/invoices", invoiceHandler.CreateInvoice)                      // 创建发票
 			protected.GET("/invoices", invoiceHandler.GetAllInvoicePage)                   // 分页获取发票列表
 			protected.GET("/invoicesByUser", invoiceHandler.GetAllInvoicePageByUserId)     // 根据用户id分页获取发票列表

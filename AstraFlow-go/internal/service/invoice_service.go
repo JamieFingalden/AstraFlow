@@ -132,17 +132,27 @@ func (s *InvoiceService) CreateOCRInvoice(tenantId *int64, userId int64, attachm
 }
 
 // CreateManualInvoice 创建手动填报的发票记录（待发布草稿状态）
-func (s *InvoiceService) CreateManualInvoice(tenantId *int64, userId int64, attachmentID int64, amount float64, invoiceDate time.Time, category, description string) (*model.Invoice, error) {
+func (s *InvoiceService) CreateManualInvoice(
+	tenantId *int64,
+	userId int64,
+	attachmentID int64,
+	amount float64,
+	invoiceDate time.Time,
+	invoiceNumber, vendor, paymentMethod, category, description string,
+) (*model.Invoice, error) {
 	invoice := &model.Invoice{
-		TenantID:     tenantId,
-		UserID:       userId,
-		AttachmentID: attachmentID,
-		Amount:       amount,
-		InvoiceDate:  &invoiceDate,
-		Category:     category,
-		Description:  description,
-		Status:       model.StatusDraft,
-		Source:       model.SourceManual,
+		TenantID:      tenantId,
+		UserID:        userId,
+		AttachmentID:  attachmentID,
+		InvoiceNumber: invoiceNumber,
+		Amount:        amount,
+		InvoiceDate:   &invoiceDate,
+		Vendor:        vendor,
+		PaymentMethod: paymentMethod,
+		Category:      category,
+		Description:   description,
+		Status:        model.StatusDraft,
+		Source:        model.SourceManual,
 	}
 
 	err := s.invoiceRepo.Create(invoice)

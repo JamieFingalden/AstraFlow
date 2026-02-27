@@ -28,6 +28,7 @@ type PendingInvoiceItem struct {
 	InvoiceDate   *string             `json:"invoice_date,omitempty"`
 	Amount        float64             `json:"amount"`
 	Vendor        string              `json:"vendor"`
+	PaymentMethod string              `json:"payment_method"`
 	Category      string              `json:"category"`
 	Description   string              `json:"description"`
 	Status        model.InvoiceStatus `json:"status"`
@@ -395,6 +396,7 @@ func (r *InvoiceRepository) FindPendingInvoices(limit, offset int) ([]PendingInv
 			DATE_FORMAT(i.invoice_date, '%Y-%m-%d') AS invoice_date,
 			i.amount,
 			i.vendor,
+			i.payment_method,
 			i.category,
 			i.description,
 			i.status,
