@@ -32,24 +32,43 @@
         <!-- Form for manual mode -->
         <div v-if="selectedFile && uploadMode === 'manual'" class="mt-6 space-y-4 pt-4 border-t border-slate-100">
            <div class="grid grid-cols-2 gap-4">
+              <el-form-item label="发票号码">
+                <el-input v-model="manualForm.invoice_number" placeholder="请输入发票号码" />
+              </el-form-item>
               <el-form-item label="发票金额">
                 <el-input-number v-model="manualForm.amount" :precision="2" :step="1" class="!w-full" />
+              </el-form-item>
+           </div>
+           <div class="grid grid-cols-2 gap-4">
+              <el-form-item label="商户名称">
+                <el-input v-model="manualForm.vendor" placeholder="请输入商户名称" />
               </el-form-item>
               <el-form-item label="发票日期">
                 <el-date-picker v-model="manualForm.invoice_date" type="date" placeholder="选择日期" class="!w-full" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
               </el-form-item>
            </div>
+           <div class="grid grid-cols-2 gap-4">
+            <el-form-item label="支付方式">
+              <el-select v-model="manualForm.payment_method" placeholder="请选择支付方式" class="!w-full">
+                <el-option label="微信支付" value="微信支付" />
+                <el-option label="支付宝" value="支付宝" />
+                <el-option label="银行卡" value="银行卡" />
+                <el-option label="现金" value="现金" />
+                <el-option label="其他" value="其他" />
+              </el-select>
+            </el-form-item>
            <el-form-item label="消费类别">
                <el-select v-model="manualForm.category" placeholder="请选择类别" class="!w-full">
-                  <el-option label="办公用品" value="Office Supplies" />
-                  <el-option label="差旅交通" value="Travel" />
-                  <el-option label="餐饮" value="Meals" />
-                  <el-option label="软件服务" value="Software" />
-                  <el-option label="其他" value="Other" />
+                  <el-option label="办公用品" value="办公用品" />
+                  <el-option label="差旅交通" value="差旅交通" />
+                  <el-option label="餐饮" value="餐饮" />
+                  <el-option label="软件服务" value="软件服务" />
+                  <el-option label="其他" value="其他" />
                </el-select>
             </el-form-item>
-            <el-form-item label="费用描述 (选填)">
-              <el-input v-model="manualForm.description" type="textarea" :rows="2" placeholder="简单描述一下费用" />
+          </div>
+            <el-form-item label="费用描述（选填）">
+              <el-input v-model="manualForm.description" type="textarea" :rows="2" placeholder="请输入费用描述" />
             </el-form-item>
         </div>
       </div>
@@ -95,8 +114,11 @@ const isOcrLoading = ref(false)
 const isManualLoading = ref(false)
 
 const manualForm = reactive({
+  invoice_number: '',
   amount: 0,
+  vendor: '',
   invoice_date: '',
+  payment_method: '',
   category: '',
   description: ''
 })
@@ -118,8 +140,11 @@ const handleExceed: UploadProps['onExceed'] = (files) => {
 const resetForm = () => {
     uploadRef.value?.clearFiles()
     selectedFile.value = null
+    manualForm.invoice_number = ''
     manualForm.amount = 0
+    manualForm.vendor = ''
     manualForm.invoice_date = ''
+    manualForm.payment_method = ''
     manualForm.category = ''
     manualForm.description = ''
 }
@@ -146,7 +171,14 @@ const handleManualUpload = async () => {
     ElMessage.warning('请先选择一个文件')
     return
   }
-  if (!manualForm.amount || !manualForm.invoice_date || !manualForm.category) {
+  if (
+    !manualForm.invoice_number.trim() ||
+    !manualForm.amount ||
+    !manualForm.vendor.trim() ||
+    !manualForm.invoice_date ||
+    !manualForm.payment_method ||
+    !manualForm.category
+  ) {
       ElMessage.warning('请填写所有必填项')
       return
   }
@@ -154,7 +186,13 @@ const handleManualUpload = async () => {
   try {
     await uploadInvoiceManually({
       file: selectedFile.value,
-      ...manualForm
+      invoice_number: manualForm.invoice_number.trim(),
+      amount: manualForm.amount,
+      vendor: manualForm.vendor.trim(),
+      invoice_date: manualForm.invoice_date,
+      payment_method: manualForm.payment_method,
+      category: manualForm.category,
+      description: manualForm.description.trim(),
     })
     ElMessage.success('发票已成功存入草稿箱！')
     resetForm()

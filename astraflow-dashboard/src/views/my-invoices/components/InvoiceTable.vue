@@ -11,18 +11,9 @@
     >
       <el-table-column v-if="status === 'draft'" type="selection" width="55" />
 
-      <el-table-column label="发票图片" width="100">
+      <el-table-column label="发票号码" min-width="180">
         <template #default="{ row }">
-          <div class="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden">
-            <el-image
-              v-if="row.attachment?.file_url"
-              :src="row.attachment.file_url"
-              class="w-full h-full object-cover"
-              :preview-src-list="[row.attachment.file_url]"
-              preview-teleported
-            />
-            <el-icon v-else class="text-slate-400"><Picture /></el-icon>
-          </div>
+          <span class="font-mono text-slate-700">{{ row.invoice_number || '-' }}</span>
         </template>
       </el-table-column>
 
@@ -37,6 +28,18 @@
          <template #default="{ row }">
             {{ row.invoice_date ? dayjs(row.invoice_date).format('YYYY-MM-DD') : '待识别' }}
          </template>
+      </el-table-column>
+
+      <el-table-column label="商户名称" min-width="160">
+        <template #default="{ row }">
+          {{ row.vendor || '-' }}
+        </template>
+      </el-table-column>
+
+      <el-table-column label="支付方式" min-width="120">
+        <template #default="{ row }">
+          {{ row.payment_method || '-' }}
+        </template>
       </el-table-column>
       
       <el-table-column label="报销类别" min-width="100">
@@ -53,10 +56,19 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="right" width="150" fixed="right">
+      <el-table-column label="操作" align="right" width="240" fixed="right">
         <template #default="{ row }">
+          <el-button type="primary" link @click="handleViewDetail(row)">查看</el-button>
           <el-button v-if="status === 'unconfirmed'" type="primary" link @click="handleEdit(row)">确认信息</el-button>
           <el-button v-if="status === 'draft'" type="primary" link @click="handleEdit(row)">编辑</el-button>
+          <el-button
+            v-if="canDelete(row)"
+            type="danger"
+            link
+            @click="handleDelete(row)"
+          >
+            删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -124,6 +136,36 @@
         </span>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="detailDialogVisible" title="单据详情" width="720px">
+      <div v-loading="detailLoading">
+        <el-descriptions v-if="detailData" :column="2" border>
+          <el-descriptions-item label="单据ID">{{ detailData.id }}</el-descriptions-item>
+          <el-descriptions-item label="状态">{{ getStatusText(detailData.status) }}</el-descriptions-item>
+          <el-descriptions-item label="金额">¥{{ Number(detailData.amount || 0).toFixed(2) }}</el-descriptions-item>
+          <el-descriptions-item label="发票日期">{{ detailData.invoice_date || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="发票号码">{{ detailData.invoice_number || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="商户名称">{{ detailData.vendor || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="支付方式">{{ detailData.payment_method || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="报销类别">{{ detailData.category || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="提交时间">{{ detailData.created_at || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="备注说明" :span="2">{{ detailData.description || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="附件预览" :span="2">
+            <el-image
+              v-if="displayImageUrl(detailData.image_url)"
+              :src="displayImageUrl(detailData.image_url)"
+              class="w-52 h-52 object-contain rounded border border-slate-200"
+              :preview-src-list="[displayImageUrl(detailData.image_url)]"
+              preview-teleported
+            />
+            <span v-else>-</span>
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
+      <template #footer>
+        <el-button @click="detailDialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -131,9 +173,8 @@
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { FormInstance, FormRules } from 'element-plus';
-import { getMyInvoices, confirmInvoice, publishInvoices, updateInvoice } from '../../../api/invoice';
+import { getMyInvoices, confirmInvoice, publishInvoices, updateInvoice, getInvoiceDetail, deleteInvoice } from '../../../api/invoice';
 import dayjs from 'dayjs';
-import { Picture } from '@element-plus/icons-vue';
 
 const props = defineProps<{
   status: 'recognizing' | 'unconfirmed' | 'draft' | 'submitted';
@@ -147,6 +188,9 @@ const total = ref(0);
 const currentPage = ref(1);
 const pageSize = 10;
 const selectedIds = ref<number[]>([]);
+const detailDialogVisible = ref(false);
+const detailLoading = ref(false);
+const detailData = ref<any>(null);
 
 // 弹窗与表单
 const dialogVisible = ref(false);
@@ -196,6 +240,31 @@ const handleSelectionChange = (selection: any[]) => {
   selectedIds.value = selection.map(item => item.id);
 };
 
+const canDelete = (row: any) => {
+  return row.status === 'unconfirmed' || row.status === 'draft';
+};
+
+const displayImageUrl = (rawUrl?: string) => {
+  if (!rawUrl) {
+    return '';
+  }
+
+  if (/^https?:\/\//i.test(rawUrl)) {
+    return rawUrl;
+  }
+
+  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+  const backendOrigin = apiBase.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '');
+
+  if (rawUrl.startsWith('/')) {
+    return `${backendOrigin}${rawUrl}`;
+  }
+  if (rawUrl.startsWith('./')) {
+    return `${backendOrigin}/${rawUrl.slice(2)}`;
+  }
+  return `${backendOrigin}/${rawUrl}`;
+};
+
 // 批量提交
 const handlePublish = async () => {
   if (selectedIds.value.length === 0) return;
@@ -217,6 +286,44 @@ const handlePublish = async () => {
     }
   } finally {
     loading.value = false;
+  }
+};
+
+const handleViewDetail = async (row: any) => {
+  detailDialogVisible.value = true;
+  detailLoading.value = true;
+  detailData.value = null;
+  try {
+    const res = await getInvoiceDetail(row.id);
+    detailData.value = res.data.invoice;
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || '加载单据详情失败');
+  } finally {
+    detailLoading.value = false;
+  }
+};
+
+const handleDelete = async (row: any) => {
+  if (!canDelete(row)) {
+    ElMessage.warning('仅待确认或待发布状态的单据允许删除');
+    return;
+  }
+
+  try {
+    await ElMessageBox.confirm(`确定删除单据 #${row.id} 吗？该操作不可恢复。`, '删除确认', {
+      type: 'warning',
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+    });
+
+    await deleteInvoice(row.id);
+    ElMessage.success('删除成功');
+    fetchData();
+    emit('refresh-counts');
+  } catch (e: any) {
+    if (e !== 'cancel') {
+      ElMessage.error(e.response?.data?.message || e.message || '删除失败');
+    }
   }
 };
 

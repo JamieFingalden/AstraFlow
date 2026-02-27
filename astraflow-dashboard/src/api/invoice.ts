@@ -24,19 +24,23 @@ export const uploadInvoiceForOCR = (file: File) => {
  */
 export const uploadInvoiceManually = (data: {
   file: File
+  invoice_number: string
   amount: number
+  vendor: string
   invoice_date: string // YYYY-MM-DD
+  payment_method: string
   category: string
-  description?: string
+  description: string
 }) => {
   const formData = new FormData()
   formData.append('file', data.file)
+  formData.append('invoice_number', data.invoice_number)
   formData.append('amount', data.amount.toString())
+  formData.append('vendor', data.vendor)
   formData.append('invoice_date', data.invoice_date)
+  formData.append('payment_method', data.payment_method)
   formData.append('category', data.category)
-  if (data.description) {
-    formData.append('description', data.description)
-  }
+  formData.append('description', data.description)
 
   return request({
     url: '/invoices/upload-manual',
@@ -57,6 +61,17 @@ export const getMyInvoices = (params: any) => {
     url: '/invoices/my-invoices',
     method: 'get',
     params,
+  });
+};
+
+/**
+ * 获取单据详情
+ * @param id 发票ID
+ */
+export const getInvoiceDetail = (id: number) => {
+  return request({
+    url: `/invoices/${id}`,
+    method: 'get',
   });
 };
 
@@ -95,5 +110,16 @@ export const updateInvoice = (id: number, data: any) => {
     url: `/invoices/${id}`,
     method: 'put',
     data,
+  });
+};
+
+/**
+ * 删除发票（仅待确认和待发布）
+ * @param id 发票ID
+ */
+export const deleteInvoice = (id: number) => {
+  return request({
+    url: `/invoices/${id}`,
+    method: 'delete',
   });
 };
