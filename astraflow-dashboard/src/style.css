@@ -1,1 +1,177 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+
+:root {
+  --af-bg: #f3f7fb;
+  --af-surface: #ffffff;
+  --af-surface-soft: #f7fbff;
+  --af-border: #d9e3ee;
+  --af-text: #10243d;
+  --af-text-soft: #5d728a;
+  --af-primary: #1f6feb;
+  --af-primary-strong: #1457c4;
+  --af-success: #16a34a;
+  --af-warning: #d97706;
+  --af-danger: #dc2626;
+  --af-shadow: 0 14px 40px rgba(15, 35, 60, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  color: var(--af-text);
+  background:
+    radial-gradient(circle at 18% -8%, rgba(31, 111, 235, 0.16), transparent 40%),
+    radial-gradient(circle at 92% 12%, rgba(22, 163, 74, 0.14), transparent 34%),
+    linear-gradient(180deg, #f7fbff 0%, var(--af-bg) 58%, #edf3f9 100%);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.af-title {
+  font-family: 'Lexend', sans-serif;
+  letter-spacing: -0.015em;
+}
+
+.page-shell {
+  background: var(--af-surface);
+  border: 1px solid var(--af-border);
+  border-radius: 18px;
+  box-shadow: var(--af-shadow);
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-subtitle {
+  color: var(--af-text-soft);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.data-card {
+  border: 1px solid var(--af-border);
+  border-radius: 16px;
+  background: linear-gradient(160deg, #ffffff 10%, #f4f9ff 100%);
+  box-shadow: 0 10px 24px rgba(18, 39, 67, 0.08);
+}
+
+.af-button-primary.el-button {
+  --el-button-bg-color: var(--af-primary);
+  --el-button-border-color: var(--af-primary);
+  --el-button-hover-bg-color: var(--af-primary-strong);
+  --el-button-hover-border-color: var(--af-primary-strong);
+  --el-button-active-bg-color: var(--af-primary-strong);
+  --el-button-active-border-color: var(--af-primary-strong);
+  font-weight: 600;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(20, 87, 196, 0.26);
+}
+
+.af-button-primary.el-button:not(.is-disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(20, 87, 196, 0.33);
+}
+
+.af-button-soft.el-button {
+  --el-button-bg-color: #f3f8ff;
+  --el-button-border-color: #cddcf0;
+  --el-button-text-color: #335a84;
+  --el-button-hover-bg-color: #e8f2ff;
+  --el-button-hover-border-color: #b8cee9;
+  --el-button-hover-text-color: #274d78;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.el-button {
+  border-radius: 12px;
+  font-weight: 600;
+  transition: transform 0.18s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.el-button:not(.is-link):not(.is-text):not(.is-disabled) {
+  box-shadow: 0 4px 12px rgba(16, 36, 61, 0.08);
+}
+
+.el-button--default {
+  --el-button-bg-color: #ffffff;
+  --el-button-border-color: #cfdded;
+  --el-button-text-color: #28496c;
+  --el-button-hover-bg-color: #f3f8ff;
+  --el-button-hover-border-color: #b7cce4;
+  --el-button-hover-text-color: #1e436b;
+}
+
+.el-button.is-link {
+  font-weight: 600;
+}
+
+.el-card {
+  border-color: var(--af-border);
+}
+
+.el-table {
+  --el-table-header-bg-color: #f3f8fe;
+  --el-table-tr-bg-color: transparent;
+  --el-table-border-color: #e4edf6;
+  --el-table-row-hover-bg-color: #f5f9ff;
+}
+
+.el-tag.el-tag--success {
+  --el-tag-bg-color: rgba(22, 163, 74, 0.13);
+  --el-tag-border-color: rgba(22, 163, 74, 0.2);
+  --el-tag-text-color: #167a3a;
+}
+
+.el-tag.el-tag--warning {
+  --el-tag-bg-color: rgba(217, 119, 6, 0.14);
+  --el-tag-border-color: rgba(217, 119, 6, 0.2);
+  --el-tag-text-color: #9a5a08;
+}
+
+.el-tag.el-tag--danger {
+  --el-tag-bg-color: rgba(220, 38, 38, 0.12);
+  --el-tag-border-color: rgba(220, 38, 38, 0.2);
+  --el-tag-text-color: #b42323;
+}
+
+.el-tag.el-tag--info {
+  --el-tag-bg-color: rgba(56, 91, 130, 0.11);
+  --el-tag-border-color: rgba(56, 91, 130, 0.18);
+  --el-tag-text-color: #385b82;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

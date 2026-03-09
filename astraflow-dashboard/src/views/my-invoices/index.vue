@@ -1,9 +1,9 @@
 <template>
-  <div class="h-full flex flex-col p-6 bg-slate-50">
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex-1 overflow-hidden flex flex-col">
+  <div class="h-full flex flex-col">
+    <div class="page-shell flex-1 overflow-hidden flex flex-col">
       <div class="p-6 border-b border-slate-100">
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">我的票夹</h1>
-        <p class="text-slate-500 mt-1 text-sm">管理我上传的发票，提交或修改。</p>
+        <h1 class="af-title text-2xl font-semibold text-slate-900 tracking-tight">我的票夹</h1>
+        <p class="page-subtitle">管理我上传的发票，提交或修改。</p>
       </div>
       
       <el-tabs v-model="activeTab" class="flex-1 flex flex-col -mb-px">

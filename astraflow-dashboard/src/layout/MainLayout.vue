@@ -1,12 +1,12 @@
 <template>
-  <div class="h-screen w-full flex bg-slate-50 overflow-hidden">
+  <div class="h-screen w-full flex bg-transparent overflow-hidden p-3 md:p-4 gap-3 md:gap-4">
     
     <!-- Sidebar -->
-    <aside class="w-[240px] bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 transition-all duration-300 z-20">
+    <aside class="w-[250px] sidebar-panel text-slate-200 flex flex-col flex-shrink-0 transition-all duration-300 z-20 rounded-2xl overflow-hidden">
       <!-- Logo Area -->
-      <div class="h-[60px] flex items-center px-6 border-b border-slate-800 bg-slate-900">
+      <div class="h-[64px] flex items-center px-6 border-b border-slate-800/60">
         <div class="flex items-center gap-3 text-white">
-             <div class="w-8 h-8 rounded bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-900/50">
+             <div class="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center shadow-lg shadow-sky-900/40">
                 <el-icon :size="18"><Monitor /></el-icon>
              </div>
              <span class="font-bold text-lg tracking-tight">AstraFlow</span>
@@ -17,7 +17,7 @@
       <el-scrollbar class="flex-1">
         <el-menu
           :default-active="activeRoute"
-          class="!border-none !bg-transparent w-full mt-2"
+          class="!border-none !bg-transparent w-full mt-3"
           text-color="#94a3b8"
           active-text-color="#ffffff"
           background-color="transparent"
@@ -79,7 +79,7 @@
       </el-scrollbar>
 
       <!-- User Profile (Bottom Sidebar) -->
-      <div class="p-4 border-t border-slate-800 bg-slate-900">
+      <div class="p-4 border-t border-slate-700/50 bg-slate-900/40 backdrop-blur-sm">
           <div class="flex items-center gap-3">
               <el-avatar :size="36" :src="userStore.userInfo?.avatar" class="border-2 border-slate-700" />
               <div class="flex flex-col overflow-hidden text-left">
@@ -91,10 +91,10 @@
     </aside>
 
     <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col min-w-0 bg-slate-50">
+    <div class="flex-1 flex flex-col min-w-0 bg-transparent">
       
       <!-- Header -->
-      <header class="h-[60px] bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-10">
+      <header class="h-[64px] page-shell !rounded-2xl !shadow-none flex items-center justify-between px-5 md:px-6 z-10">
         <!-- Page Title -->
         <div class="flex items-center text-slate-800 font-semibold">
              {{ routeTitle }}
@@ -122,7 +122,7 @@
       </header>
 
       <!-- Scrollable View -->
-      <main class="flex-1 overflow-auto p-6 relative">
+      <main class="flex-1 overflow-auto p-3 md:p-4 relative">
          <router-view v-slot="{ Component }">
             <transition name="fade" mode="out-in">
                 <component :is="Component" />
@@ -181,16 +181,25 @@ const handleCommand = (command: string) => {
     border-radius: 8px;
 }
 
+.sidebar-panel {
+    background:
+      radial-gradient(circle at 20% 0%, rgba(56, 189, 248, 0.2), transparent 38%),
+      radial-gradient(circle at 110% 120%, rgba(34, 197, 94, 0.15), transparent 45%),
+      linear-gradient(180deg, #0b1b30 0%, #0f2742 55%, #12314f 100%);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 16px 36px rgba(12, 31, 54, 0.35);
+}
+
 .menu-item-override:hover {
-    background-color: #1e293b !important;
+    background-color: rgba(56, 103, 152, 0.45) !important;
     color: #ffffff !important;
 }
 
 .menu-item-override.is-active {
-    background-color: #4f46e5 !important;
+    background: linear-gradient(135deg, #1d7cf2 0%, #16a34a 120%) !important;
     color: #ffffff !important;
     font-weight: 500;
-    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+    box-shadow: 0 10px 20px rgba(20, 87, 196, 0.4);
 }
 
 .fade-enter-active,

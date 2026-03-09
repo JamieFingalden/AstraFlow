@@ -1,14 +1,14 @@
 <template>
-  <div class="h-full flex flex-col items-center justify-center bg-slate-50 p-4">
+  <div class="h-full flex flex-col items-center justify-center p-4">
     <div class="w-full max-w-2xl">
       <!-- Header -->
       <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">上传新的发票</h1>
-        <p class="text-slate-500 mt-2">选择一种方式开始你的报销流程。</p>
+        <h1 class="af-title text-3xl font-semibold text-slate-900 tracking-tight">上传新的发票</h1>
+        <p class="page-subtitle mt-2">选择一种方式开始你的报销流程。</p>
       </div>
 
       <!-- Upload Card -->
-      <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+      <div class="page-shell rounded-2xl p-8">
         <el-upload
           v-if="!selectedFile"
           ref="uploadRef"
@@ -89,7 +89,7 @@
       <div v-if="selectedFile" class="mt-6 flex gap-4">
         <el-button 
           type="primary" 
-          class="!flex-1 !h-12 !text-base !font-medium !bg-indigo-600 !border-indigo-600" 
+          class="!flex-1 !h-12 !text-base !font-medium af-button-primary" 
           :loading="isOcrLoading"
           @click="handleOcrUpload"
         >

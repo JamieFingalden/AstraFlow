@@ -1,11 +1,11 @@
 <template>
   <div class="h-full flex flex-col gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">历史归档查询</h1>
-      <p class="text-slate-500 mt-1 text-sm">按关键字、状态和时间范围检索历史单据。</p>
+      <h1 class="af-title text-2xl font-semibold text-slate-900 tracking-tight">历史归档查询</h1>
+      <p class="page-subtitle">按关键字、状态和时间范围检索历史单据。</p>
     </div>
 
-    <el-card shadow="never">
+    <el-card shadow="never" class="page-shell !rounded-2xl">
       <el-form inline :model="filters" @submit.prevent>
         <el-form-item label="关键字">
           <el-input
@@ -39,13 +39,13 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button type="primary" class="af-button-primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
     </el-card>
 
-    <el-card shadow="never" class="flex-1 flex flex-col">
+    <el-card shadow="never" class="page-shell !rounded-2xl flex-1 flex flex-col">
       <el-table v-loading="loading" :data="tableData" style="width: 100%" class="flex-1">
         <el-table-column prop="invoice_number" label="单据编号" min-width="170" />
 

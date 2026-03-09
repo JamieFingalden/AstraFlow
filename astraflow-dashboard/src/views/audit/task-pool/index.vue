@@ -1,17 +1,17 @@
 <template>
-  <div class="h-full flex flex-col">
-    <div class="mb-6 flex items-center justify-between">
+  <div class="h-full flex flex-col gap-4">
+    <div class="page-header">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">审核任务池</h1>
-        <p class="text-slate-500 mt-1 text-sm">查看并处理待审核（pending）的单据。</p>
+        <h1 class="af-title text-2xl font-semibold text-slate-900 tracking-tight">审核任务池</h1>
+        <p class="page-subtitle">查看并处理待审核（pending）的单据。</p>
       </div>
-      <el-button type="primary" class="!bg-indigo-600 !border-indigo-600 hover:!bg-indigo-700" @click="fetchData">
+      <el-button type="primary" class="af-button-primary" @click="fetchData">
         <el-icon class="mr-2"><Refresh /></el-icon>
         刷新
       </el-button>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex-1 overflow-hidden flex flex-col">
+    <div class="page-shell flex-1 overflow-hidden flex flex-col">
       <el-table
         v-loading="loading"
         :data="tableData"
