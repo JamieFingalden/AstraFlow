@@ -10,6 +10,7 @@
       <!-- Upload Card -->
       <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
         <el-upload
+          v-if="!selectedFile"
           ref="uploadRef"
           drag
           :auto-upload="false"
@@ -28,6 +29,17 @@
             </div>
           </template>
         </el-upload>
+
+        <div v-else class="rounded-xl border border-slate-200 bg-slate-50 p-4 flex items-center justify-between">
+          <div class="flex items-center gap-3 min-w-0">
+            <el-icon class="text-indigo-500" :size="20"><DocumentAdd /></el-icon>
+            <div class="min-w-0">
+              <div class="text-sm text-slate-800 truncate">{{ selectedFile.name }}</div>
+              <div class="text-xs text-slate-500">已选择 1 个文件</div>
+            </div>
+          </div>
+          <el-button text type="danger" @click="clearSelectedFile">移除</el-button>
+        </div>
         
         <!-- Form for manual mode -->
         <div v-if="selectedFile && uploadMode === 'manual'" class="mt-6 space-y-4 pt-4 border-t border-slate-100">
@@ -147,6 +159,10 @@ const resetForm = () => {
     manualForm.payment_method = ''
     manualForm.category = ''
     manualForm.description = ''
+}
+
+const clearSelectedFile = () => {
+  resetForm()
 }
 
 const handleOcrUpload = async () => {
