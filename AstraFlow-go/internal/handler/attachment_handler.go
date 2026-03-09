@@ -441,7 +441,7 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 			vendor,
 			category,
 			description,
-			string(model.StatusPending), // Keep as pending for review, or use appropriate status
+			string(model.StatusUnconfirmed), // OCR 完成后先进入待确认
 		)
 		if err != nil {
 			log.Printf("更新发票失败，发票ID: %d, 错误: %v", invoiceID, err)

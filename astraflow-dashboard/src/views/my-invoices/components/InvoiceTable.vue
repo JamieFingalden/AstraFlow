@@ -58,7 +58,7 @@
 
       <el-table-column label="操作" align="right" width="240" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" link @click="handleViewDetail(row)">查看</el-button>
+          <el-button type="primary" link @click="handleViewDetail(row)">详情</el-button>
           <el-button v-if="status === 'unconfirmed'" type="primary" link @click="handleEdit(row)">确认信息</el-button>
           <el-button v-if="status === 'draft'" type="primary" link @click="handleEdit(row)">编辑</el-button>
           <el-button
@@ -137,35 +137,36 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="detailDialogVisible" title="单据详情" width="720px">
-      <div v-loading="detailLoading">
-        <el-descriptions v-if="detailData" :column="2" border>
-          <el-descriptions-item label="单据ID">{{ detailData.id }}</el-descriptions-item>
-          <el-descriptions-item label="状态">{{ getStatusText(detailData.status) }}</el-descriptions-item>
-          <el-descriptions-item label="金额">¥{{ Number(detailData.amount || 0).toFixed(2) }}</el-descriptions-item>
-          <el-descriptions-item label="发票日期">{{ detailData.invoice_date || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="发票号码">{{ detailData.invoice_number || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="商户名称">{{ detailData.vendor || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="支付方式">{{ detailData.payment_method || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="报销类别">{{ detailData.category || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="提交时间">{{ detailData.created_at || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="备注说明" :span="2">{{ detailData.description || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="附件预览" :span="2">
+    <el-drawer v-model="detailDrawerVisible" title="单据详情" direction="rtl" size="620px">
+      <div v-loading="detailLoading" class="h-full overflow-y-auto pr-1">
+        <template v-if="detailData">
+          <el-descriptions :column="2" border>
+            <el-descriptions-item label="单据ID">{{ detailData.id }}</el-descriptions-item>
+            <el-descriptions-item label="状态">{{ getStatusText(detailData.status) }}</el-descriptions-item>
+            <el-descriptions-item label="金额">¥{{ Number(detailData.amount || 0).toFixed(2) }}</el-descriptions-item>
+            <el-descriptions-item label="发票日期">{{ detailData.invoice_date || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="发票号码">{{ detailData.invoice_number || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="商户名称">{{ detailData.vendor || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="支付方式">{{ detailData.payment_method || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="报销类别">{{ detailData.category || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="提交时间">{{ detailData.created_at || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="备注说明" :span="2">{{ detailData.description || '-' }}</el-descriptions-item>
+          </el-descriptions>
+
+          <div class="mt-4">
+            <div class="text-sm text-slate-500 mb-2">发票原图</div>
             <el-image
               v-if="displayImageUrl(detailData.image_url)"
               :src="displayImageUrl(detailData.image_url)"
-              class="w-52 h-52 object-contain rounded border border-slate-200"
+              class="w-56 h-56 object-contain rounded border border-slate-200"
               :preview-src-list="[displayImageUrl(detailData.image_url)]"
               preview-teleported
             />
-            <span v-else>-</span>
-          </el-descriptions-item>
-        </el-descriptions>
+            <div v-else class="text-slate-400">暂无图片</div>
+          </div>
+        </template>
       </div>
-      <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
-      </template>
-    </el-dialog>
+    </el-drawer>
   </div>
 </template>
 
@@ -188,7 +189,7 @@ const total = ref(0);
 const currentPage = ref(1);
 const pageSize = 10;
 const selectedIds = ref<number[]>([]);
-const detailDialogVisible = ref(false);
+const detailDrawerVisible = ref(false);
 const detailLoading = ref(false);
 const detailData = ref<any>(null);
 
@@ -290,7 +291,7 @@ const handlePublish = async () => {
 };
 
 const handleViewDetail = async (row: any) => {
-  detailDialogVisible.value = true;
+  detailDrawerVisible.value = true;
   detailLoading.value = true;
   detailData.value = null;
   try {
@@ -310,7 +311,7 @@ const handleDelete = async (row: any) => {
   }
 
   try {
-    await ElMessageBox.confirm(`确定删除单据 #${row.id} 吗？该操作不可恢复。`, '删除确认', {
+    await ElMessageBox.confirm('确定要删除该单据吗？操作不可逆', '删除确认', {
       type: 'warning',
       confirmButtonText: '确定删除',
       cancelButtonText: '取消',

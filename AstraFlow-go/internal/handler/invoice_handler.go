@@ -2,7 +2,6 @@ package handler
 
 import (
 	"AstraFlow-go/internal/client"
-	"AstraFlow-go/internal/model"
 	"AstraFlow-go/internal/service"
 	typeUtils "AstraFlow-go/pkg/utils"
 	"errors"
@@ -603,50 +602,30 @@ func (h InvoiceHandler) DeleteInvoice(c *gin.Context) {
 		return
 	}
 
-	tenantId, exists := c.Get("tenant_id")
-	var tenantIdInt int64
-	if !exists || tenantId == nil {
-		tenantIdInt = 0
-	} else {
-		// Use type assertion carefully or cast
-		tenantIdInt = cast.ToInt64(tenantId)
-	}
-
-	invoice, err := h.invoiceService.FindInvoiceInfoById(id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, InvoiceResponse{
-			Code:    500,
-			Message: "获取发票信息失败: " + err.Error(),
-		})
-		return
-	}
-
 	userIdInt := cast.ToInt64(userId)
-
-	// Permission check
-	if invoice.UserID != userIdInt {
-		// If not owner, check if tenant admin?
-		// For now, if invoice has tenantID, check if user matches tenantID?
-		// Existing logic:
-		if invoice.TenantID != nil && *invoice.TenantID != tenantIdInt {
+	err = h.invoiceService.DeleteInvoice(id, userIdInt)
+	if err != nil {
+		switch {
+		case errors.Is(err, service.ErrInvalidInvoiceID), errors.Is(err, service.ErrInvoiceDeleteNotAllowed):
+			c.JSON(http.StatusBadRequest, InvoiceResponse{
+				Code:    400,
+				Message: "当前状态不可删除，单据已进入流转流程",
+			})
+			return
+		case errors.Is(err, service.ErrInvoiceForbidden):
 			c.JSON(http.StatusForbidden, InvoiceResponse{
 				Code:    403,
 				Message: "您没有权限删除该发票",
 			})
 			return
+		case errors.Is(err, service.ErrInvoiceNotFound):
+			c.JSON(http.StatusNotFound, InvoiceResponse{
+				Code:    404,
+				Message: "发票不存在",
+			})
+			return
 		}
-	}
 
-	if invoice.Status != model.StatusUnconfirmed && invoice.Status != model.StatusDraft {
-		c.JSON(http.StatusBadRequest, InvoiceResponse{
-			Code:    400,
-			Message: "仅待确认或待发布状态的发票允许删除",
-		})
-		return
-	}
-
-	err = h.invoiceService.DeleteInvoice(id)
-	if err != nil {
 		c.JSON(http.StatusInternalServerError, InvoiceResponse{
 			Code:    500,
 			Message: err.Error(),
@@ -682,20 +661,25 @@ func (h InvoiceHandler) GetInvoiceDetail(c *gin.Context) {
 	}
 	userIdInt := cast.ToInt64(userId)
 
-	tenantId, exists := c.Get("tenant_id")
-	var tenantIdInt int64
-	if !exists || tenantId == nil {
-		tenantIdInt = 0
-	} else {
-		tenantIdInt = cast.ToInt64(tenantId)
-	}
-
-	detail, err := h.invoiceService.GetInvoiceDetailForAudit(id)
+	detail, err := h.invoiceService.GetInvoiceDetailForUser(id, userIdInt)
 	if err != nil {
-		if errors.Is(err, service.ErrInvoiceNotFound) {
+		switch {
+		case errors.Is(err, service.ErrInvalidInvoiceID):
+			c.JSON(http.StatusBadRequest, InvoiceResponse{
+				Code:    400,
+				Message: "发票ID格式错误",
+			})
+			return
+		case errors.Is(err, service.ErrInvoiceNotFound):
 			c.JSON(http.StatusNotFound, InvoiceResponse{
 				Code:    404,
 				Message: "发票不存在",
+			})
+			return
+		case errors.Is(err, service.ErrInvoiceForbidden):
+			c.JSON(http.StatusForbidden, InvoiceResponse{
+				Code:    403,
+				Message: "您没有权限查看该发票",
 			})
 			return
 		}
@@ -705,16 +689,6 @@ func (h InvoiceHandler) GetInvoiceDetail(c *gin.Context) {
 			Message: "获取发票详情失败: " + err.Error(),
 		})
 		return
-	}
-
-	if detail.UserID != userIdInt {
-		if detail.TenantID == nil || *detail.TenantID != tenantIdInt {
-			c.JSON(http.StatusForbidden, InvoiceResponse{
-				Code:    403,
-				Message: "您没有权限查看该发票",
-			})
-			return
-		}
 	}
 
 	c.JSON(http.StatusOK, InvoiceResponse{

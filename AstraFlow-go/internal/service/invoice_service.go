@@ -11,14 +11,16 @@ import (
 )
 
 var (
-	ErrInvalidInvoiceID      = errors.New("invalid invoice id")
-	ErrInvoiceNotFound       = errors.New("invoice not found")
-	ErrInvoiceAlreadyHandled = errors.New("invoice already handled")
-	ErrFinalAmountRequired   = errors.New("final amount required")
-	ErrRejectRemarksRequired = errors.New("reject remarks required")
-	ErrInvalidReviewAction   = errors.New("invalid review action")
-	ErrInvalidInvoiceIDs     = errors.New("invalid invoice ids")
-	ErrBatchPayCountMismatch = errors.New("batch pay count mismatch")
+	ErrInvalidInvoiceID        = errors.New("invalid invoice id")
+	ErrInvoiceNotFound         = errors.New("invoice not found")
+	ErrInvoiceForbidden        = errors.New("invoice forbidden")
+	ErrInvoiceDeleteNotAllowed = errors.New("invoice delete not allowed")
+	ErrInvoiceAlreadyHandled   = errors.New("invoice already handled")
+	ErrFinalAmountRequired     = errors.New("final amount required")
+	ErrRejectRemarksRequired   = errors.New("reject remarks required")
+	ErrInvalidReviewAction     = errors.New("invalid review action")
+	ErrInvalidInvoiceIDs       = errors.New("invalid invoice ids")
+	ErrBatchPayCountMismatch   = errors.New("batch pay count mismatch")
 )
 
 // PendingInvoicesResult 待审核单据分页结果
@@ -298,14 +300,29 @@ func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount f
 	return existingInvoice, nil
 }
 
-func (s *InvoiceService) DeleteInvoice(id int64) error {
+func (s *InvoiceService) DeleteInvoice(id, userID int64) error {
+	if id <= 0 {
+		return ErrInvalidInvoiceID
+	}
+	if userID <= 0 {
+		return ErrInvoiceForbidden
+	}
+
 	invoice, err := s.invoiceRepo.FindById(id)
 	if err != nil {
 		return err
 	}
 
 	if invoice == nil {
-		return errors.New("发票不存在")
+		return ErrInvoiceNotFound
+	}
+
+	if invoice.UserID != userID {
+		return ErrInvoiceForbidden
+	}
+
+	if invoice.Status != model.StatusUnconfirmed && invoice.Status != model.StatusDraft {
+		return ErrInvoiceDeleteNotAllowed
 	}
 
 	err = s.invoiceRepo.Delete(id)
@@ -315,6 +332,30 @@ func (s *InvoiceService) DeleteInvoice(id int64) error {
 	}
 
 	return nil
+}
+
+// GetInvoiceDetailForUser 获取员工自己的单据详情（仅本人可访问）
+func (s *InvoiceService) GetInvoiceDetailForUser(id, userID int64) (*repository.InvoiceDetail, error) {
+	if id <= 0 {
+		return nil, ErrInvalidInvoiceID
+	}
+	if userID <= 0 {
+		return nil, ErrInvoiceForbidden
+	}
+
+	detail, err := s.invoiceRepo.FindInvoiceDetailByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if detail == nil {
+		return nil, ErrInvoiceNotFound
+	}
+
+	if detail.UserID != userID {
+		return nil, ErrInvoiceForbidden
+	}
+
+	return detail, nil
 }
 
 func (s *InvoiceService) FindInvoiceInfoById(id int64) (*model.Invoice, error) {
