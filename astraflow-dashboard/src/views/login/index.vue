@@ -71,12 +71,13 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { User, Lock, Monitor } from '@element-plus/icons-vue'
 import { useUserStore } from '../../stores/userStore'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
 const loginFormRef = ref()
@@ -101,7 +102,8 @@ const handleLogin = async () => {
       try {
         await userStore.login(loginForm)
         ElMessage.success('Welcome back!')
-        router.push('/dashboard')
+        const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
+        router.push(redirect)
       } catch (error: any) {
         console.error('Login error:', error)
         ElMessage.error(error.message || 'Login failed. Please check your credentials.')
