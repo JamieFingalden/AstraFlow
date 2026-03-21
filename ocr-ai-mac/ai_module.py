@@ -96,6 +96,8 @@ def extract_invoice_fields_with_openai(image_path, ocr_result):
         6. 分辨支付方式（Payment Method）
         7. 分辨发票类型（Invoice Type）
         8. 如果某个字段在图片中不存在或识别不出，请留空
+        
+        如果用户图片是微信支付截图取最下面一个，若是支付宝截图取最上面一个
 
         商户名称需要根据情况来分辨，如以下例子
         {{
