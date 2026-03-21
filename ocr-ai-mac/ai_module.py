@@ -8,9 +8,11 @@ import json
 import os
 import re
 import base64
-from datetime import date
+from io import BytesIO
+from typing import List
 from dotenv import load_dotenv
 from openai import OpenAI
+from PIL import Image
 
 # 加载环境变量
 load_dotenv()
@@ -29,6 +31,12 @@ DASHSCOPE_URL = os.getenv('DASHSCOPE_URL', 'https://api-inference.modelscope.cn/
 OPENAI_API_KEY = os.getenv('DASHSCOPE_API_KEY', 'your_openai_api_key_here')
 OPENAI_BASE_URL = os.getenv('DASHSCOPE_URL', 'https://api.openai.com/v1')
 
+MAX_IMAGE_SIDE = int(os.getenv("OPENAI_IMAGE_MAX_SIDE", "2048"))
+LONG_IMAGE_RATIO = float(os.getenv("OPENAI_LONG_IMAGE_RATIO", "2.2"))
+LONG_IMAGE_TILE_HEIGHT = int(os.getenv("OPENAI_LONG_IMAGE_TILE_HEIGHT", "1800"))
+LONG_IMAGE_OVERLAP = int(os.getenv("OPENAI_LONG_IMAGE_OVERLAP", "120"))
+MAX_IMAGE_SEGMENTS = int(os.getenv("OPENAI_MAX_IMAGE_SEGMENTS", "4"))
+
 def encode_image_to_base64(image_path):
     """
     将图片文件编码为base64字符串
@@ -41,6 +49,65 @@ def encode_image_to_base64(image_path):
     """
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
+
+
+def _resize_to_limit(image: Image.Image, limit: int) -> Image.Image:
+    width, height = image.size
+    max_side = max(width, height)
+    if max_side <= limit:
+        return image
+
+    scale = limit / float(max_side)
+    new_size = (max(1, int(width * scale)), max(1, int(height * scale)))
+    return image.resize(new_size, Image.Resampling.LANCZOS)
+
+
+def _split_long_image(image: Image.Image) -> List[Image.Image]:
+    width, height = image.size
+    if width <= 0 or height <= 0:
+        return [image]
+
+    ratio = height / float(width)
+    if ratio < LONG_IMAGE_RATIO or height <= MAX_IMAGE_SIDE:
+        return [image]
+
+    tile_height = max(600, min(LONG_IMAGE_TILE_HEIGHT, MAX_IMAGE_SIDE))
+    overlap = max(0, min(LONG_IMAGE_OVERLAP, tile_height // 3))
+    step = tile_height - overlap
+    if step <= 0:
+        step = tile_height
+
+    segments: List[Image.Image] = []
+    top = 0
+    while top < height and len(segments) < MAX_IMAGE_SEGMENTS:
+        bottom = min(height, top + tile_height)
+        segments.append(image.crop((0, top, width, bottom)))
+        if bottom >= height:
+            break
+        top += step
+
+    return segments if segments else [image]
+
+
+def _encode_image_obj_to_base64(image: Image.Image) -> str:
+    buffer = BytesIO()
+    image.save(buffer, format="JPEG", quality=90, optimize=True)
+    return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+
+def prepare_image_payloads(image_path: str) -> List[str]:
+    with Image.open(image_path) as image:
+        normalized = image.convert("RGB")
+        normalized = _resize_to_limit(normalized, MAX_IMAGE_SIDE)
+        segments = _split_long_image(normalized)
+        return [_encode_image_obj_to_base64(segment) for segment in segments]
+
+
+def _extract_response_text(response) -> str:
+    content = response.choices[0].message.content
+    if isinstance(content, str):
+        return content.strip()
+    return ""
 
 
 def classify_expense(image_path, ocr_result=None):
@@ -74,16 +141,14 @@ def extract_invoice_fields_with_openai(image_path, ocr_result):
     Returns:
         dict: 发票字段提取结果
     """
-    # 将图片编码为base64
-    base64_image = encode_image_to_base64(image_path)
+    # 将图片预处理后编码为base64（自动缩放+长图切片）
+    base64_images = prepare_image_payloads(image_path)
 
     # 创建OpenAI客户端
     client = OpenAI(
         api_key=OPENAI_API_KEY,
         base_url=OPENAI_BASE_URL  # 可选，用于指定API基础URL
     )
-
-    today_str = date.today().strftime("%Y-%m-%d")
 
     # 构造系统提示词
     system_prompt = f"""你是一个发票信息整理分类助手。
@@ -96,8 +161,6 @@ def extract_invoice_fields_with_openai(image_path, ocr_result):
         6. 分辨支付方式（Payment Method）
         7. 分辨发票类型（Invoice Type）
         8. 如果某个字段在图片中不存在或识别不出，请留空
-        
-        如果用户图片是微信支付截图取最下面一个，若是支付宝截图取最上面一个
 
         商户名称需要根据情况来分辨，如以下例子
         {{
@@ -130,12 +193,15 @@ def extract_invoice_fields_with_openai(image_path, ocr_result):
         请严格按照上述JSON格式返回，不要包含其他文字。"""
 
     # 构造请求数据
+    user_content = [
+        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
+        for image_base64 in base64_images
+    ]
+    user_content.append({"type": "text", "text": f"OCR识别结果: {ocr_result}\n请提取这张发票的详细信息"})
+
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": [
-            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}},
-            {"type": "text", "text": f"OCR识别结果: {ocr_result}\n请提取这张发票的详细信息"}
-        ]}
+        {"role": "user", "content": user_content}
     ]
 
     try:
@@ -146,7 +212,9 @@ def extract_invoice_fields_with_openai(image_path, ocr_result):
             response_format={"type": "json_object"}  # 确保返回JSON格式
         )
 
-        response_text = response.choices[0].message.content.strip()
+        response_text = _extract_response_text(response)
+        if not response_text:
+            raise ValueError("模型返回内容为空")
 
         # 解析JSON响应
         json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
