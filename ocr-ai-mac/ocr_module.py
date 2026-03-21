@@ -7,9 +7,12 @@ OCR模块：使用PaddleOCR进行中文文本识别
 from paddleocr import PaddleOCR
 import os
 import ai_module
+import paddle
 
 # 设置环境变量 to avoid OneDNN issues
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+paddle.set_device("cpu")
+os.environ["FLAGS_allocator_strategy"] = "naive_best_fit"
 
 # 禁用 OneDNN / MKLDNN（避免 OneDNN Filter 报错）
 os.environ['FLAGS_use_mkldnn'] = '0'
@@ -26,8 +29,9 @@ def get_ocr_engine():
     global _ocr_engine
     if _ocr_engine is None:
         _ocr_engine = PaddleOCR(
-            use_textline_orientation=True,  # use_angle_cls is deprecated in 3.x, use use_textline_orientation instead
-            lang='ch'
+            lang='ch',
+            ocr_version='PP-OCRv3',  # ⭐ 使用轻量模型
+            use_textline_orientation=True,  # ⭐ 先关掉方向检测
         )
     return _ocr_engine
 
