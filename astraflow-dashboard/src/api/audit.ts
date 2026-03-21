@@ -25,6 +25,9 @@ export interface PendingInvoiceItem {
   category: string
   description: string
   status: 'pending' | 'approved' | 'rejected'
+  pre_audit_status?: 'pre_approved' | 'need_review'
+  pre_audit_score?: number
+  pre_audit_reasons?: string[]
   created_at: string
   updated_at: string
 }
@@ -52,6 +55,9 @@ export interface InvoiceDetail {
   category: string
   description: string
   status: 'pending' | 'approved' | 'rejected' | 'paid' | 'draft' | 'recognizing' | 'unconfirmed'
+  pre_audit_status?: 'pre_approved' | 'need_review'
+  pre_audit_score?: number
+  pre_audit_reasons?: string[]
   reviewer_id?: number
   review_remarks: string
   paid_at?: string
@@ -97,7 +103,11 @@ const unwrapApiData = <T>(response: AxiosOrApiResponse<T>): T => {
  * @param params 分页参数。
  * @returns 待审核分页结果。
  */
-export const getPendingInvoices = async (params?: { page?: number; size?: number }) => {
+export const getPendingInvoices = async (params?: {
+  page?: number
+  size?: number
+  pre_audit_status?: 'pre_approved' | 'need_review' | ''
+}) => {
   const response = await request<ApiResponse<PendingInvoicesResult>>({
     url: '/audit/invoices/pending',
     method: 'get',

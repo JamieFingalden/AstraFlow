@@ -39,6 +39,7 @@ type CreateInvoiceRequest struct {
 	InvoiceDate   *time.Time `json:"invoice_date" form:"invoice_date" time_format:"2006-01-02T15:04:05Z07:00"`
 	Amount        *float64   `json:"amount" form:"amount"`
 	Vendor        string     `json:"vendor" form:"vendor" binding:"required"`
+	TaxID         *string    `json:"tax_id" form:"tax_id"`
 	Description   *string    `json:"description,omitempty" form:"description"`
 	Category      *string    `json:"category" form:"category" binding:"required"`
 	Status        string     `json:"status" form:"status"`
@@ -564,7 +565,12 @@ func (h InvoiceHandler) UpdateInvoice(c *gin.Context) {
 		category = *req.Category
 	}
 
-	invoice, err := h.invoiceService.UpdateInvoice(id, invoiceDate, amount, invoiceNumber, req.Vendor, category, description, status)
+	taxID := ""
+	if req.TaxID != nil {
+		taxID = *req.TaxID
+	}
+
+	invoice, err := h.invoiceService.UpdateInvoice(id, invoiceDate, amount, invoiceNumber, req.Vendor, taxID, category, description, status)
 	if err != nil {
 		c.JSON(http.StatusConflict, InvoiceResponse{
 			Code:    409,

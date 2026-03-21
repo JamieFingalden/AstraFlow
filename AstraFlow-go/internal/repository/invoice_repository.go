@@ -3,12 +3,65 @@ package repository
 import (
 	"AstraFlow-go/internal/database"
 	"AstraFlow-go/internal/model"
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+// JSONStringArray 用于扫描 JSON 数组文本字段
+type JSONStringArray []string
+
+func (a *JSONStringArray) Scan(value interface{}) error {
+	if value == nil {
+		*a = []string{}
+		return nil
+	}
+
+	var raw []byte
+	switch v := value.(type) {
+	case []byte:
+		raw = v
+	case string:
+		raw = []byte(v)
+	default:
+		return fmt.Errorf("unsupported Scan type for JSONStringArray: %T", value)
+	}
+
+	if len(raw) == 0 {
+		*a = []string{}
+		return nil
+	}
+
+	rawStr := strings.TrimSpace(string(raw))
+	if rawStr == "" || rawStr == "null" {
+		*a = []string{}
+		return nil
+	}
+
+	arr := make([]string, 0)
+	if err := json.Unmarshal([]byte(rawStr), &arr); err != nil {
+		return err
+	}
+	*a = arr
+	return nil
+}
+
+func (a JSONStringArray) Value() (driver.Value, error) {
+	if len(a) == 0 {
+		return "[]", nil
+	}
+	b, err := json.Marshal([]string(a))
+	if err != nil {
+		return nil, err
+	}
+	return string(b), nil
+}
 
 var (
 	ErrInvoiceAlreadyProcessed = errors.New("invoice already processed")
@@ -19,44 +72,50 @@ var (
 
 // PendingInvoiceItem 待审核单据列表项（仓储层查询结果）
 type PendingInvoiceItem struct {
-	ID            int64               `json:"id"`
-	TenantID      *int64              `json:"tenant_id,omitempty"`
-	UserID        int64               `json:"user_id"`
-	UserName      string              `json:"user_name"`
-	AttachmentID  int64               `json:"attachment_id"`
-	InvoiceNumber string              `json:"invoice_number"`
-	InvoiceDate   *string             `json:"invoice_date,omitempty"`
-	Amount        float64             `json:"amount"`
-	Vendor        string              `json:"vendor"`
-	PaymentMethod string              `json:"payment_method"`
-	Category      string              `json:"category"`
-	Description   string              `json:"description"`
-	Status        model.InvoiceStatus `json:"status"`
-	CreatedAt     string              `json:"created_at"`
-	UpdatedAt     string              `json:"updated_at"`
+	ID              int64                `json:"id"`
+	TenantID        *int64               `json:"tenant_id,omitempty"`
+	UserID          int64                `json:"user_id"`
+	UserName        string               `json:"user_name"`
+	AttachmentID    int64                `json:"attachment_id"`
+	InvoiceNumber   string               `json:"invoice_number"`
+	InvoiceDate     *string              `json:"invoice_date,omitempty"`
+	Amount          float64              `json:"amount"`
+	Vendor          string               `json:"vendor"`
+	PaymentMethod   string               `json:"payment_method"`
+	Category        string               `json:"category"`
+	Description     string               `json:"description"`
+	Status          model.InvoiceStatus  `json:"status"`
+	PreAuditStatus  model.PreAuditStatus `json:"pre_audit_status"`
+	PreAuditScore   int                  `json:"pre_audit_score"`
+	PreAuditReasons JSONStringArray      `json:"pre_audit_reasons"`
+	CreatedAt       string               `json:"created_at"`
+	UpdatedAt       string               `json:"updated_at"`
 }
 
 // InvoiceDetail 单据详情（仓储层查询结果）
 type InvoiceDetail struct {
-	ID            int64               `json:"id"`
-	TenantID      *int64              `json:"tenant_id,omitempty"`
-	UserID        int64               `json:"user_id"`
-	UserName      string              `json:"user_name"`
-	UserUsername  string              `json:"user_username"`
-	AttachmentID  int64               `json:"attachment_id"`
-	ImageURL      string              `json:"image_url"`
-	InvoiceNumber string              `json:"invoice_number"`
-	InvoiceDate   *string             `json:"invoice_date,omitempty"`
-	Amount        float64             `json:"amount"`
-	Vendor        string              `json:"vendor"`
-	Category      string              `json:"category"`
-	Description   string              `json:"description"`
-	Status        model.InvoiceStatus `json:"status"`
-	ReviewerID    *int64              `json:"reviewer_id,omitempty"`
-	ReviewRemarks string              `json:"review_remarks"`
-	PaidAt        *string             `json:"paid_at,omitempty"`
-	CreatedAt     string              `json:"created_at"`
-	UpdatedAt     string              `json:"updated_at"`
+	ID              int64                `json:"id"`
+	TenantID        *int64               `json:"tenant_id,omitempty"`
+	UserID          int64                `json:"user_id"`
+	UserName        string               `json:"user_name"`
+	UserUsername    string               `json:"user_username"`
+	AttachmentID    int64                `json:"attachment_id"`
+	ImageURL        string               `json:"image_url"`
+	InvoiceNumber   string               `json:"invoice_number"`
+	InvoiceDate     *string              `json:"invoice_date,omitempty"`
+	Amount          float64              `json:"amount"`
+	Vendor          string               `json:"vendor"`
+	Category        string               `json:"category"`
+	Description     string               `json:"description"`
+	Status          model.InvoiceStatus  `json:"status"`
+	PreAuditStatus  model.PreAuditStatus `json:"pre_audit_status"`
+	PreAuditScore   int                  `json:"pre_audit_score"`
+	PreAuditReasons JSONStringArray      `json:"pre_audit_reasons"`
+	ReviewerID      *int64               `json:"reviewer_id,omitempty"`
+	ReviewRemarks   string               `json:"review_remarks"`
+	PaidAt          *string              `json:"paid_at,omitempty"`
+	CreatedAt       string               `json:"created_at"`
+	UpdatedAt       string               `json:"updated_at"`
 }
 
 // ArchiveSearchParams 历史归档搜索参数
@@ -196,9 +255,9 @@ func (r *InvoiceRepository) Delete(id int64) error {
 
 func (r *InvoiceRepository) FindById(id int64) (*model.Invoice, error) {
 	var invoice model.Invoice
-	err := r.db.Where("id = ?", id).Find(&invoice).Error
+	err := r.db.Where("id = ?", id).First(&invoice).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -373,9 +432,13 @@ func (r *InvoiceRepository) SumAmountByStatusAndUpdatedRange(tenantID *int64, us
 }
 
 // CountPendingInvoices 统计待审核单据总数
-func (r *InvoiceRepository) CountPendingInvoices() (int64, error) {
+func (r *InvoiceRepository) CountPendingInvoices(preAuditStatus string) (int64, error) {
 	var total int64
-	err := r.db.Model(&model.Invoice{}).Where("status = ?", model.StatusPending).Count(&total).Error
+	query := r.db.Model(&model.Invoice{}).Where("status = ?", model.StatusPending)
+	if preAuditStatus != "" {
+		query = query.Where("pre_audit_status = ?", preAuditStatus)
+	}
+	err := query.Count(&total).Error
 	if err != nil {
 		return 0, err
 	}
@@ -383,9 +446,9 @@ func (r *InvoiceRepository) CountPendingInvoices() (int64, error) {
 }
 
 // FindPendingInvoices 分页查询待审核单据，包含提交人姓名
-func (r *InvoiceRepository) FindPendingInvoices(limit, offset int) ([]PendingInvoiceItem, error) {
+func (r *InvoiceRepository) FindPendingInvoices(limit, offset int, preAuditStatus string) ([]PendingInvoiceItem, error) {
 	items := make([]PendingInvoiceItem, 0)
-	err := r.db.Table("invoices AS i").
+	query := r.db.Table("invoices AS i").
 		Select(`
 			i.id,
 			i.tenant_id,
@@ -400,11 +463,18 @@ func (r *InvoiceRepository) FindPendingInvoices(limit, offset int) ([]PendingInv
 			i.category,
 			i.description,
 			i.status,
+			i.pre_audit_status,
+			i.pre_audit_score,
+			i.pre_audit_reasons,
 			DATE_FORMAT(i.created_at, '%Y-%m-%d %H:%i:%s') AS created_at,
 			DATE_FORMAT(i.updated_at, '%Y-%m-%d %H:%i:%s') AS updated_at
 		`).
 		Joins("LEFT JOIN users AS u ON u.id = i.user_id").
-		Where("i.status = ?", model.StatusPending).
+		Where("i.status = ?", model.StatusPending)
+	if preAuditStatus != "" {
+		query = query.Where("i.pre_audit_status = ?", preAuditStatus)
+	}
+	err := query.
 		Order("i.created_at DESC").
 		Offset(offset).
 		Limit(limit).
@@ -434,6 +504,9 @@ func (r *InvoiceRepository) FindInvoiceDetailByID(id int64) (*InvoiceDetail, err
 			i.category,
 			i.description,
 			i.status,
+			i.pre_audit_status,
+			i.pre_audit_score,
+			i.pre_audit_reasons,
 			i.reviewer_id,
 			i.review_remarks,
 			DATE_FORMAT(i.paid_at, '%Y-%m-%d %H:%i:%s') AS paid_at,
@@ -451,6 +524,26 @@ func (r *InvoiceRepository) FindInvoiceDetailByID(id int64) (*InvoiceDetail, err
 		return nil, err
 	}
 	return &detail, nil
+}
+
+// ExistsDuplicateInvoice 判断是否存在重复发票（同发票号+金额+日期）
+func (r *InvoiceRepository) ExistsDuplicateInvoice(invoiceNumber string, amount float64, invoiceDate time.Time, excludeID int64) (bool, error) {
+	if invoiceNumber == "" || invoiceDate.IsZero() {
+		return false, nil
+	}
+
+	var count int64
+	query := r.db.Model(&model.Invoice{}).
+		Where("invoice_number = ? AND amount = ? AND DATE(invoice_date) = DATE(?)", invoiceNumber, amount, invoiceDate)
+	if excludeID > 0 {
+		query = query.Where("id <> ?", excludeID)
+	}
+
+	if err := query.Count(&count).Error; err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }
 
 // ReviewInvoice 审核单据（事务 + 行锁）

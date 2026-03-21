@@ -3,6 +3,7 @@ package service
 import (
 	"AstraFlow-go/internal/model"
 	"AstraFlow-go/internal/repository"
+	"encoding/json"
 	"errors"
 	"strings"
 	"time"
@@ -11,16 +12,18 @@ import (
 )
 
 var (
-	ErrInvalidInvoiceID        = errors.New("invalid invoice id")
-	ErrInvoiceNotFound         = errors.New("invoice not found")
-	ErrInvoiceForbidden        = errors.New("invoice forbidden")
-	ErrInvoiceDeleteNotAllowed = errors.New("invoice delete not allowed")
-	ErrInvoiceAlreadyHandled   = errors.New("invoice already handled")
-	ErrFinalAmountRequired     = errors.New("final amount required")
-	ErrRejectRemarksRequired   = errors.New("reject remarks required")
-	ErrInvalidReviewAction     = errors.New("invalid review action")
-	ErrInvalidInvoiceIDs       = errors.New("invalid invoice ids")
-	ErrBatchPayCountMismatch   = errors.New("batch pay count mismatch")
+	ErrInvalidInvoiceID          = errors.New("invalid invoice id")
+	ErrInvoiceNotFound           = errors.New("invoice not found")
+	ErrInvoiceForbidden          = errors.New("invoice forbidden")
+	ErrInvoiceDeleteNotAllowed   = errors.New("invoice delete not allowed")
+	ErrInvoiceInvalidOCRState    = errors.New("invoice invalid ocr state")
+	ErrInvoiceAttachmentMismatch = errors.New("invoice attachment mismatch")
+	ErrInvoiceAlreadyHandled     = errors.New("invoice already handled")
+	ErrFinalAmountRequired       = errors.New("final amount required")
+	ErrRejectRemarksRequired     = errors.New("reject remarks required")
+	ErrInvalidReviewAction       = errors.New("invalid review action")
+	ErrInvalidInvoiceIDs         = errors.New("invalid invoice ids")
+	ErrBatchPayCountMismatch     = errors.New("batch pay count mismatch")
 )
 
 // PendingInvoicesResult 待审核单据分页结果
@@ -67,6 +70,17 @@ type DashboardStatsResult struct {
 	CompanyPendingCount   int64   `json:"company_pending_count,omitempty"`
 	MonthlyPaidAmount     float64 `json:"monthly_paid_amount,omitempty"`
 	CompanyToPayCount     int64   `json:"company_to_pay_count,omitempty"`
+}
+
+const (
+	preAuditAmountThreshold = 5000.0
+	preAuditDateLimitDays   = 30
+)
+
+type PreAuditResult struct {
+	Status  model.PreAuditStatus
+	Score   int
+	Reasons []string
 }
 
 // InvoiceService 发票服务
@@ -263,10 +277,13 @@ func (s *InvoiceService) GetInvoicesByUserIDAndStatus(page, pageSize int, userId
 	return s.invoiceRepo.FindAllPageByUserIdAndStatus(pageSize, offset, userId, status)
 }
 
-func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, category, description, status string) (*model.Invoice, error) {
+func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, taxID, category, description, status string) (*model.Invoice, error) {
 	existingInvoice, err := s.invoiceRepo.FindById(id)
 	if err != nil {
 		return nil, err
+	}
+	if existingInvoice == nil {
+		return nil, ErrInvoiceNotFound
 	}
 
 	if invoiceNumber != "" && invoiceNumber != existingInvoice.InvoiceNumber {
@@ -285,8 +302,21 @@ func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount f
 	}
 	existingInvoice.Amount = amount
 	existingInvoice.Vendor = vendor
+	existingInvoice.TaxID = strings.TrimSpace(taxID)
 	existingInvoice.Category = category
 	existingInvoice.Description = description
+
+	preAuditResult, err := s.evaluatePreAudit(existingInvoice, invoiceDate, amount, invoiceNumber)
+	if err != nil {
+		return nil, err
+	}
+	reasonsJSON, err := json.Marshal(preAuditResult.Reasons)
+	if err != nil {
+		return nil, err
+	}
+	existingInvoice.PreAuditStatus = preAuditResult.Status
+	existingInvoice.PreAuditScore = preAuditResult.Score
+	existingInvoice.PreAuditReasons = string(reasonsJSON)
 
 	if status != "" {
 		existingInvoice.Status = model.InvoiceStatus(status)
@@ -298,6 +328,30 @@ func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount f
 	}
 
 	return existingInvoice, nil
+}
+
+func (s *InvoiceService) ValidateOCRCallbackTarget(invoiceID, attachmentID int64) error {
+	if invoiceID <= 0 || attachmentID <= 0 {
+		return ErrInvalidInvoiceID
+	}
+
+	invoice, err := s.invoiceRepo.FindById(invoiceID)
+	if err != nil {
+		return err
+	}
+	if invoice == nil {
+		return ErrInvoiceNotFound
+	}
+
+	if invoice.AttachmentID != attachmentID {
+		return ErrInvoiceAttachmentMismatch
+	}
+
+	if invoice.Status != model.StatusRecognizing {
+		return ErrInvoiceInvalidOCRState
+	}
+
+	return nil
 }
 
 func (s *InvoiceService) DeleteInvoice(id, userID int64) error {
@@ -427,7 +481,7 @@ func (s *InvoiceService) PublishInvoices(ids []int64) error {
 }
 
 // GetPendingInvoices 分页查询待审核任务池
-func (s *InvoiceService) GetPendingInvoices(page, size int) (*PendingInvoicesResult, error) {
+func (s *InvoiceService) GetPendingInvoices(page, size int, preAuditStatus string) (*PendingInvoicesResult, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -440,12 +494,12 @@ func (s *InvoiceService) GetPendingInvoices(page, size int) (*PendingInvoicesRes
 
 	offset := (page - 1) * size
 
-	total, err := s.invoiceRepo.CountPendingInvoices()
+	total, err := s.invoiceRepo.CountPendingInvoices(preAuditStatus)
 	if err != nil {
 		return nil, err
 	}
 
-	items, err := s.invoiceRepo.FindPendingInvoices(size, offset)
+	items, err := s.invoiceRepo.FindPendingInvoices(size, offset, preAuditStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -462,6 +516,82 @@ func (s *InvoiceService) GetPendingInvoices(page, size int) (*PendingInvoicesRes
 		Total:      total,
 		TotalPages: totalPages,
 	}, nil
+}
+
+func (s *InvoiceService) evaluatePreAudit(invoice *model.Invoice, incomingInvoiceDate time.Time, incomingAmount float64, incomingInvoiceNumber string) (*PreAuditResult, error) {
+	reasons := make([]string, 0)
+
+	invoiceNumber := strings.TrimSpace(incomingInvoiceNumber)
+	if invoiceNumber == "" {
+		invoiceNumber = strings.TrimSpace(invoice.InvoiceNumber)
+	}
+
+	amount := incomingAmount
+	if amount <= 0 {
+		amount = invoice.Amount
+	}
+
+	invoiceDate := incomingInvoiceDate
+	if invoiceDate.IsZero() && invoice.InvoiceDate != nil {
+		invoiceDate = *invoice.InvoiceDate
+	}
+
+	taxID := strings.TrimSpace(invoice.TaxID)
+
+	if invoiceNumber == "" {
+		reasons = append(reasons, "缺少发票号")
+	}
+	if invoiceDate.IsZero() {
+		reasons = append(reasons, "缺少开票日期")
+	}
+	if amount <= 0 {
+		reasons = append(reasons, "缺少金额")
+	}
+	if taxID == "" {
+		reasons = append(reasons, "缺少税号")
+	}
+
+	if amount > preAuditAmountThreshold {
+		reasons = append(reasons, "金额超过阈值 5000")
+	}
+
+	if !invoiceDate.IsZero() {
+		now := time.Now()
+		if now.Sub(invoiceDate).Hours() > float64(preAuditDateLimitDays*24) {
+			reasons = append(reasons, "开票日期超过30天")
+		}
+	}
+
+	hasDuplicate, err := s.invoiceRepo.ExistsDuplicateInvoice(invoiceNumber, amount, invoiceDate, invoice.ID)
+	if err != nil {
+		return nil, err
+	}
+	if hasDuplicate {
+		reasons = append(reasons, "疑似重复发票")
+	}
+
+	result := &PreAuditResult{
+		Status:  model.PreAuditStatusPreApproved,
+		Score:   100,
+		Reasons: reasons,
+	}
+
+	for _, reason := range reasons {
+		if strings.Contains(reason, "金额超过") {
+			result.Score -= 25
+		} else {
+			result.Score -= 20
+		}
+	}
+	if result.Score < 0 {
+		result.Score = 0
+	}
+
+	if len(reasons) > 0 {
+		result.Status = model.PreAuditStatusNeedReview
+	}
+
+	return result, nil
 }
 
 // GetInvoiceDetailForAudit 获取审核详情（只读，状态不限）

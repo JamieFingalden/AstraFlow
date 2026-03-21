@@ -5,10 +5,22 @@
         <h1 class="af-title text-2xl font-semibold text-slate-900 tracking-tight">审核任务池</h1>
         <p class="page-subtitle">查看并处理待审核（pending）的单据。</p>
       </div>
-      <el-button type="primary" class="af-button-primary" @click="fetchData">
-        <el-icon class="mr-2"><Refresh /></el-icon>
-        刷新
-      </el-button>
+      <div class="flex items-center gap-2">
+        <el-select
+          v-model="preAuditFilter"
+          style="width: 180px"
+          placeholder="AI预审筛选"
+          @change="handleFilterChange"
+        >
+          <el-option label="全部" value="" />
+          <el-option label="预通过" value="pre_approved" />
+          <el-option label="需复核" value="need_review" />
+        </el-select>
+        <el-button type="primary" class="af-button-primary" @click="fetchData">
+          <el-icon class="mr-2"><Refresh /></el-icon>
+          刷新
+        </el-button>
+      </div>
     </div>
 
     <div class="page-shell flex-1 overflow-hidden flex flex-col">
@@ -52,6 +64,21 @@
         <el-table-column label="提交时间" width="180">
           <template #default="{ row }">
             {{ formatDateTime(row.created_at) }}
+          </template>
+        </el-table-column>
+
+        <el-table-column label="AI预审" width="120">
+          <template #default="{ row }">
+            <el-tag v-if="row.pre_audit_status" :type="row.pre_audit_status === 'pre_approved' ? 'success' : 'warning'" round>
+              {{ row.pre_audit_status === 'pre_approved' ? '预通过' : '需复核' }}
+            </el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="预审分数" width="100">
+          <template #default="{ row }">
+            <span class="font-semibold">{{ Number(row.pre_audit_score ?? 0) }}</span>
           </template>
         </el-table-column>
 
@@ -100,11 +127,16 @@ const tableData = ref<PendingInvoiceItem[]>([])
 const page = ref(1)
 const size = ref(10)
 const total = ref(0)
+const preAuditFilter = ref<'' | 'pre_approved' | 'need_review'>('')
 
 const fetchData = async () => {
   loading.value = true
   try {
-    const data = await getPendingInvoices({ page: page.value, size: size.value })
+    const data = await getPendingInvoices({
+      page: page.value,
+      size: size.value,
+      pre_audit_status: preAuditFilter.value,
+    })
     tableData.value = data.items || []
     total.value = Number(data.total || 0)
   } catch (e: any) {
@@ -120,6 +152,11 @@ const handleRowClick = (row: PendingInvoiceItem) => {
 
 const handlePageChange = (val: number) => {
   page.value = val
+  fetchData()
+}
+
+const handleFilterChange = () => {
+  page.value = 1
   fetchData()
 }
 

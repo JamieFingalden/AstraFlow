@@ -399,6 +399,7 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 			})
 			return
 		}
+		fileIDInt := int64(fileID)
 
 		// 获取发票ID
 		invoiceIDFloat, ok := result.Data["invoice_id"].(float64)
@@ -411,6 +412,15 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 		}
 		invoiceID := int64(invoiceIDFloat)
 
+		if err := h.invoiceService.ValidateOCRCallbackTarget(invoiceID, fileIDInt); err != nil {
+			log.Printf("忽略异常OCR回调，invoiceID=%d fileID=%d err=%v", invoiceID, fileIDInt, err)
+			c.JSON(http.StatusBadRequest, Response{
+				Code:    400,
+				Message: "OCR回调数据无效或单据状态不匹配",
+			})
+			return
+		}
+
 		// 从OCR结果中提取发票信息
 		invoiceNumber, _ := result.Data["invoice_number"].(string)
 		vendor, _ := result.Data["vendor"].(string)
@@ -418,7 +428,7 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 		amountFloat, _ := result.Data["amount"].(float64)
 		amount := amountFloat
 		category, _ := result.Data["category"].(string)
-		// Ignored: paymentSource, taxId
+		taxID, _ := result.Data["tax_id"].(string)
 
 		// 处理日期
 		var invoiceDate time.Time
@@ -439,6 +449,7 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 			amount,
 			invoiceNumber,
 			vendor,
+			taxID,
 			category,
 			description,
 			string(model.StatusUnconfirmed), // OCR 完成后先进入待确认
@@ -453,9 +464,9 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 		}
 
 		// Also update status
-		h.service.UpdateAttachmentStatus(int64(fileID), model.AttachmentStatusSuccess)
+		h.service.UpdateAttachmentStatus(fileIDInt, model.AttachmentStatusSuccess)
 
-		log.Printf("OCR任务处理成功，发票ID: %d，文件ID: %d", invoiceID, int64(fileID))
+		log.Printf("OCR任务处理成功，发票ID: %d，文件ID: %d", invoiceID, fileIDInt)
 
 		c.JSON(http.StatusOK, Response{
 			Code:    200,

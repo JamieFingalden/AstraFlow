@@ -38,7 +38,13 @@ func (h *AuditHandler) GetPendingInvoices(c *gin.Context) {
 		return
 	}
 
-	result, err := h.invoiceService.GetPendingInvoices(page, size)
+	preAuditStatus := strings.TrimSpace(c.Query("pre_audit_status"))
+	if preAuditStatus != "" && preAuditStatus != "pre_approved" && preAuditStatus != "need_review" {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "pre_audit_status 参数不合法"})
+		return
+	}
+
+	result, err := h.invoiceService.GetPendingInvoices(page, size, preAuditStatus)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "获取待审核单据失败: " + err.Error()})
 		return

@@ -54,6 +54,14 @@
           <el-descriptions-item label="发票日期">{{ formatDate(invoiceData?.invoice_date) }}</el-descriptions-item>
           <el-descriptions-item label="商家">{{ invoiceData?.vendor || '-' }}</el-descriptions-item>
           <el-descriptions-item label="分类">{{ invoiceData?.category || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="AI预审状态">{{ preAuditStatusText(invoiceData?.pre_audit_status) }}</el-descriptions-item>
+          <el-descriptions-item label="AI预审分数">{{ Number(invoiceData?.pre_audit_score ?? 0) }}</el-descriptions-item>
+          <el-descriptions-item label="AI预审原因" :span="2">
+            <ul v-if="(invoiceData?.pre_audit_reasons || []).length" class="list-disc pl-5 space-y-1">
+              <li v-for="reason in invoiceData?.pre_audit_reasons || []" :key="reason">{{ reason }}</li>
+            </ul>
+            <span v-else>-</span>
+          </el-descriptions-item>
           <el-descriptions-item label="描述" :span="2">{{ invoiceData?.description || '-' }}</el-descriptions-item>
         </el-descriptions>
 
@@ -174,6 +182,12 @@ const rules: FormRules = {
       trigger: 'blur',
     }
   ],
+}
+
+const preAuditStatusText = (status?: 'pre_approved' | 'need_review') => {
+  if (status === 'pre_approved') return '预通过'
+  if (status === 'need_review') return '需复核'
+  return '-'
 }
 
 /**
