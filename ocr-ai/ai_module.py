@@ -110,6 +110,25 @@ def _extract_response_text(response) -> str:
     return ""
 
 
+def classify_expense(image_path, ocr_result=None):
+    """
+    从图片中提取发票字段信息
+
+    Args:
+        image_path (str): 图片文件路径
+        ocr_result (str, optional): 已经进行OCR识别的结果，如果未提供则自行识别
+
+    Returns:
+        dict: 包含发票字段的字典
+    """
+    if ocr_result is None:
+        from ocr_module import ocr_image
+
+        ocr_result = ocr_image(image_path)
+
+    return extract_invoice_fields_with_openai(image_path, ocr_result)
+
+
 def extract_invoice_fields_with_openai(image_path, ocr_result):
     """
     使用OpenAI API，通过图片提取发票字段
@@ -155,7 +174,7 @@ def extract_invoice_fields_with_openai(image_path, ocr_result):
         }}
 
         
-        你需要根据发票信息来判断该发票数据下面几个类别中的哪一类并放入invoice_type：{DEFAULT_CATEGORIES}
+        你需要根据发票信息来判断该发票数据下面几个类别中的哪一类并放入category：{DEFAULT_CATEGORIES}
         
         发票OCR识别结果：{ocr_result}
 
@@ -167,7 +186,7 @@ def extract_invoice_fields_with_openai(image_path, ocr_result):
             "merchant_name": "商户名称",
             "date": "YYYY-MM-DD格式日期",
             "payment_method": "支付方式",
-            "invoice_type": "发票类型"
+            "category": "发票类型"
         }}
 
         请严格按照上述JSON格式返回，不要包含其他文字。"""
