@@ -31,3 +31,4 @@ GEMINI.md
 .gitignore
 .trae/*
 .opencode/
+.gocache/*

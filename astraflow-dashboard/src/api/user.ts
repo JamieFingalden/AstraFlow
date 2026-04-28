@@ -5,7 +5,11 @@ export interface User {
   username: string
   name: string
   avatar?: string
-  role_key: 'admin' | 'auditor' | 'employee'
+  role_key?: 'admin' | 'auditor' | 'employee'
+  role?: {
+    key?: 'admin' | 'auditor' | 'employee'
+    name?: string
+  }
   status: 'active' | 'disabled'
   created_at?: string
   last_login?: string

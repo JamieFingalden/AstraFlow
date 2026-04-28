@@ -39,12 +39,12 @@
         <el-table-column label="角色" width="150">
           <template #default="{ row }">
             <el-tag 
-              :type="getRoleTagType(row.role_key)" 
+              :type="getRoleTagType(getUserRoleKey(row))" 
               effect="light" 
               round
-              class="capitalize !border-0 font-medium"
+              class="!border-0 !font-semibold role-tag"
             >
-              {{ getRoleName(row.role_key) }}
+              {{ getRoleName(row) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -148,6 +148,8 @@ const formatDate = (date?: string) => {
 }
 
 // -- Styling --
+const getUserRoleKey = (user: User) => user.role_key || user.role?.key || ''
+
 const getRoleTagType = (role: string) => {
     switch (role) {
         case 'admin': return 'danger'
@@ -157,12 +159,13 @@ const getRoleTagType = (role: string) => {
     }
 }
 
-const getRoleName = (role: string) => {
+const getRoleName = (user: User) => {
+    const role = getUserRoleKey(user)
     switch (role) {
         case 'admin': return '人事管理员'
         case 'auditor': return '财务专员'
         case 'employee': return '普通员工'
-        default: return role
+        default: return user.role?.name || role || '未分配'
     }
 }
 
@@ -253,3 +256,10 @@ onMounted(() => {
     fetchData()
 })
 </script>
+
+<style scoped>
+.role-tag {
+  min-width: 72px;
+  justify-content: center;
+}
+</style>
