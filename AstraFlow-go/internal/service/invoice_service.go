@@ -26,6 +26,8 @@ var (
 	ErrBatchPayCountMismatch     = errors.New("batch pay count mismatch")
 )
 
+const duplicateInvoiceNumberReason = "发票号已存在"
+
 // PendingInvoicesResult 待审核单据分页结果
 type PendingInvoicesResult struct {
 	Items      []repository.PendingInvoiceItem `json:"items"`
@@ -330,6 +332,63 @@ func (s *InvoiceService) UpdateInvoice(id int64, invoiceDate time.Time, amount f
 	return existingInvoice, nil
 }
 
+// UpdateOCRInvoiceResult 保存 OCR 识别结果。
+// OCR 已经完成时，即使命中重复发票号，也要让单据离开“待识别”并进入“待确认”，便于用户删除。
+func (s *InvoiceService) UpdateOCRInvoiceResult(id int64, invoiceDate time.Time, amount float64, invoiceNumber, vendor, taxID, category, description string) (*model.Invoice, error) {
+	existingInvoice, err := s.invoiceRepo.FindById(id)
+	if err != nil {
+		return nil, err
+	}
+	if existingInvoice == nil {
+		return nil, ErrInvoiceNotFound
+	}
+
+	duplicateInvoiceNumber := false
+	if invoiceNumber != "" && invoiceNumber != existingInvoice.InvoiceNumber {
+		found, err := s.invoiceRepo.FindByInvoiceNumber(invoiceNumber)
+		if err != nil {
+			return nil, err
+		}
+		duplicateInvoiceNumber = found != nil && found.ID != id
+	}
+
+	existingInvoice.InvoiceNumber = invoiceNumber
+	if !invoiceDate.IsZero() {
+		existingInvoice.InvoiceDate = &invoiceDate
+	}
+	existingInvoice.Amount = amount
+	existingInvoice.Vendor = vendor
+	existingInvoice.TaxID = strings.TrimSpace(taxID)
+	existingInvoice.Category = category
+	existingInvoice.Description = description
+	existingInvoice.Status = model.StatusUnconfirmed
+
+	preAuditResult, err := s.evaluatePreAudit(existingInvoice, invoiceDate, amount, invoiceNumber)
+	if err != nil {
+		return nil, err
+	}
+	if duplicateInvoiceNumber {
+		preAuditResult.Status = model.PreAuditStatusNeedReview
+		preAuditResult.Score = 0
+		preAuditResult.Reasons = append(preAuditResult.Reasons, duplicateInvoiceNumberReason)
+	}
+
+	reasonsJSON, err := json.Marshal(preAuditResult.Reasons)
+	if err != nil {
+		return nil, err
+	}
+	existingInvoice.PreAuditStatus = preAuditResult.Status
+	existingInvoice.PreAuditScore = preAuditResult.Score
+	existingInvoice.PreAuditReasons = string(reasonsJSON)
+
+	err = s.invoiceRepo.Update(existingInvoice)
+	if err != nil {
+		return nil, err
+	}
+
+	return existingInvoice, nil
+}
+
 func (s *InvoiceService) ValidateOCRCallbackTarget(invoiceID, attachmentID int64) error {
 	if invoiceID <= 0 || attachmentID <= 0 {
 		return ErrInvalidInvoiceID
@@ -432,6 +491,10 @@ func (s *InvoiceService) ConfirmInvoice(id int64, invoiceDate time.Time, amount 
 	}
 	if existingInvoice == nil {
 		return nil, errors.New("发票不存在")
+	}
+
+	if strings.Contains(existingInvoice.PreAuditReasons, duplicateInvoiceNumberReason) {
+		return nil, errors.New("该发票号已存在，只能删除")
 	}
 
 	if invoiceNumber != "" && invoiceNumber != existingInvoice.InvoiceNumber {

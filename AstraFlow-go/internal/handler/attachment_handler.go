@@ -442,8 +442,8 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 			invoiceDate = time.Now()
 		}
 
-		// 更新发票记录
-		_, err := h.invoiceService.UpdateInvoice(
+		// 更新发票记录。重复发票号也视为 OCR 已完成，进入待确认并交给用户删除。
+		_, err := h.invoiceService.UpdateOCRInvoiceResult(
 			invoiceID,
 			invoiceDate,
 			amount,
@@ -452,7 +452,6 @@ func (h *AttachmentHandler) HandleOCRResultCallback(c *gin.Context) {
 			taxID,
 			category,
 			description,
-			string(model.StatusUnconfirmed), // OCR 完成后先进入待确认
 		)
 		if err != nil {
 			log.Printf("更新发票失败，发票ID: %d, 错误: %v", invoiceID, err)

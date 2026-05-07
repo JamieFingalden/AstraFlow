@@ -49,3 +49,14 @@ export const updateInvoice = (id, data) => {
     data,
   });
 };
+
+/**
+ * 删除发票
+ * @param {number} id 发票ID
+ */
+export const deleteInvoice = (id) => {
+  return request({
+    url: `/invoices/${id}`,
+    method: 'delete',
+  });
+};

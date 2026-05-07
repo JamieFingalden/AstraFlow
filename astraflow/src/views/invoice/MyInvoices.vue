@@ -12,7 +12,7 @@
           <InvoiceList :invoices="invoiceData.items" :loading="loading" status="recognizing" />
         </el-tab-pane>
         <el-tab-pane label="待确认" name="unconfirmed">
-           <InvoiceList :invoices="invoiceData.items" :loading="loading" status="unconfirmed" @confirm="handleConfirm" />
+           <InvoiceList :invoices="invoiceData.items" :loading="loading" status="unconfirmed" @confirm="handleConfirm" @delete="handleDelete" />
         </el-tab-pane>
         <el-tab-pane label="待发布" name="draft">
            <InvoiceList :invoices="invoiceData.items" :loading="loading" status="draft" @publish="handlePublish" @edit="handleEdit" />
@@ -80,7 +80,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
-import { getMyInvoices, publishInvoices, confirmInvoice, updateInvoice } from '../../services/api/invoice.js';
+import { getMyInvoices, publishInvoices, confirmInvoice, updateInvoice, deleteInvoice } from '../../services/api/invoice.js';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import InvoiceList from '../../components/InvoiceList.vue';
 
@@ -172,6 +172,27 @@ const handleConfirm = (invoice) => {
 
 const handleEdit = (invoice) => {
     openDialog(invoice);
+};
+
+const handleDelete = async (invoice) => {
+  try {
+    await ElMessageBox.confirm('该发票号已存在，只能删除当前识别记录。确定删除吗？', '删除发票', {
+      type: 'warning',
+      confirmButtonText: '确定删除',
+      cancelButtonText: '取消',
+    });
+
+    loading.value = true;
+    await deleteInvoice(invoice.id);
+    ElMessage.success('删除成功');
+    fetchData();
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.response?.data?.message || '删除失败');
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 
 const handleSave = async () => {

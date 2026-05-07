@@ -30,14 +30,16 @@
 
       <el-table-column label="状态" prop="status">
         <template #default="{ row }">
-          <el-tag :type="getStatusTagType(row.status)" effect="light">{{ getStatusText(row.status) }}</el-tag>
+          <el-tag v-if="isDuplicateInvoice(row)" type="danger" effect="light">已存在</el-tag>
+          <el-tag v-else :type="getStatusTagType(row.status)" effect="light">{{ getStatusText(row.status) }}</el-tag>
         </template>
       </el-table-column>
 
       <el-table-column label="操作" align="right">
         <template #default="{ row }">
           <div v-if="status === 'unconfirmed'">
-            <el-button type="primary" link @click="$emit('confirm', row)">确认/修改</el-button>
+            <el-button v-if="!isDuplicateInvoice(row)" type="primary" link @click="$emit('confirm', row)">确认/修改</el-button>
+            <el-button v-else type="danger" link @click="$emit('delete', row)">删除</el-button>
           </div>
            <div v-if="status === 'draft'">
             <el-button type="primary" link @click="$emit('edit', row)">编辑</el-button>
@@ -76,7 +78,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['confirm', 'publish']);
+const emit = defineEmits(['confirm', 'publish', 'delete']);
 
 const selectedInvoices = ref([]);
 
@@ -119,4 +121,15 @@ const getStatusText = (status) => {
     };
     return map[status] || status;
 }
+
+const isDuplicateInvoice = (invoice) => {
+  if (!invoice?.pre_audit_reasons) return false;
+
+  try {
+    const reasons = JSON.parse(invoice.pre_audit_reasons);
+    return Array.isArray(reasons) && reasons.includes('发票号已存在');
+  } catch (error) {
+    return String(invoice.pre_audit_reasons).includes('发票号已存在');
+  }
+};
 </script>
